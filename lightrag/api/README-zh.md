@@ -137,7 +137,7 @@ lightrag-gunicorn --workers 4
 docker compose up
 # 如果希望启动后让程序退到后台运行，需要在命令的最后添加 -d 参数
 ```
-> 可以通过以下链接获取官方的docker compose文件：[docker-compose.yml]( https://raw.githubusercontent.com/HKUDS/LightRAG/refs/heads/main/docker-compose.yml) 。如需获取LightRAG的历史版本镜像，可以访问以下链接: [LightRAG Docker Images]( https://github.com/HKUDS/LightRAG/pkgs/container/lightrag). 如需获取更多关于docker部署的信息，请参阅 [DockerDeployment.md](./../../docs/DockerDeployment.md).
+> 可以通过以下链接获取官方的docker compose文件：[docker-compose.yml]( https://raw.githubusercontent.com/marcdhansen/LightRAG_gemini/refs/heads/main/docker-compose.yml) 。如需获取LightRAG的历史版本镜像，可以访问以下链接: [LightRAG Docker Images]( https://github.com/marcdhansen/LightRAG_gemini/pkgs/container/lightrag). 如需获取更多关于docker部署的信息，请参阅 [DockerDeployment.md](./../../docs/DockerDeployment.md).
 
 ### 离线部署
 

@@ -4341,7 +4341,7 @@ class PGGraphStorage(BaseGraphStorage):
 
         # Build Cypher query with dynamic dollar-quoting to handle content containing $$
         # This prevents syntax errors when LLM-extracted descriptions contain $ sequences
-        # See: https://github.com/HKUDS/LightRAG/issues/1438#issuecomment-2826000195
+        # See: https://github.com/marcdhansen/LightRAG_gemini/issues/1438#issuecomment-2826000195
         cypher_query = f"""MATCH (source:base {{entity_id: "{src_label}"}})
                      WITH source
                      MATCH (target:base {{entity_id: "{tgt_label}"}})

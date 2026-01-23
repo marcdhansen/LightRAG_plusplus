@@ -8,12 +8,12 @@ A lightweight Knowledge Graph Retrieval-Augmented Generation system with multipl
 
 ```bash
 # Linux/MacOS
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 ```
 ```powershell
 # Windows PowerShell
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 ```
 

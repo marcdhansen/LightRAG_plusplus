@@ -7,7 +7,7 @@
 # 🚀 LightRAG: 简单且快速的检索增强生成（RAG）框架
 
 <div align="center">
-    <a href="https://trendshift.io/repositories/13043" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13043" alt="HKUDS%2FLightRAG | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+    <a href="https://trendshift.io/repositories/13043" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13043" alt="marcdhansen%2FLightRAG_gemini | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </div>
 
 <div align="center">
@@ -17,9 +17,9 @@
 <div align="center">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 25px; text-align: center;">
     <p>
-      <a href='https://github.com/HKUDS/LightRAG'><img src='https://img.shields.io/badge/🔥项目-主页-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e'></a>
+      <a href='https://github.com/marcdhansen/LightRAG_gemini'><img src='https://img.shields.io/badge/🔥项目-主页-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e'></a>
       <a href='https://arxiv.org/abs/2410.05779'><img src='https://img.shields.io/badge/📄arXiv-2410.05779-ff6b6b?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=1a1a2e'></a>
-      <a href="https://github.com/HKUDS/LightRAG/stargazers"><img src='https://img.shields.io/github/stars/HKUDS/LightRAG?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' /></a>
+      <a href="https://github.com/marcdhansen/LightRAG_gemini/stargazers"><img src='https://img.shields.io/github/stars/marcdhansen/LightRAG_gemini?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' /></a>
     </p>
     <p>
       <img src="https://img.shields.io/badge/🐍Python-3.10-4ecdc4?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a2e">
@@ -27,7 +27,7 @@
     </p>
     <p>
       <a href="https://discord.gg/yF2MmDJyGJ"><img src="https://img.shields.io/badge/💬Discord-社区-7289da?style=for-the-badge&logo=discord&logoColor=white&labelColor=1a1a2e"></a>
-      <a href="https://github.com/HKUDS/LightRAG/issues/285"><img src="https://img.shields.io/badge/💬微信群-交流-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e"></a>
+      <a href="https://github.com/marcdhansen/LightRAG_gemini/issues/285"><img src="https://img.shields.io/badge/💬微信群-交流-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e"></a>
     </p>
     <p>
       <a href="README-zh.md"><img src="https://img.shields.io/badge/🇨🇳中文版-1a1a2e?style=for-the-badge"></a>
@@ -58,7 +58,7 @@
 - [2025.08]🎯[新功能]: 现已支持 **Reranker**，显著提升混合查询性能（已设为默认查询模式）。
 - [2025.08]🎯[新功能]: 添加了**文档删除**功能，并支持自动重新生成知识图谱，以确保最佳查询性能。
 - [2025.06]🎯[新发布]: 我们的团队发布了 [RAG-Anything](https://github.com/HKUDS/RAG-Anything) —— 一个用于无缝处理文本、图像、表格和方程式的**全功能多模态 RAG** 系统。
-- [2025.06]🎯[新功能]: LightRAG 现已集成 [RAG-Anything](https://github.com/HKUDS/RAG-Anything)，支持全面的多模态数据处理，实现对 PDF、图像、Office 文档、表格和公式等多种格式的无缝文档解析和 RAG 能力。详见[多模态文档处理部分](https://github.com/HKUDS/LightRAG/?tab=readme-ov-file#multimodal-document-processing-rag-anything-integration)。
+- [2025.06]🎯[新功能]: LightRAG 现已集成 [RAG-Anything](https://github.com/HKUDS/RAG-Anything)，支持全面的多模态数据处理，实现对 PDF、图像、Office 文档、表格和公式等多种格式的无缝文档解析和 RAG 能力。详见[多模态文档处理部分](https://github.com/marcdhansen/LightRAG_gemini/?tab=readme-ov-file#multimodal-document-processing-rag-anything-integration)。
 - [2025.03]🎯[新功能]: LightRAG 现已支持引用功能，实现了准确的源归因和增强的文档可追溯性。
 - [2025.02]🎯[新功能]: 现在您可以使用 MongoDB 作为一体化存储解决方案，实现统一的数据管理。
 - [2025.02]🎯[新发布]: 我们的团队发布了 [VideoRAG](https://github.com/HKUDS/VideoRAG) —— 一个用于理解超长上下文视频的 RAG 系统。
@@ -66,10 +66,10 @@
 - [2025.01]🎯现在您可以使用 PostgreSQL 作为一体化存储解决方案进行数据管理。
 - [2024.11]🎯[新资源]: LightRAG 的综合指南现已在 [LearnOpenCV](https://learnopencv.com/lightrag) 上发布 —— 探索深入的教程和最佳实践。非常感谢博客作者的杰出贡献！
 - [2024.11]🎯[新功能]: 推出 LightRAG WebUI —— 一个允许您通过直观的 Web 界面插入、查询和可视化 LightRAG 知识的仪表板。
-- [2024.11]🎯[新功能]: 现在您可以[使用 Neo4J 进行存储](https://github.com/HKUDS/LightRAG?tab=readme-ov-file#using-neo4j-for-storage) —— 开启图数据库支持。
+- [2024.11]🎯[新功能]: 现在您可以[使用 Neo4J 进行存储](https://github.com/marcdhansen/LightRAG_gemini?tab=readme-ov-file#using-neo4j-for-storage) —— 开启图数据库支持。
 - [2024.10]🎯[新功能]: 我们添加了 [LightRAG 介绍视频](https://youtu.be/oageL-1I0GE) 的链接 —— 演示 LightRAG 的各项功能。感谢作者的杰出贡献！
 - [2024.10]🎯[新频道]: 我们创建了一个 [Discord 频道](https://discord.gg/yF2MmDJyGJ)！💬 欢迎加入我们的社区进行分享、讨论和协作！ 🎉🎉
-- [2024.10]🎯[新功能]: LightRAG 现在支持 [Ollama 模型](https://github.com/HKUDS/LightRAG?tab=readme-ov-file#quick-start)！
+- [2024.10]🎯[新功能]: LightRAG 现在支持 [Ollama 模型](https://github.com/marcdhansen/LightRAG_gemini?tab=readme-ov-file#quick-start)！
 
 <details>
   <summary style="font-size: 1.4em; font-weight: bold; cursor: pointer; display: list-item;">
@@ -119,7 +119,7 @@ lightrag-server
 * 从源代码安装
 
 ```bash
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 
 # 使用 uv (推荐)
@@ -148,14 +148,14 @@ lightrag-server
 * 使用 Docker Compose 启动 LightRAG 服务器
 
 ```bash
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 cp env.example .env  # 使用你的LLM和Embedding模型访问参数更新.env文件
 # modify LLM and Embedding settings in .env
 docker compose up
 ```
 
-> 在此获取LightRAG docker镜像历史版本: [LightRAG Docker Images]( https://github.com/HKUDS/LightRAG/pkgs/container/lightrag)
+> 在此获取LightRAG docker镜像历史版本: [LightRAG Docker Images]( https://github.com/marcdhansen/LightRAG_gemini/pkgs/container/lightrag)
 
 ### 安装LightRAG Core
 
@@ -974,7 +974,7 @@ async def initialize_rag():
 
 * PostgreSQL 很轻量，包含所有必要插件的完整二进制发行版可以压缩到 40MB：参考 [Windows Release](https://github.com/ShanGor/apache-age-windows/releases/tag/PG17%2Fv1.5.0-rc0)，Linux/Mac 也很容易安装。
 * 如果您喜欢 docker，建议初学者使用此镜像以避免出现问题（默认用户密码：rag/rag）：https://hub.docker.com/r/gzdaniel/postgres-for-rag
-* 如何开始？参考：[examples/lightrag_gemini_postgres_demo.py](https://github.com/HKUDS/LightRAG/blob/main/examples/lightrag_gemini_postgres_demo.py)
+* 如何开始？参考：[examples/lightrag_gemini_postgres_demo.py](https://github.com/marcdhansen/LightRAG_gemini/blob/main/examples/lightrag_gemini_postgres_demo.py)
 * 对于高性能图数据库需求，推荐使用 Neo4j，因为 Apache AGE 的性能不够理想。
 
 </details>
@@ -2024,11 +2024,11 @@ def extract_queries(file_path):
 
 ## ⭐ Star 历史
 
-<a href="https://star-history.com/#HKUDS/LightRAG&Date">
+<a href="https://star-history.com/#marcdhansen/LightRAG_gemini&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=HKUDS/LightRAG&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=HKUDS/LightRAG&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=HKUDS/LightRAG&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=marcdhansen/LightRAG_gemini&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=marcdhansen/LightRAG_gemini&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=marcdhansen/LightRAG_gemini&type=Date" />
  </picture>
 </a>
 
@@ -2039,8 +2039,8 @@ def extract_queries(file_path):
 </div>
 
 <div align="center">
-  <a href="https://github.com/HKUDS/LightRAG/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=HKUDS/LightRAG" style="border-radius: 15px; box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);" />
+  <a href="https://github.com/marcdhansen/LightRAG_gemini/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=marcdhansen/LightRAG_gemini" style="border-radius: 15px; box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);" />
   </a>
 </div>
 
@@ -2067,13 +2067,13 @@ primaryClass={cs.IR}
     <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="500">
   </div>
   <div style="margin-top: 20px;">
-    <a href="https://github.com/HKUDS/LightRAG" style="text-decoration: none;">
+    <a href="https://github.com/marcdhansen/LightRAG_gemini" style="text-decoration: none;">
       <img src="https://img.shields.io/badge/⭐%20在%20GitHub%20上点亮星星-1a1a2e?style=for-the-badge&logo=github&logoColor=white">
     </a>
-    <a href="https://github.com/HKUDS/LightRAG/issues" style="text-decoration: none;">
+    <a href="https://github.com/marcdhansen/LightRAG_gemini/issues" style="text-decoration: none;">
       <img src="https://img.shields.io/badge/🐛%20报告问题-ff6b6b?style=for-the-badge&logo=github&logoColor=white">
     </a>
-    <a href="https://github.com/HKUDS/LightRAG/discussions" style="text-decoration: none;">
+    <a href="https://github.com/marcdhansen/LightRAG_gemini/discussions" style="text-decoration: none;">
       <img src="https://img.shields.io/badge/💬%20讨论-4ecdc4?style=for-the-badge&logo=github&logoColor=white">
     </a>
   </div>

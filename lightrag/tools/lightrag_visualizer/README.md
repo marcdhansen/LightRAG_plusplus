@@ -126,7 +126,7 @@ The viewer is particularly useful for:
 
 ## Support
 
-- GitHub Issues: [LightRAG Repository](https://github.com/HKUDS/LightRAG)
+- GitHub Issues: [LightRAG Repository](https://github.com/marcdhansen/LightRAG_gemini)
 - Documentation: [LightRAG Docs](https://URL-to-docs)
 
 ## License

@@ -31,7 +31,7 @@ pip install lightrag-hku[api]
 **Command:**
 ```bash
 # Clone the repository
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 
 # Install in editable mode (no frontend build required yet)
@@ -61,7 +61,7 @@ cd ..
 **Command:**
 ```bash
 # Clone the repository
-git clone https://github.com/HKUDS/LightRAG.git
+git clone https://github.com/marcdhansen/LightRAG_gemini.git
 cd LightRAG
 
 # ⚠️ MUST build frontend FIRST

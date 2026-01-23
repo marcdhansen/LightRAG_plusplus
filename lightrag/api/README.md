@@ -145,7 +145,7 @@ docker compose up
 # If you want the program to run in the background after startup, add the -d parameter at the end of the command.
 ```
 
-You can get the official docker compose file from here: [docker-compose.yml](https://raw.githubusercontent.com/HKUDS/LightRAG/refs/heads/main/docker-compose.yml). For historical versions of LightRAG docker images, visit this link: [LightRAG Docker Images](https://github.com/HKUDS/LightRAG/pkgs/container/lightrag). For more details about docker deployment, please refer to [DockerDeployment.md](./../../docs/DockerDeployment.md).
+You can get the official docker compose file from here: [docker-compose.yml](https://raw.githubusercontent.com/marcdhansen/LightRAG_gemini/refs/heads/main/docker-compose.yml). For historical versions of LightRAG docker images, visit this link: [LightRAG Docker Images](https://github.com/marcdhansen/LightRAG_gemini/pkgs/container/lightrag). For more details about docker deployment, please refer to [DockerDeployment.md](./../../docs/DockerDeployment.md).
 
 ### Offline Deployment
 
