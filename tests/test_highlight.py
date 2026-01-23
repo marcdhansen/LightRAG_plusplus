@@ -2,6 +2,7 @@ import pytest
 from lightrag.highlight import get_highlights
 
 @pytest.mark.offline
+@pytest.mark.light
 def test_get_highlights_basic():
     """Test basic highlighting with a simple query and context."""
     query = "What is the capital of France?"
@@ -15,6 +16,7 @@ def test_get_highlights_basic():
     assert len(result["highlighted_sentences"]) == len(result["sentence_probabilities"])
 
 @pytest.mark.offline
+@pytest.mark.light
 def test_get_highlights_threshold():
     """Test that the threshold correctly filters out irrelevant content."""
     query = "What is the capital of France?"
@@ -26,6 +28,7 @@ def test_get_highlights_threshold():
     assert len(result["sentence_probabilities"]) == 0
 
 @pytest.mark.offline
+@pytest.mark.light
 def test_get_highlights_empty():
     """Test highlighting with empty input."""
     result = get_highlights("", "", threshold=0.5)
