@@ -178,6 +178,19 @@ version = {attr = "lightrag.__version__"}
 lightrag = ["api/webui/**/*", "api/static/**/*"]
 
 [tool.pytest.ini_options]
+markers = [
+    "manual: marks tests intended for manual/interactive execution",
+    "integration: marks tests requiring external services (skipped by default)",
+    "offline: marks tests as offline (no external dependencies)",
+    "requires_db: marks tests requiring database",
+    "requires_api: marks tests requiring LightRAG API server",
+    "light: marks tests that are fast and suitable for continuous runs (unit/smoke)",
+    "heavy: marks tests that are slow or resource intensive (integration/stress/benchmarks)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:importlib._bootstrap",
+    "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]

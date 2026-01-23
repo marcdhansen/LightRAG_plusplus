@@ -1,4 +1,6 @@
 import pytest
+
+pytestmark = pytest.mark.heavy
 from unittest.mock import patch, AsyncMock
 import numpy as np
 from lightrag.utils import EmbeddingFunc

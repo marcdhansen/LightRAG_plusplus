@@ -1,5 +1,7 @@
 import pytest
-from lightrag.lightrag import LightRAG
+
+pytestmark = pytest.mark.heavy
+from lightrag.core import LightRAG
 from lightrag.ace.config import ACEConfig
 from lightrag.ace.playbook import ContextPlaybook
 from lightrag.ace.generator import ACEGenerator

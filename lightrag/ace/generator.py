@@ -3,7 +3,7 @@ import logging
 from typing import Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lightrag.lightrag import LightRAG, QueryParam
+    from lightrag.core import LightRAG, QueryParam
 
 from lightrag.ace.playbook import ContextPlaybook
 

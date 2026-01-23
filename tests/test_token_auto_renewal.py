@@ -8,6 +8,8 @@ Tests:
 """
 
 import pytest
+
+pytestmark = pytest.mark.heavy
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 from fastapi import Response

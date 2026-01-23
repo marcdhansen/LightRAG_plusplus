@@ -4,7 +4,7 @@ import json
 from typing import Dict, Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lightrag.lightrag import LightRAG
+    from lightrag.core import LightRAG
 
 logger = logging.getLogger(__name__)
 

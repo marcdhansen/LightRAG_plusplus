@@ -8,6 +8,8 @@ legacy collections/tables to new ones with different embedding models.
 
 import json
 import pytest
+
+pytestmark = pytest.mark.heavy
 from unittest.mock import MagicMock, AsyncMock, patch
 
 from lightrag.kg.qdrant_impl import QdrantVectorDBStorage

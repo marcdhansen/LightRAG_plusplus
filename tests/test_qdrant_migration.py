@@ -1,4 +1,6 @@
 import pytest
+
+pytestmark = pytest.mark.heavy
 from unittest.mock import MagicMock, patch, AsyncMock
 import numpy as np
 from qdrant_client import models

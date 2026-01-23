@@ -112,7 +112,7 @@ from lightrag.utils import (
     make_relation_chunk_key,
     normalize_source_ids_limit_method,
 )
-from lightrag.types import KnowledgeGraph
+from lightrag.core_types import KnowledgeGraph
 from lightrag.ace.config import ACEConfig
 from lightrag.ace.playbook import ContextPlaybook
 from lightrag.ace.generator import ACEGenerator

@@ -1,3 +1,5 @@
+import pytest
+pytestmark = pytest.mark.light
 """
 Tests for safety when model suffix is absent (no model_name provided).
 

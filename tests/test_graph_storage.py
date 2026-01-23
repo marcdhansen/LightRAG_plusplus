@@ -19,13 +19,15 @@ import sys
 import importlib
 import numpy as np
 import pytest
+
+pytestmark = pytest.mark.heavy
 from dotenv import load_dotenv
 from ascii_colors import ASCIIColors
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lightrag.types import KnowledgeGraph
+from lightrag.core_types import KnowledgeGraph
 from lightrag.kg import (
     STORAGE_IMPLEMENTATIONS,
     STORAGE_ENV_REQUIREMENTS,

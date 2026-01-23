@@ -10,6 +10,8 @@ import asyncio
 import os
 import sys
 import pytest
+
+pytestmark = pytest.mark.heavy
 import numpy as np
 
 # Add the project root directory to the Python path

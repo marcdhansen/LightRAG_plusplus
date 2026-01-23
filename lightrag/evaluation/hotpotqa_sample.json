@@ -1,0 +1,19 @@
+{
+  "test_cases": [
+    {
+      "question": "Which film starring Keanu Reeves as Neo was released first?",
+      "ground_truth": "The Matrix (1999) was released before The Matrix Reloaded (2003) and The Matrix Revolutions (2003).",
+      "project": "hotpotqa_sample"
+    },
+    {
+      "question": "The band that performed 'Comfortably Numb' formed in which city?",
+      "ground_truth": "Pink Floyd formed in London.",
+      "project": "hotpotqa_sample"
+    },
+    {
+      "question": "Who was the director of the movie that features the character Sarah Connor?",
+      "ground_truth": "James Cameron directed The Terminator (1984) and Terminator 2: Judgment Day (1991).",
+      "project": "hotpotqa_sample"
+    }
+  ]
+}

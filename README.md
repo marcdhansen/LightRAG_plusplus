@@ -52,6 +52,7 @@
 ---
 
 ## 🎉 News
+- [2026.01]🎯[New Feature]: **ACE Framework (Alpha)**: Introduced the Agentic Context Evolution framework for self-improving RAG via a Generate-Reflect-Curate loop.
 - [2025.11]🎯[New Feature]: Integrated **RAGAS for Evaluation** and **Langfuse for Tracing**. Updated the API to return retrieved contexts alongside query results to support context precision metrics.
 - [2025.10]🎯[Scalability Enhancement]: Eliminated processing bottlenecks to support **Large-Scale Datasets Efficiently**.
 - [2025.09]🎯[New Feature] Enhances knowledge graph extraction accuracy for **Open-Sourced LLMs** such as Qwen3-30B-A3B.

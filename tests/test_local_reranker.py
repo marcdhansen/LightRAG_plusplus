@@ -1,3 +1,5 @@
+import pytest
+pytestmark = pytest.mark.light
 import asyncio
 import os
 import sys

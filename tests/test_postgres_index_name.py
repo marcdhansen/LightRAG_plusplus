@@ -8,6 +8,8 @@ lookup failures.
 
 import pytest
 
+pytestmark = pytest.mark.light
+
 # Mark all tests as offline (no external dependencies)
 pytestmark = pytest.mark.offline
 

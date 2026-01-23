@@ -5,6 +5,8 @@ import sys
 import time
 import pytest
 
+pytestmark = pytest.mark.heavy
+
 # Configuration
 BASE_URL = "http://localhost:9621"
 TEST_DOCS_DIR = "test_documents"
@@ -108,6 +110,7 @@ async def upload_and_process_file(client, file_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 async def test_fail_fast_integration():
     if not os.path.exists(TEST_DOCS_DIR):
         print(f"Error: Directory '{TEST_DOCS_DIR}' not found.")

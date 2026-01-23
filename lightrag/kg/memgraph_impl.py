@@ -7,7 +7,7 @@ import configparser
 
 from ..utils import logger
 from ..base import BaseGraphStorage
-from ..types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
+from ..core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 from ..kg.shared_storage import get_data_init_lock
 import pipmaster as pm
 
@@ -953,7 +953,7 @@ class MemgraphStorage(BaseGraphStorage):
                 if record:
                     for node_info in record["node_info"]:
                         node = node_info["node"]
-                        node_id = node.id
+                        node_id = node.element_id
                         if node_id not in seen_nodes:
                             result.nodes.append(
                                 KnowledgeGraphNode(
@@ -965,7 +965,7 @@ class MemgraphStorage(BaseGraphStorage):
                             seen_nodes.add(node_id)
 
                     for rel in record["relationships"]:
-                        edge_id = rel.id
+                        edge_id = rel.element_id
                         if edge_id not in seen_edges:
                             start = rel.start_node
                             end = rel.end_node
@@ -973,8 +973,8 @@ class MemgraphStorage(BaseGraphStorage):
                                 KnowledgeGraphEdge(
                                     id=f"{edge_id}",
                                     type=rel.type,
-                                    source=f"{start.id}",
-                                    target=f"{end.id}",
+                                    source=f"{start.element_id}",
+                                    target=f"{end.element_id}",
                                     properties=dict(rel),
                                 )
                             )

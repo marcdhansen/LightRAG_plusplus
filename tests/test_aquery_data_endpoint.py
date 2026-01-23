@@ -10,6 +10,8 @@ Updated to handle the new data format where:
 """
 
 import pytest
+
+pytestmark = pytest.mark.heavy
 import requests
 import time
 import json
@@ -113,21 +115,15 @@ def test_query_endpoint_references():
             data = response.json()
 
             # Check response structure
-            if "response" not in data:
-                print("❌ Missing 'response' field")
-                return False
+            assert "response" in data, "Missing 'response' field"
 
-            if "references" not in data:
-                print("❌ Missing 'references' field when include_references=True")
-                return False
+            assert "references" in data, "Missing 'references' field when include_references=True"
 
             references = data["references"]
-            if references is None:
-                print("❌ References should not be None when include_references=True")
-                return False
+            assert references is not None, "References should not be None when include_references=True"
 
             if not validate_references_format(references):
-                return False
+                assert False, "References format validation failed"
 
             print(f"✅ References enabled: Found {len(references)} references")
             print(f"   Response length: {len(data['response'])} characters")
@@ -143,11 +139,11 @@ def test_query_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            return False
+            assert False, f"Request failed with status {response.status_code}"
 
     except Exception as e:
         print(f"❌ Test 1 failed: {str(e)}")
-        return False
+        assert False, f"Test 1 failed: {str(e)}"
 
     # Test 2: References disabled
     print("\n🧪 Test 2: References disabled")
@@ -165,14 +161,10 @@ def test_query_endpoint_references():
             data = response.json()
 
             # Check response structure
-            if "response" not in data:
-                print("❌ Missing 'response' field")
-                return False
+            assert "response" in data, "Missing 'response' field"
 
             references = data.get("references")
-            if references is not None:
-                print("❌ References should be None when include_references=False")
-                return False
+            assert references is None, "References should be None when include_references=False"
 
             print("✅ References disabled: No references field present")
             print(f"   Response length: {len(data['response'])} characters")
@@ -180,14 +172,13 @@ def test_query_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            return False
+            assert False, f"Request failed with status {response.status_code}"
 
     except Exception as e:
         print(f"❌ Test 2 failed: {str(e)}")
-        return False
+        assert False, f"Test 2 failed: {str(e)}"
 
     print("\n✅ /query endpoint references tests passed!")
-    return True
 
 
 @pytest.mark.integration
@@ -232,18 +223,18 @@ def test_query_stream_endpoint_references():
 
             if errors:
                 print(f"❌ Errors in streaming response: {errors}")
-                return False
+                assert False, f"Errors in streaming response: {errors}"
 
             if references is None:
                 print("❌ No references found in streaming response")
-                return False
+                assert False, "No references found in streaming response"
 
             if not validate_references_format(references):
-                return False
+                assert False, "References format validation failed"
 
             if not response_chunks:
                 print("❌ No response chunks found in streaming response")
-                return False
+                assert False, "No response chunks found in streaming response"
 
             print(f"✅ Streaming with references: Found {len(references)} references")
             print(f"   Response chunks: {len(response_chunks)}")
@@ -262,11 +253,11 @@ def test_query_stream_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            return False
+            assert False, f"Request failed with status {response.status_code}"
 
     except Exception as e:
         print(f"❌ Test 1 failed: {str(e)}")
-        return False
+        assert False, f"Test 1 failed: {str(e)}"
 
     # Test 2: Streaming with references disabled
     print("\n🧪 Test 2: Streaming with references disabled")
@@ -298,15 +289,15 @@ def test_query_stream_endpoint_references():
 
             if errors:
                 print(f"❌ Errors in streaming response: {errors}")
-                return False
+                assert False, f"Errors in streaming response: {errors}"
 
             if references is not None:
                 print("❌ References should be None when include_references=False")
-                return False
+                assert False, "References should be None when include_references=False"
 
             if not response_chunks:
                 print("❌ No response chunks found in streaming response")
-                return False
+                assert False, "No response chunks found in streaming response"
 
             print("✅ Streaming without references: No references present")
             print(f"   Response chunks: {len(response_chunks)}")
@@ -317,14 +308,13 @@ def test_query_stream_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            return False
+            assert False, f"Request failed with status {response.status_code}"
 
     except Exception as e:
         print(f"❌ Test 2 failed: {str(e)}")
-        return False
+        assert False, f"Test 2 failed: {str(e)}"
 
     print("\n✅ /query/stream endpoint references tests passed!")
-    return True
 
 
 @pytest.mark.integration
@@ -362,11 +352,11 @@ def test_references_consistency():
             print(f"✅ /query: {len(references_data['query'])} references")
         else:
             print(f"❌ /query failed: {response.status_code}")
-            return False
+            assert False, f"/query failed: {response.status_code}"
 
     except Exception as e:
         print(f"❌ /query test failed: {str(e)}")
-        return False
+        assert False, f"/query test failed: {str(e)}"
 
     # Test /query/stream endpoint
     print("\n🧪 Testing /query/stream endpoint")
@@ -400,11 +390,11 @@ def test_references_consistency():
             print(f"✅ /query/stream: {len(references_data['stream'])} references")
         else:
             print(f"❌ /query/stream failed: {response.status_code}")
-            return False
+            assert False, f"/query/stream failed: {response.status_code}"
 
     except Exception as e:
         print(f"❌ /query/stream test failed: {str(e)}")
-        return False
+        assert False, f"/query/stream test failed: {str(e)}"
 
     # Test /query/data endpoint
     print("\n🧪 Testing /query/data endpoint")
@@ -425,11 +415,11 @@ def test_references_consistency():
             print(f"✅ /query/data: {len(references_data['data'])} references")
         else:
             print(f"❌ /query/data failed: {response.status_code}")
-            return False
+            assert False, f"/query/data failed: {response.status_code}"
 
     except Exception as e:
         print(f"❌ /query/data test failed: {str(e)}")
-        return False
+        assert False, f"/query/data test failed: {str(e)}"
 
     # Compare references consistency
     print("\n🔍 Comparing references consistency")
@@ -466,17 +456,17 @@ def test_references_consistency():
         print(f"   /query/data only: {data_refs - stream_refs}")
         consistency_passed = False
 
-    if consistency_passed:
-        print("✅ All endpoints return consistent references")
-        print(f"   Common references count: {len(query_refs)}")
+    if not consistency_passed:
+        assert False, "References consistency check failed"
 
-        # Display common reference list
-        if query_refs:
-            print("   📚 Common Reference List:")
-            for i, (ref_id, file_path) in enumerate(sorted(query_refs), 1):
-                print(f"      {i}. ID: {ref_id} | File: {file_path}")
+    print("✅ All endpoints return consistent references")
+    print(f"   Common references count: {len(query_refs)}")
 
-    return consistency_passed
+    # Display common reference list
+    if query_refs:
+        print("   📚 Common Reference List:")
+        for i, (ref_id, file_path) in enumerate(sorted(query_refs), 1):
+            print(f"      {i}. ID: {ref_id} | File: {file_path}")
 
 
 @pytest.mark.integration
@@ -701,8 +691,7 @@ def compare_with_regular_query():
         print(f"   Regular query error: {str(e)}")
 
 
-@pytest.mark.integration
-@pytest.mark.requires_api
+
 def run_all_reference_tests():
     """Run all reference-related tests"""
 
@@ -714,24 +703,21 @@ def run_all_reference_tests():
 
     # Test 1: /query endpoint references
     try:
-        if not test_query_endpoint_references():
-            all_tests_passed = False
+        test_query_endpoint_references()
     except Exception as e:
         print(f"❌ /query endpoint test failed with exception: {str(e)}")
         all_tests_passed = False
 
     # Test 2: /query/stream endpoint references
     try:
-        if not test_query_stream_endpoint_references():
-            all_tests_passed = False
+        test_query_stream_endpoint_references()
     except Exception as e:
         print(f"❌ /query/stream endpoint test failed with exception: {str(e)}")
         all_tests_passed = False
 
     # Test 3: References consistency across endpoints
     try:
-        if not test_references_consistency():
-            all_tests_passed = False
+        test_references_consistency()
     except Exception as e:
         print(f"❌ References consistency test failed with exception: {str(e)}")
         all_tests_passed = False

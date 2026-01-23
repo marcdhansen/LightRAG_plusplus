@@ -1,6 +1,8 @@
 import os
 import shutil
 import pytest
+
+pytestmark = pytest.mark.heavy
 from lightrag import LightRAG
 from lightrag.utils import EmbeddingFunc
 

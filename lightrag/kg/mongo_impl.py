@@ -17,7 +17,7 @@ from ..base import (
     DocStatusStorage,
 )
 from ..utils import logger, compute_mdhash_id
-from ..types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
+from ..core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 from ..constants import GRAPH_FIELD_SEP
 from ..kg.shared_storage import get_data_init_lock
 

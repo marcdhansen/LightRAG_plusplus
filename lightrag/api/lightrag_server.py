@@ -36,7 +36,7 @@ from .config import (
 from lightrag.utils import get_env_value
 from lightrag import LightRAG, __version__ as core_version
 from lightrag.api import __api_version__
-from lightrag.types import GPTKeywordExtractionFormat
+from lightrag.core_types import GPTKeywordExtractionFormat
 from lightrag.utils import EmbeddingFunc
 from lightrag.constants import (
     DEFAULT_LOG_MAX_BYTES,
@@ -1064,6 +1064,7 @@ def create_app(args):
             llm_model_func=create_llm_model_func(args.llm_binding),
             llm_model_name=args.llm_model,
             llm_model_max_async=args.max_async,
+            embedding_func_max_async=args.max_async,
             summary_max_tokens=args.summary_max_tokens,
             summary_context_size=args.summary_context_size,
             chunk_token_size=int(args.chunk_size),

@@ -12,6 +12,8 @@ import os
 import json
 import tempfile
 import pytest
+
+pytestmark = pytest.mark.light
 from lightrag.utils import write_json, load_json, SanitizingJSONEncoder
 
 

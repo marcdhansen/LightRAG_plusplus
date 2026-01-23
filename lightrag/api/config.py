@@ -328,7 +328,7 @@ def parse_args() -> argparse.Namespace:
     elif os.environ.get("LLM_BINDING") == "gemini":
         GeminiLLMOptions.add_args(parser)
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     # convert relative path to absolute path
     args.working_dir = os.path.abspath(args.working_dir)

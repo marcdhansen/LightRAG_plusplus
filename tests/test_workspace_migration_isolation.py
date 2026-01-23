@@ -9,6 +9,8 @@ causing workspace A to receive workspace B's data, violating multi-tenant isolat
 """
 
 import pytest
+
+pytestmark = pytest.mark.heavy
 from unittest.mock import AsyncMock
 
 from lightrag.kg.postgres_impl import PGVectorStorage

@@ -24,6 +24,8 @@ import os
 import shutil
 import numpy as np
 import pytest
+
+pytestmark = pytest.mark.heavy
 from pathlib import Path
 from typing import List, Tuple, Dict
 from lightrag.kg.shared_storage import (

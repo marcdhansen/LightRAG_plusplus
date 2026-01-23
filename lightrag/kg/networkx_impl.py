@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import final
 
-from lightrag.types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
+from lightrag.core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 from lightrag.utils import logger
 from lightrag.base import BaseGraphStorage
 import networkx as nx

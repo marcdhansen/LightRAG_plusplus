@@ -1,4 +1,6 @@
 import pytest
+
+pytestmark = pytest.mark.light
 from unittest.mock import MagicMock, AsyncMock
 
 from lightrag.ace.config import ACEConfig
@@ -6,7 +8,7 @@ from lightrag.ace.playbook import ContextPlaybook
 from lightrag.ace.generator import ACEGenerator
 from lightrag.ace.reflector import ACEReflector
 from lightrag.ace.curator import ACECurator
-from lightrag.lightrag import LightRAG
+from lightrag.core import LightRAG
 
 @pytest.fixture
 def mock_lightrag():

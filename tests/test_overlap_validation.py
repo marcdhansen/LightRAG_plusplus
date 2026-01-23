@@ -1,3 +1,5 @@
+import pytest
+pytestmark = pytest.mark.light
 """
 Test for overlap_tokens validation to prevent infinite loop.
 

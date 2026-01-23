@@ -12,7 +12,7 @@ import configparser
 import ssl
 import itertools
 
-from lightrag.types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
+from lightrag.core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 
 from tenacity import (
     AsyncRetrying,

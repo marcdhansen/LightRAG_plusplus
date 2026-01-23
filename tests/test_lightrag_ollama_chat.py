@@ -10,6 +10,8 @@ All responses use the JSON Lines format, complying with the Ollama API specifica
 """
 
 import pytest
+
+pytestmark = pytest.mark.heavy
 import requests
 import json
 import argparse

@@ -11,6 +11,8 @@ Prerequisites:
 """
 
 import pytest
+
+pytestmark = pytest.mark.heavy
 import asyncio
 import os
 import time
@@ -39,10 +41,10 @@ class TestPostgresRetryIntegration:
         - 30.0s max backoff (up from 5.0s)
         """
         return {
-            "host": os.getenv("POSTGRES_HOST", "localhost"),
-            "port": int(os.getenv("POSTGRES_PORT", "5432")),
+            "host": os.getenv("POSTGRES_HOST", "127.0.0.1"),
+            "port": int(os.getenv("POSTGRES_PORT", "5433")),
             "user": os.getenv("POSTGRES_USER", "postgres"),
-            "password": os.getenv("POSTGRES_PASSWORD", ""),
+            "password": os.getenv("POSTGRES_PASSWORD", "password"),
             "database": os.getenv("POSTGRES_DATABASE", "postgres"),
             "workspace": os.getenv("POSTGRES_WORKSPACE", "test_retry"),
             "max_connections": int(os.getenv("POSTGRES_MAX_CONNECTIONS", "10")),

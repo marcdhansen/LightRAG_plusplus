@@ -15,7 +15,7 @@ from tenacity import (
 import logging
 from ..utils import logger
 from ..base import BaseGraphStorage
-from ..types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
+from ..core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 from ..kg.shared_storage import get_data_init_lock
 import pipmaster as pm
 
