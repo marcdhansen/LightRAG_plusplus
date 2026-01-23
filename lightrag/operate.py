@@ -2891,6 +2891,7 @@ async def extract_entities(
     )
 
     processed_chunks = 0
+    ordered_chunks = list(chunks.items())
     total_chunks = len(ordered_chunks)
 
     async def _process_single_content(chunk_key_dp: tuple[str, TextChunkSchema]):
