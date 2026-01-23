@@ -99,6 +99,83 @@ Based on the last extraction task, identify and extract any **missed or incorrec
 <Output>
 """
 
+PROMPTS["entity_extraction_key_value_system_prompt"] = """---Role---
+You are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.
+
+---Instructions---
+1.  **Entity Extraction:**
+    *   Identify clearly defined and meaningful entities in the input text.
+    *   Categorize entities using types: {entity_types}.
+    *   Provide a concise description for each entity.
+
+2.  **Relationship Extraction:**
+    *   Identify direct and meaningful relationships between extracted entities.
+    *   Provide keywords summarizing the nature of the relationship.
+    *   Provide a concise explanation of the relationship.
+
+3.  **Output Format:**
+    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.
+    *   Strictly follow the structure in the examples.
+
+---Examples---
+{examples}
+"""
+
+PROMPTS["entity_extraction_key_value_user_prompt"] = """---Task---
+Extract entities and relationships from the input text in YAML format.
+
+---Instructions---
+1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.
+2.  **Entity Mapping:**
+    - name: "<entity_name>"
+    - type: "<entity_type>"
+    - description: "<entity_description>"
+3.  **Relationship Mapping:**
+    - source: "<source_entity>"
+    - target: "<target_entity>"
+    - keywords: "<keywords>"
+    - description: "<description>"
+4.  **Language:** Use {language}.
+
+<Input Text>
+{input_text}
+
+<Output>
+"""
+
+PROMPTS["entity_continue_extraction_key_value_user_prompt"] = """---Task---
+Based on the last extraction task, identify and extract any **missed or incorrectly formatted** entities and relationships from the input text in YAML format.
+
+---Instructions---
+1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.
+2.  **Focus on Corrections/Additions:**
+    *   **Do NOT** re-output entities and relationships that were **correctly and fully** extracted in the last task.
+3.  **Output Format:**
+    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.
+4.  **Language:** Use {language}.
+
+<Input Text>
+{input_text}
+
+<Output>
+"""
+
+PROMPTS["entity_extraction_key_value_examples"] = [
+    """entities:
+  - name: "Alex"
+    type: "Person"
+    description: "Alex is a character who experiences frustration and is observant of the dynamics among other characters."
+  - name: "Taylor"
+    type: "Person"
+    description: "Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device."
+relationships:
+  - source: "Alex"
+    target: "Taylor"
+    keywords: "power dynamics, observation"
+    description: "Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device."
+"""
+]
+
 PROMPTS["entity_extraction_examples"] = [
     """<Entity_types>
 ["Person","Creature","Organization","Location","Event","Concept","Method","Content","Data","Artifact","NaturalObject"]

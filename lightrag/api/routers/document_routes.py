@@ -2707,6 +2707,30 @@ def create_document_routes(
         doc_id: str = Field(description="The ID of the document to delete")
 
     @router.delete(
+        "/{doc_id}",
+        response_model=DeleteDocByIdResponse,
+        dependencies=[Depends(combined_auth)],
+        summary="Delete a single document and all its associated data by its ID.",
+    )
+    async def delete_document_by_id(
+        doc_id: str,
+        background_tasks: BackgroundTasks,
+        delete_file: bool = False,
+        delete_llm_cache: bool = False,
+    ) -> DeleteDocByIdResponse:
+        """
+        Delete a single document and all its associated data by its ID.
+        """
+        return await delete_document(
+            DeleteDocRequest(
+                doc_ids=[doc_id],
+                delete_file=delete_file,
+                delete_llm_cache=delete_llm_cache,
+            ),
+            background_tasks,
+        )
+
+    @router.delete(
         "/delete_document",
         response_model=DeleteDocByIdResponse,
         dependencies=[Depends(combined_auth)],

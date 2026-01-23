@@ -1085,6 +1085,7 @@ def create_app(args):
                 "language": args.summary_language,
                 "entity_types": args.entity_types,
             },
+            extraction_format=args.extraction_format,
             ollama_server_infos=ollama_server_infos,
             enable_ace=args.enable_ace,
         )
@@ -1102,6 +1103,11 @@ def create_app(args):
     )
     app.include_router(create_query_routes(rag, api_key, args.top_k))
     app.include_router(create_graph_routes(rag, api_key))
+ 
+    # Legacy redirect for /upload to /documents/upload
+    @app.post("/upload", include_in_schema=False)
+    async def legacy_upload_redirect(request: Request):
+        return RedirectResponse(url="/documents/upload", status_code=307)
 
     # Add Ollama API routes
     ollama_api = OllamaAPI(rag, top_k=args.top_k, api_key=api_key)

@@ -17,7 +17,12 @@ from neo4j import (
     AsyncGraphDatabase,
     AsyncManagedTransaction,
 )
-from neo4j.exceptions import TransientError, ResultFailedError
+from neo4j.exceptions import (
+    TransientError,
+    ResultFailedError,
+    ServiceUnavailable,
+    SessionExpired,
+)
 
 from dotenv import load_dotenv
 
@@ -82,6 +87,9 @@ class MemgraphStorage(BaseGraphStorage):
             self._driver = AsyncGraphDatabase.driver(
                 URI,
                 auth=(USERNAME, PASSWORD),
+                max_connection_lifetime=600,  # 10 minutes (shorter than default 1hr to recycle connections)
+                keep_alive=True,
+                connection_timeout=60.0,
             )
             self._DATABASE = DATABASE
             try:

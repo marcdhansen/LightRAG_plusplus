@@ -5,6 +5,7 @@ from pathlib import Path
 import asyncio
 import json
 import json_repair
+import yaml
 from typing import Any, AsyncIterator, overload, Literal
 from collections import Counter, defaultdict
 
@@ -1028,6 +1029,74 @@ async def _process_extraction_result(
             relationship_data["src_id"] = truncated_source
             relationship_data["tgt_id"] = truncated_target
             maybe_edges[(truncated_source, truncated_target)].append(relationship_data)
+
+    return dict(maybe_nodes), dict(maybe_edges)
+
+
+async def _parse_yaml_extraction(
+    content: str, chunk_key: str, timestamp: int, file_path: str = "unknown_source"
+) -> tuple[dict, dict]:
+    """Parse YAML extraction result
+    Returns:
+        tuple: (nodes_dict, edges_dict)
+    """
+    maybe_nodes = defaultdict(list)
+    maybe_edges = defaultdict(list)
+
+    try:
+        # Strip markdown fences if present
+        clean_content = content.strip()
+        if clean_content.startswith("```"):
+            # Find the first newline and the last ```
+            first_newline = clean_content.find("\n")
+            last_fence = clean_content.rfind("```")
+            if first_newline != -1 and last_fence != -1:
+                clean_content = clean_content[first_newline:last_fence].strip()
+        
+        data = yaml.safe_load(clean_content)
+        if not data:
+            return {}, {}
+
+        entities = data.get("entities", [])
+        for ent in entities:
+            name = ent.get("name")
+            if not name:
+                continue
+            ent_type = ent.get("type", "UNKNOWN")
+            description = ent.get("description", "")
+            
+            maybe_nodes[name].append({
+                "entity_name": name,
+                "entity_type": ent_type,
+                "description": description,
+                "source_id": chunk_key,
+                "file_path": file_path,
+                "timestamp": timestamp,
+            })
+
+        relationships = data.get("relationships", [])
+        for rel in relationships:
+            src = rel.get("source")
+            tgt = rel.get("target")
+            if not src or not tgt:
+                continue
+            keywords = rel.get("keywords", "")
+            description = rel.get("description", "")
+            
+            maybe_edges[(src, tgt)].append({
+                "src_id": src,
+                "tgt_id": tgt,
+                "weight": 1.0,
+                "description": description,
+                "keywords": keywords,
+                "source_id": chunk_key,
+                "file_path": file_path,
+                "timestamp": timestamp,
+            })
+
+    except Exception as e:
+        logger.error(f"Failed to parse YAML extraction from {chunk_key}: {e}")
+        logger.debug(f"Content: {content}")
 
     return dict(maybe_nodes), dict(maybe_edges)
 
@@ -2784,14 +2853,25 @@ async def extract_entities(
     use_llm_func: callable = global_config["llm_model_func"]
     entity_extract_max_gleaning = global_config["entity_extract_max_gleaning"]
 
-    ordered_chunks = list(chunks.items())
-    # add language and example number params to prompt
     language = global_config["addon_params"].get("language", DEFAULT_SUMMARY_LANGUAGE)
     entity_types = global_config["addon_params"].get(
         "entity_types", DEFAULT_ENTITY_TYPES
     )
 
-    examples = "\n".join(PROMPTS["entity_extraction_examples"])
+    extraction_format = global_config.get("extraction_format", "standard")
+    
+    if extraction_format == "key_value":
+        system_prompt_key = "entity_extraction_key_value_system_prompt"
+        user_prompt_key = "entity_extraction_key_value_user_prompt"
+        continue_prompt_key = "entity_continue_extraction_key_value_user_prompt"
+        example_key = "entity_extraction_key_value_examples"
+    else:
+        system_prompt_key = "entity_extraction_system_prompt"
+        user_prompt_key = "entity_extraction_user_prompt"
+        continue_prompt_key = "entity_continue_extraction_user_prompt"
+        example_key = "entity_extraction_examples"
+
+    examples = "\n".join(PROMPTS[example_key])
 
     example_context_base = dict(
         tuple_delimiter=PROMPTS["DEFAULT_TUPLE_DELIMITER"],
@@ -2833,16 +2913,16 @@ async def extract_entities(
 
         # Get initial extraction
         # Format system prompt without input_text for each chunk (enables OpenAI prompt caching across chunks)
-        entity_extraction_system_prompt = PROMPTS[
-            "entity_extraction_system_prompt"
-        ].format(**context_base)
+        entity_extraction_system_prompt = PROMPTS[system_prompt_key].format(
+            **context_base
+        )
         # Format user prompts with input_text for each chunk
-        entity_extraction_user_prompt = PROMPTS["entity_extraction_user_prompt"].format(
+        entity_extraction_user_prompt = PROMPTS[user_prompt_key].format(
             **{**context_base, "input_text": content}
         )
-        entity_continue_extraction_user_prompt = PROMPTS[
-            "entity_continue_extraction_user_prompt"
-        ].format(**{**context_base, "input_text": content})
+        entity_continue_extraction_user_prompt = PROMPTS[continue_prompt_key].format(
+            **{**context_base, "input_text": content}
+        )
 
         final_result, timestamp = await use_llm_func_with_cache(
             entity_extraction_user_prompt,
@@ -2859,14 +2939,22 @@ async def extract_entities(
         )
 
         # Process initial extraction with file path
-        maybe_nodes, maybe_edges = await _process_extraction_result(
-            final_result,
-            chunk_key,
-            timestamp,
-            file_path,
-            tuple_delimiter=context_base["tuple_delimiter"],
-            completion_delimiter=context_base["completion_delimiter"],
-        )
+        if extraction_format == "key_value":
+            maybe_nodes, maybe_edges = await _parse_yaml_extraction(
+                final_result,
+                chunk_key,
+                timestamp,
+                file_path,
+            )
+        else:
+            maybe_nodes, maybe_edges = await _process_extraction_result(
+                final_result,
+                chunk_key,
+                timestamp,
+                file_path,
+                tuple_delimiter=context_base["tuple_delimiter"],
+                completion_delimiter=context_base["completion_delimiter"],
+            )
 
         # Process additional gleaning results only 1 time when entity_extract_max_gleaning is greater than zero.
         if entity_extract_max_gleaning > 0:

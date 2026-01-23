@@ -222,6 +222,10 @@ class LightRAG:
         )
     )
 
+    extraction_format: str = field(
+        default=get_env_value("EXTRACTION_FORMAT", "standard", str)
+    )
+
     # Text chunking
     # ---
 
