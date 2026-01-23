@@ -1,7 +1,6 @@
 import os
 import shutil
 import pytest
-import sys
 from unittest.mock import patch
 import numpy as np
 from fastapi.testclient import TestClient
@@ -47,8 +46,6 @@ def client():
     with patch("sys.argv", ["test_ace_api.py"]):
         args = get_mock_args()
         initialize_config(args, force=True)
-    
-    from unittest.mock import patch
     
     # Create the real LightRAG instance we want to use
     test_rag = LightRAG(

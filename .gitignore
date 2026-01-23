@@ -70,10 +70,10 @@ download_models_hf.py
 # temporary test files in project root
 /test_*
 
-# Cline files
+# Gemini files
 memory-bank
-.claude/CLAUDE.md
-.claude/
+.gemini/GEMINI.md
+.gemini/
 
-# Claude Code
-CLAUDE.md
+# Gemini Code
+GEMINI.md

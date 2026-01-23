@@ -3,6 +3,7 @@ import httpx
 import os
 import sys
 import time
+import pytest
 
 # Configuration
 BASE_URL = "http://localhost:9621"
@@ -104,7 +105,7 @@ async def upload_and_process_file(client, file_path):
     print(f"\nTimeout waiting for {filename}")
     return False
 
-import pytest
+
 
 @pytest.mark.asyncio
 async def test_fail_fast_integration():
