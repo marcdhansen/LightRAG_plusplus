@@ -124,7 +124,7 @@ def test_full_lifecycle_manual(uploaded_document):
         assert "chunks" in inner_data
 
         # We can check if chunks contain our text
-        chunks = inner_data.get("chunks", [])
+
         # This might be empty if the text was too short or extraction failed to produce chunks?
         # "LightRAG is a robust Retrieval-Augmented Generation system using knowledge graphs."
         # It's short. Logic might vary.
