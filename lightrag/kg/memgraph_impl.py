@@ -1211,78 +1211,38 @@ class MemgraphVectorStorage(BaseVectorStorage):
 
             try:
                 async with self._driver.session(database=DATABASE) as session:
-                    # Attempt to create a vector index if supported (Enterprise feature or enabled)
-                    # We try multiple syntaxes
-                    created = False
+                    # Check if index already exists to avoid errors
+                    index_exists = False
                     try:
-                        # Attempt 1: Native syntax (Memgraph 3.0+)
-                        await session.run(f"CREATE INDEX ON :`{self.label}`(vector) FOR VECTOR")
-                        logger.info(f"[{self.workspace}] Created native vector index on :`{self.label}`(vector).")
-                        created = True
-                    except Exception:
-                        pass
+                        indexes = await session.run("SHOW INDEX INFO")
+                        async for record in indexes:
+                            # Index names might be user defined or auto-generated.
+                            # We check if an index exists on our label for the 'vector' property.
+                            if record.get("label") == self.label and record.get("property") == "vector":
+                                index_exists = True
+                                logger.info(f"[{self.workspace}] Vector index already exists on :`{self.label}`(vector).")
+                                break
+                    except Exception as e:
+                        logger.debug(f"[{self.workspace}] Could not list indexes: {e}")
+
+                    created = index_exists
                     
                     if not created:
-                        # Attempt 1.5: Memgraph 3.x Community syntax
-                        # CREATE VECTOR INDEX index_name FOR (n:Label) ON (n.prop) OPTIONS {...}
+                        # Attempt 1: Native syntax (Memgraph 3.0+)
                         try:
-                            dim = 768
-                            if hasattr(self.embedding_func, "embedding_dim"):
-                                dim = self.embedding_func.embedding_dim
-                            
-                            # Using 'cos' for metric as per user example (MAGE often uses 'cosine' but let's try 'cos' or generic)
-                            # The example provided uses 'cos'.
-                            query = f"""
-                            CREATE VECTOR INDEX `{self.label}_idx` FOR (n:`{self.label}`) ON (n.vector)
-                            OPTIONS {{
-                                index_type: "hnsw",
-                                metric: "cos",
-                                dimension: {dim}
-                            }}
-                            """
-                            logger.info(f"[{self.workspace}] Attempting Memgraph 3.x Community CREATE VECTOR INDEX for {self.label}")
-                            await session.run(query)
-                            logger.info(f"[{self.workspace}] Created Memgraph 3.x Community HNSW index.")
+                            await session.run(f"CREATE INDEX ON :`{self.label}`(vector) FOR VECTOR")
+                            logger.info(f"[{self.workspace}] Created native vector index on :`{self.label}`(vector).")
                             created = True
-                        except Exception as e:
-                            logger.debug(f"[{self.workspace}] Memgraph 3.x Community index creation failed: {e}")
-
-                    if not created:
-                        # Attempt 1.6: MAGE procedure based index creation (Community HNSW via MAGE)
-                        # CALL vector_search.create_index(label, property, dimension, capacity, metric, scalar_kind)
-                        try:
-                            # We need to guess dimension from embedding_func if possible or hardcode/skip
-                            dim = 768 # Default if we can't reliably guess, or we should get it properly
-                            if hasattr(self.embedding_func, "embedding_dim"):
-                                dim = self.embedding_func.embedding_dim
-                            
-                            # MAGE create_index signature: 
-                            # (label, property, dimension, capacity, metric, scalar_kind)
-                            # Capacity is optional or fixed? Let's check docs or be safe.
-                            # Usually capacity is max elements.
-                            
-                            logger.info(f"[{self.workspace}] Attempting MAGE vector_search.create_index for {self.label}")
-                            
-                            # Note: Index name in MAGE is usually just the Label or strict identifier.
-                            await session.run(
-                                "CALL vector_search.create_index($label, 'vector', $dim, 1000000, 'COSINE', 'FLOAT32')",
-                                label=self.label, dim=dim
-                            )
-                            logger.info(f"[{self.workspace}] Created MAGE HNSW index on :`{self.label}`(vector).")
-                            created = True
-                        except Exception as e:
-                            logger.warning(f"[{self.workspace}] MAGE create_index failed: {e}")
-
+                        except Exception:
+                            pass
+                    
                     if not created:
                         # Attempt 1.7: Memgraph 3.x Community syntax with WITH CONFIG
-                        # CREATE VECTOR INDEX index_name ON :Label(prop) WITH CONFIG {...}
                         try:
                             dim = 768
                             if hasattr(self.embedding_func, "embedding_dim"):
                                 dim = self.embedding_func.embedding_dim
                             
-                            # Note: capacity is required in some versions but deprecated in others?
-                            # Using generic config.
                             query = f"""
                             CREATE VECTOR INDEX `{self.label}_idx_conf` ON :`{self.label}`(vector)
                             WITH CONFIG {{
@@ -1296,7 +1256,30 @@ class MemgraphVectorStorage(BaseVectorStorage):
                             logger.info(f"[{self.workspace}] Created Memgraph HNSW index via WITH CONFIG.")
                             created = True
                         except Exception as e:
-                            logger.debug(f"[{self.workspace}] Memgraph WITH CONFIG index creation failed: {e}")
+                            if "already exists" in str(e).lower():
+                                created = True
+                            else:
+                                logger.debug(f"[{self.workspace}] Memgraph WITH CONFIG index creation failed: {e}")
+
+                    if not created:
+                        # Attempt 1.6: MAGE procedure
+                        try:
+                            dim = 768
+                            if hasattr(self.embedding_func, "embedding_dim"):
+                                dim = self.embedding_func.embedding_dim
+                            
+                            logger.info(f"[{self.workspace}] Attempting MAGE vector_search.create_index for {self.label}")
+                            
+                            await session.run(
+                                "CALL vector_search.create_index($label, 'vector', $dim, 1000000, 'COSINE', 'FLOAT32')",
+                                label=self.label, dim=dim
+                            )
+                            logger.info(f"[{self.workspace}] Created MAGE HNSW index on :`{self.label}`(vector).")
+                            created = True
+                        except Exception as e:
+                            if "already exists" in str(e).lower():
+                                created = True
+                            logger.warning(f"[{self.workspace}] MAGE create_index failed: {e}")
 
                     if not created:
                         try:
@@ -1304,7 +1287,6 @@ class MemgraphVectorStorage(BaseVectorStorage):
                             await session.run(f"CREATE INDEX ON :`{self.label}`(vector)")
                             logger.info(f"[{self.workspace}] Created standard index on :`{self.label}`(vector) as fallback.")
                         except Exception:
-                            # Standard index might already exist
                             pass
                     
                     await session.run("RETURN 1")
@@ -1390,24 +1372,45 @@ class MemgraphVectorStorage(BaseVectorStorage):
 
         async with self._driver.session(database=self._DATABASE, default_access_mode="READ") as session:
             # Attempt 1: MAGE vector_search (fastest if index exists)
-            search_query = f"""
-            CALL vector_search.search('{self.label}', $limit, $embedding) 
-            YIELD node, similarity
-            RETURN node, similarity
-            """
-            try:
-                result = await session.run(search_query, embedding=embedding, limit=top_k)
-                records = []
-                async for record in result:
-                    if record["similarity"] < self.cosine_better_than_threshold:
-                        continue
-                    node_dict = dict(record["node"])
-                    if "vector" in node_dict: del node_dict["vector"]
-                    records.append({**node_dict, "id": node_dict.get("id"), "distance": record["similarity"]})
-                await result.consume()
-                if records: return records
-            except Exception:
-                pass
+            # Try finding the index by iterating potential names or just standard convention
+            # We updated creation to try using `self.label` as the index name if possible, 
+            # but usually index names must be unique.
+            # Let's try the primary label name first.
+            
+            potential_index_names = [self.label, f"{self.label}_idx", f"{self.label}_idx_conf"]
+            
+            search_success = False
+            records = []
+            
+            for index_name in potential_index_names:
+                search_query = f"""
+                CALL vector_search.search('{index_name}', $limit, $embedding) 
+                YIELD node, similarity
+                RETURN node, similarity
+                """
+                try:
+                    result = await session.run(search_query, embedding=embedding, limit=top_k)
+                    async for record in result:
+                        if record["similarity"] < self.cosine_better_than_threshold:
+                            continue
+                        node_dict = dict(record["node"])
+                        if "vector" in node_dict: del node_dict["vector"]
+                        records.append({**node_dict, "id": node_dict.get("id"), "distance": record["similarity"]})
+                    await result.consume()
+                    if records: 
+                        search_success = True
+                        break # Found results using this index
+                    # If query ran but no results, maybe empty index? or index exists but no match. 
+                    # If index doesn't exist, it usually raises error.
+                    # We continue if no error? No, if successful execution, we stop trying other names?
+                    # Actually if index name doesn't exist, Memgraph raises error. So we catch exception and continue.
+                    search_success = True # Query executed without error
+                    break 
+                except Exception:
+                    continue # Try next index name
+
+            if search_success and records:
+                return records
 
             # Attempt 2: Brute force fallback using cosine_similarity function (slow!)
             logger.warning(f"[{self.workspace}] Native vector search failed for {self.label}. Using slow brute-force fallback.")
@@ -1468,8 +1471,25 @@ class MemgraphVectorStorage(BaseVectorStorage):
 
     async def drop(self) -> dict[str, str]:
         async with self._driver.session(database=self._DATABASE) as session:
+            # Drop data
             await session.run(f"MATCH (n:`{self.label}`) DETACH DELETE n")
-        logger.info(f"[{self.workspace}] Dropped all vectors in {self.label}")
+            
+            # Drop indexes
+            potential_indexes = [
+                f"{self.label}_idx_conf", # The one created by WITH CONFIG
+                f"{self.label}_idx",
+                self.label # unlikely but possible if native used label as index name
+            ]
+            for idx_name in potential_indexes:
+                try:
+                    await session.run(f"DROP VECTOR INDEX `{idx_name}` IF EXISTS")
+                except Exception:
+                    try:
+                        await session.run(f"DROP INDEX ON :`{self.label}`(vector)")
+                    except Exception:
+                        pass
+                        
+        logger.info(f"[{self.workspace}] Dropped all vectors and indexes in {self.label}")
         return {"status": "success"}
 
     async def delete_entity(self, entity_name: str) -> None:
