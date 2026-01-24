@@ -105,7 +105,6 @@ def test_document():
 
 
 @pytest.mark.requires_api
-@pytest.mark.xfail(reason="Retrieval may fail due to DB state/pollution")
 def test_document_content_and_reference_streaming(test_document):
     """
     Verify that:
@@ -171,6 +170,11 @@ def test_document_content_and_reference_streaming(test_document):
                 target_ref = ref
                 break
 
+        if target_ref is None:
+            print("\n❌ Target document not found! Retrieved references:")
+            for ref in reference_items:
+                print(f"   - ID: {ref.get('reference_id')} | File: {ref.get('file_path')}")
+        
         assert (
             target_ref is not None
         ), f"Our document {doc_id} was not among the retrieved references"
@@ -196,7 +200,6 @@ def test_document_content_and_reference_streaming(test_document):
 
 
 @pytest.mark.requires_api
-@pytest.mark.xfail(reason="Retrieval may fail due to DB state/pollution")
 def test_query_references_non_streaming(test_document):
     """
     Verify /query (non-streaming) includes references with chunk contents.
@@ -223,6 +226,12 @@ def test_query_references_non_streaming(test_document):
     references = data["references"]
 
     our_ref = next((r for r in references if r["reference_id"] == doc_id), None)
+    
+    if our_ref is None:
+        print("\n❌ Target document not found! Retrieved references:")
+        for ref in references:
+             print(f"   - ID: {ref.get('reference_id')} | File: {ref.get('file_path')}")
+
     assert our_ref is not None, "Our document not found in references"
     assert "content" in our_ref
     assert len(our_ref["content"]) > 0

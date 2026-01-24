@@ -489,6 +489,165 @@ class MemgraphStorage(BaseGraphStorage):
                     )  # Ensure the result is consumed even on error
                 raise
 
+    async def get_unified_neighbor_search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        vector_index_name: str,
+        cosine_threshold: float,
+    ) -> list[dict]:
+        """
+        Unified search: Vector Search -> Get Node Properties -> Get Degrees
+        Executed in a single Cypher traversal.
+        """
+        if self._driver is None:
+            raise RuntimeError("Memgraph driver is not initialized.")
+
+        # Try to guess index name if not provided or if simple label
+        potential_index_names = [
+            vector_index_name,
+            f"{vector_index_name}_idx",
+            f"{vector_index_name}_idx_conf",
+        ]
+
+        async with self._driver.session(
+            database=self._DATABASE, default_access_mode="READ"
+        ) as session:
+            workspace_label = self._get_workspace_label()
+
+            # Try each index name candidate
+            last_exception = None
+            for idx_name in potential_index_names:
+                try:
+                    # Cypher query for unified retrieval
+                    # 1. Vector Search
+                    # 2. Match corresponding Graph Node (by entity_id)
+                    # 3. Calculate Degree (count relationships)
+                    query = f"""
+                    CALL vector_search.search($index_name, $top_k, $embedding)
+                    YIELD node as v_node, similarity
+                    WHERE similarity >= $threshold
+                    WITH v_node, similarity
+                    MATCH (g_node:`{workspace_label}` {{entity_id: v_node.entity_name}})
+                    OPTIONAL MATCH (g_node)-[r]-()
+                    WITH g_node, similarity, count(r) as degree
+                    RETURN g_node, degree, similarity
+                    ORDER BY similarity DESC
+                    """
+                    
+                    result = await session.run(
+                        query,
+                        index_name=idx_name,
+                        top_k=top_k,
+                        embedding=query_embedding,
+                        threshold=cosine_threshold,
+                    )
+
+                    nodes = []
+                    async for record in result:
+                        g_node = record["g_node"]
+                        degree = record["degree"]
+                        # similarity = record["similarity"] # Currently not used in downstream output format but useful for debug
+
+                        node_props = dict(g_node)
+                        # Clean up labels
+                        if "labels" in node_props:
+                             node_props["labels"] = [
+                                l for l in node_props["labels"]
+                                if l != workspace_label
+                             ]
+                        
+                        # Add computed rank/degree to match operate.py expectation
+                        node_props["rank"] = degree
+                        
+                        nodes.append(node_props)
+                    
+                    await result.consume()
+                    return nodes
+
+                except Exception as e:
+                    last_exception = e
+                    continue # Try next index name
+
+            # If we exhausted all indices or failed
+            logger.warning(f"[{self.workspace}] Unified neighbor search failed with specialized indices. Error: {last_exception}")
+            return []
+
+    async def get_unified_edge_search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        vector_index_name: str,
+        cosine_threshold: float,
+    ) -> list[dict]:
+        """
+        Unified search: Vector Search (Relations) -> Get Edge Properties
+        """
+        if self._driver is None:
+             raise RuntimeError("Memgraph driver is not initialized.")
+        
+        potential_index_names = [
+            vector_index_name,
+            f"{vector_index_name}_idx",
+            f"{vector_index_name}_idx_conf",
+        ]
+
+        async with self._driver.session(
+            database=self._DATABASE, default_access_mode="READ"
+        ) as session:
+            workspace_label = self._get_workspace_label()
+
+            last_exception = None
+            for idx_name in potential_index_names:
+                try:
+                    query = f"""
+                    CALL vector_search.search($index_name, $top_k, $embedding)
+                    YIELD node as v_node, similarity
+                    WHERE similarity >= $threshold
+                    WITH v_node, similarity
+                    MATCH (src:`{workspace_label}` {{entity_id: v_node.src_id}})-[r]-(tgt:`{workspace_label}` {{entity_id: v_node.tgt_id}})
+                    RETURN r, src, tgt, similarity
+                    ORDER BY similarity DESC
+                    """
+
+                    result = await session.run(
+                        query,
+                        index_name=idx_name,
+                        top_k=top_k,
+                        embedding=query_embedding,
+                        threshold=cosine_threshold,
+                    )
+                    
+                    edges = []
+                    async for record in result:
+                        edge = record["r"]
+                        src = record["src"]
+                        tgt = record["tgt"]
+                        
+                        edge_props = dict(edge)
+                        
+                        # Ensure we return valid relation data structure
+                        if "weight" not in edge_props:
+                            edge_props["weight"] = 1.0
+
+                        combined = {
+                            "src_id": src["entity_id"],
+                            "tgt_id": tgt["entity_id"],
+                            "created_at": edge_props.get("created_at"),
+                             **edge_props
+                        }
+                        edges.append(combined)
+                    
+                    await result.consume()
+                    return edges
+
+                except Exception as e:
+                    last_exception = e
+                    continue
+            
+            logger.warning(f"[{self.workspace}] Unified edge search failed: {last_exception}")
+            return []
+
     async def upsert_node(self, node_id: str, node_data: dict[str, str]) -> None:
         """
         Upsert a node in the Memgraph database with manual transaction-level retry logic for transient errors.

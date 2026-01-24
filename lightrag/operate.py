@@ -50,6 +50,7 @@ from lightrag.base import (
     QueryResult,
     QueryContextResult,
 )
+from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.prompt import PROMPTS
 from lightrag.constants import (
     GRAPH_FIELD_SEP,
@@ -4275,6 +4276,40 @@ async def _get_node_data(
     entities_vdb: BaseVectorStorage,
     query_param: QueryParam,
 ):
+    # Optimization for Memgraph-Unified Backend
+    if isinstance(knowledge_graph_inst, MemgraphStorage) and isinstance(
+        entities_vdb, MemgraphVectorStorage
+    ):
+        logger.info("[Memgraph] Executing unified neighbor search (Vector+Graph)")
+        
+        # Compute embedding for the query keywords string
+        query_embedding_res = await entities_vdb.embedding_func([query])
+        query_embedding = query_embedding_res[0]
+        if hasattr(query_embedding, "tolist"):
+             query_embedding = query_embedding.tolist()
+
+        node_datas = await knowledge_graph_inst.get_unified_neighbor_search(
+            query_embedding=query_embedding,
+            top_k=query_param.top_k,
+            vector_index_name=entities_vdb.label,
+            cosine_threshold=entities_vdb.cosine_better_than_threshold
+        )
+        
+        # If unified search returns nothing, return empty
+        if not node_datas:
+             return [], []
+
+        use_relations = await _find_most_related_edges_from_entities(
+            node_datas,
+            query_param,
+            knowledge_graph_inst,
+        )
+
+        logger.info(
+            f"Local query (Unified): {len(node_datas)} entites, {len(use_relations)} relations"
+        )
+        return node_datas, use_relations
+
     # get similar entities
     logger.info(
         f"Query nodes: {query} (top_k:{query_param.top_k}, cosine:{entities_vdb.cosine_better_than_threshold})"
@@ -4548,6 +4583,38 @@ async def _get_edge_data(
     relationships_vdb: BaseVectorStorage,
     query_param: QueryParam,
 ):
+    # Optimization for Memgraph-Unified Backend
+    if isinstance(knowledge_graph_inst, MemgraphStorage) and isinstance(
+        relationships_vdb, MemgraphVectorStorage
+    ):
+       logger.info("[Memgraph] Executing unified edge search (Vector+Graph)")
+       
+       query_embedding_res = await relationships_vdb.embedding_func([keywords])
+       query_embedding = query_embedding_res[0]
+       if hasattr(query_embedding, "tolist"):
+             query_embedding = query_embedding.tolist()
+       
+       edge_datas = await knowledge_graph_inst.get_unified_edge_search(
+            query_embedding=query_embedding,
+            top_k=query_param.top_k,
+            vector_index_name=relationships_vdb.label,
+            cosine_threshold=relationships_vdb.cosine_better_than_threshold
+       )
+       
+       if not edge_datas:
+            return [], []
+
+       use_entities = await _find_most_related_entities_from_relationships(
+            edge_datas,
+            query_param,
+            knowledge_graph_inst,
+        )
+
+       logger.info(
+            f"Global query (Unified): {len(use_entities)} entites, {len(edge_datas)} relations"
+       )
+       return edge_datas, use_entities
+
     logger.info(
         f"Query edges: {keywords} (top_k:{query_param.top_k}, cosine:{relationships_vdb.cosine_better_than_threshold})"
     )
