@@ -1223,8 +1223,84 @@ class MemgraphVectorStorage(BaseVectorStorage):
                         pass
                     
                     if not created:
+                        # Attempt 1.5: Memgraph 3.x Community syntax
+                        # CREATE VECTOR INDEX index_name FOR (n:Label) ON (n.prop) OPTIONS {...}
                         try:
-                            # Attempt 2: Standard index (MAGE fallback might use it or we'll brute force)
+                            dim = 768
+                            if hasattr(self.embedding_func, "embedding_dim"):
+                                dim = self.embedding_func.embedding_dim
+                            
+                            # Using 'cos' for metric as per user example (MAGE often uses 'cosine' but let's try 'cos' or generic)
+                            # The example provided uses 'cos'.
+                            query = f"""
+                            CREATE VECTOR INDEX `{self.label}_idx` FOR (n:`{self.label}`) ON (n.vector)
+                            OPTIONS {{
+                                index_type: "hnsw",
+                                metric: "cos",
+                                dimension: {dim}
+                            }}
+                            """
+                            logger.info(f"[{self.workspace}] Attempting Memgraph 3.x Community CREATE VECTOR INDEX for {self.label}")
+                            await session.run(query)
+                            logger.info(f"[{self.workspace}] Created Memgraph 3.x Community HNSW index.")
+                            created = True
+                        except Exception as e:
+                            logger.debug(f"[{self.workspace}] Memgraph 3.x Community index creation failed: {e}")
+
+                    if not created:
+                        # Attempt 1.6: MAGE procedure based index creation (Community HNSW via MAGE)
+                        # CALL vector_search.create_index(label, property, dimension, capacity, metric, scalar_kind)
+                        try:
+                            # We need to guess dimension from embedding_func if possible or hardcode/skip
+                            dim = 768 # Default if we can't reliably guess, or we should get it properly
+                            if hasattr(self.embedding_func, "embedding_dim"):
+                                dim = self.embedding_func.embedding_dim
+                            
+                            # MAGE create_index signature: 
+                            # (label, property, dimension, capacity, metric, scalar_kind)
+                            # Capacity is optional or fixed? Let's check docs or be safe.
+                            # Usually capacity is max elements.
+                            
+                            logger.info(f"[{self.workspace}] Attempting MAGE vector_search.create_index for {self.label}")
+                            
+                            # Note: Index name in MAGE is usually just the Label or strict identifier.
+                            await session.run(
+                                "CALL vector_search.create_index($label, 'vector', $dim, 1000000, 'COSINE', 'FLOAT32')",
+                                label=self.label, dim=dim
+                            )
+                            logger.info(f"[{self.workspace}] Created MAGE HNSW index on :`{self.label}`(vector).")
+                            created = True
+                        except Exception as e:
+                            logger.warning(f"[{self.workspace}] MAGE create_index failed: {e}")
+
+                    if not created:
+                        # Attempt 1.7: Memgraph 3.x Community syntax with WITH CONFIG
+                        # CREATE VECTOR INDEX index_name ON :Label(prop) WITH CONFIG {...}
+                        try:
+                            dim = 768
+                            if hasattr(self.embedding_func, "embedding_dim"):
+                                dim = self.embedding_func.embedding_dim
+                            
+                            # Note: capacity is required in some versions but deprecated in others?
+                            # Using generic config.
+                            query = f"""
+                            CREATE VECTOR INDEX `{self.label}_idx_conf` ON :`{self.label}`(vector)
+                            WITH CONFIG {{
+                                "dimension": {dim},
+                                "capacity": 1000000,
+                                "metric": "cos"
+                            }}
+                            """
+                            logger.info(f"[{self.workspace}] Attempting Memgraph CREATE VECTOR INDEX ... WITH CONFIG for {self.label}")
+                            await session.run(query)
+                            logger.info(f"[{self.workspace}] Created Memgraph HNSW index via WITH CONFIG.")
+                            created = True
+                        except Exception as e:
+                            logger.debug(f"[{self.workspace}] Memgraph WITH CONFIG index creation failed: {e}")
+
+                    if not created:
+                        try:
+                            # Attempt 2: Standard index (fallback for brute force)
                             await session.run(f"CREATE INDEX ON :`{self.label}`(vector)")
                             logger.info(f"[{self.workspace}] Created standard index on :`{self.label}`(vector) as fallback.")
                         except Exception:
