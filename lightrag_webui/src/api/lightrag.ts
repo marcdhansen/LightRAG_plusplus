@@ -31,7 +31,8 @@ import {
   StatusCountsResponse,
   AuthStatusResponse,
   PipelineStatusResponse,
-  LoginResponse
+  LoginResponse,
+  DeleteDocResponse
 } from './types'
 
 // Export basic health check from here too for convenience
@@ -39,6 +40,9 @@ export const checkHealth = baseCheckHealth;
 export { InvalidApiKeyError, RequireApiKeError } from './types'
 
 // Silent refresh for guest token
+let isRefreshingGuestToken = false;
+let refreshTokenPromise: Promise<string> | null = null;
+
 const silentRefreshGuestToken = async (): Promise<string> => {
   // If already refreshing, return the same Promise
   if (isRefreshingGuestToken && refreshTokenPromise) {
@@ -748,4 +752,19 @@ export const logToServer = async (level: string, message: string, context: Recor
   } catch (e) {
     console.error('Failed to send log to server:', e);
   }
+}
+
+/**
+ * Updates the pipeline log level
+ * @param logLevel The new log level (10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL)
+ * @returns Promise with the update response
+ */
+export const updatePipelineLogLevel = async (logLevel: number): Promise<{
+  status: string
+  message: string
+}> => {
+  const response = await axiosInstance.put('/documents/pipeline_status/log_level', {
+    log_level: logLevel
+  })
+  return response.data
 }

@@ -69,6 +69,7 @@ from lightrag.kg.shared_storage import (
     set_default_workspace,
     get_namespace_lock,
 )
+from lightrag.kg.shared_storage import append_pipeline_log
 
 from lightrag.base import (
     BaseGraphStorage,
@@ -1535,7 +1536,7 @@ class LightRAG:
                 preserve_message = f"Preserving {len(failed_docs_to_preserve)} failed document entries for manual review"
                 logger.info(preserve_message)
                 pipeline_status["latest_message"] = preserve_message
-                pipeline_status["history_messages"].append(preserve_message)
+                append_pipeline_log(pipeline_status, preserve_message, 20)
 
             # Remove failed documents from processing list but keep them in doc_status
             for doc_id in failed_docs_to_preserve:
@@ -1549,7 +1550,7 @@ class LightRAG:
                 )
                 logger.info(summary_message)
                 pipeline_status["latest_message"] = summary_message
-                pipeline_status["history_messages"].append(summary_message)
+                append_pipeline_log(pipeline_status, summary_message, 20)
 
             successful_deletions = 0
             for doc_id in inconsistent_docs:
@@ -1568,7 +1569,7 @@ class LightRAG:
                         )
                         logger.info(log_message)
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
                     # Remove from processing list
                     to_process_docs.pop(doc_id, None)
@@ -1579,7 +1580,7 @@ class LightRAG:
                         error_message = f"Failed to delete entry: {doc_id} - {str(e)}"
                         logger.error(error_message)
                         pipeline_status["latest_message"] = error_message
-                        pipeline_status["history_messages"].append(error_message)
+                        append_pipeline_log(pipeline_status, error_message, 40)
 
         # Final summary log
         # async with pipeline_status_lock:
@@ -1712,7 +1713,7 @@ class LightRAG:
                         log_message = "Pipeline cancelled by user"
                         logger.info(log_message)
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
                         # Exit directly, skipping request_pending check
                         return
@@ -1721,7 +1722,7 @@ class LightRAG:
                     log_message = "All enqueued documents have been processed"
                     logger.info(log_message)
                     pipeline_status["latest_message"] = log_message
-                    pipeline_status["history_messages"].append(log_message)
+                    append_pipeline_log(pipeline_status, log_message, 20)
                     break
 
                 # Validate document data consistency and fix any issues as part of the pipeline
@@ -1735,7 +1736,7 @@ class LightRAG:
                     )
                     logger.info(log_message)
                     pipeline_status["latest_message"] = log_message
-                    pipeline_status["history_messages"].append(log_message)
+                    append_pipeline_log(pipeline_status, log_message, 20)
                     break
 
                 log_message = f"Processing {len(to_process_docs)} document(s)"
@@ -1746,7 +1747,7 @@ class LightRAG:
                 pipeline_status["batchs"] = len(to_process_docs)
                 pipeline_status["cur_batch"] = 0
                 pipeline_status["latest_message"] = log_message
-                pipeline_status["history_messages"].append(log_message)
+                append_pipeline_log(pipeline_status, log_message, 20)
 
                 # Get first document's file path and total count for job name
                 first_doc_id, first_doc = next(iter(to_process_docs.items()))
@@ -1813,11 +1814,11 @@ class LightRAG:
 
                                 log_message = f"Extracting stage {current_file_number}/{total_files}: {file_path}"
                                 logger.info(log_message)
-                                pipeline_status["history_messages"].append(log_message)
+                                append_pipeline_log(pipeline_status, log_message, 10)
                                 log_message = f"Processing d-id: {doc_id}"
                                 logger.info(log_message)
                                 pipeline_status["latest_message"] = log_message
-                                pipeline_status["history_messages"].append(log_message)
+                                append_pipeline_log(pipeline_status, log_message, 10)
 
                                 # Prevent memory growth: keep only latest 5000 messages when exceeding 10000
                                 if len(pipeline_status["history_messages"]) > 10000:
@@ -2168,7 +2169,7 @@ class LightRAG:
                 log_message = "Processing additional documents due to pending request"
                 logger.info(log_message)
                 pipeline_status["latest_message"] = log_message
-                pipeline_status["history_messages"].append(log_message)
+                append_pipeline_log(pipeline_status, log_message, 20)
 
                 # Check for pending documents again
                 processing_docs, failed_docs, pending_docs = await asyncio.gather(
@@ -2192,7 +2193,7 @@ class LightRAG:
                     False  # Always reset cancellation flag
                 )
                 pipeline_status["latest_message"] = log_message
-                pipeline_status["history_messages"].append(log_message)
+                append_pipeline_log(pipeline_status, log_message, 20)
 
     async def _process_extract_entities(
         self, chunk: dict[str, Any], pipeline_status=None, pipeline_status_lock=None
@@ -2212,7 +2213,7 @@ class LightRAG:
             logger.error(error_msg)
             async with pipeline_status_lock:
                 pipeline_status["latest_message"] = error_msg
-                pipeline_status["history_messages"].append(error_msg)
+                append_pipeline_log(pipeline_status, error_msg, 40)
             raise e
 
     async def _insert_done(
@@ -2244,7 +2245,7 @@ class LightRAG:
         if pipeline_status is not None and pipeline_status_lock is not None:
             async with pipeline_status_lock:
                 pipeline_status["latest_message"] = log_message
-                pipeline_status["history_messages"].append(log_message)
+                append_pipeline_log(pipeline_status, log_message, 20)
 
     def insert_custom_kg(
         self, custom_kg: dict[str, Any], full_doc_id: str = None
@@ -3106,7 +3107,7 @@ class LightRAG:
             log_message = f"Starting deletion process for document {doc_id}"
             logger.info(log_message)
             pipeline_status["latest_message"] = log_message
-            pipeline_status["history_messages"].append(log_message)
+            append_pipeline_log(pipeline_status, log_message, 20)
 
         try:
             # 1. Get the document status and related data
@@ -3159,7 +3160,7 @@ class LightRAG:
                 # Update pipeline status for monitoring
                 async with pipeline_status_lock:
                     pipeline_status["latest_message"] = warning_msg
-                    pipeline_status["history_messages"].append(warning_msg)
+                    append_pipeline_log(pipeline_status, warning_msg, 30)
 
             # 2. Get chunk IDs from document status
             chunk_ids = set(doc_status_data.get("chunks_list", []))
@@ -3184,7 +3185,7 @@ class LightRAG:
                     )
                     logger.info(log_message)
                     pipeline_status["latest_message"] = log_message
-                    pipeline_status["history_messages"].append(log_message)
+                    append_pipeline_log(pipeline_status, log_message, 20)
 
                 return DeletionResult(
                     status="success",
@@ -3353,7 +3354,7 @@ class LightRAG:
                     log_message = f"Found {len(entities_to_rebuild)} affected entities"
                     logger.info(log_message)
                     pipeline_status["latest_message"] = log_message
-                    pipeline_status["history_messages"].append(log_message)
+                    append_pipeline_log(pipeline_status, log_message, 20)
 
                 # Process relationships
                 for edge_data in affected_edges:
@@ -3416,7 +3417,7 @@ class LightRAG:
                     )
                     logger.info(log_message)
                     pipeline_status["latest_message"] = log_message
-                    pipeline_status["history_messages"].append(log_message)
+                    append_pipeline_log(pipeline_status, log_message, 20)
 
                 current_time = int(time.time())
 
@@ -3468,7 +3469,7 @@ class LightRAG:
                         )
                         logger.info(log_message)
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
                 except Exception as e:
                     logger.error(f"Failed to delete chunks: {e}")
@@ -3505,7 +3506,7 @@ class LightRAG:
                         log_message = f"Successfully deleted {len(relationships_to_delete)} relations"
                         logger.info(log_message)
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
                 except Exception as e:
                     logger.error(f"Failed to delete relationships: {e}")
@@ -3601,7 +3602,7 @@ class LightRAG:
                         )
                         logger.info(log_message)
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
                 except Exception as e:
                     logger.error(f"Failed to delete entities: {e}")
@@ -3657,7 +3658,7 @@ class LightRAG:
                     logger.info(cache_log_message)
                     async with pipeline_status_lock:
                         pipeline_status["latest_message"] = cache_log_message
-                        pipeline_status["history_messages"].append(cache_log_message)
+                        append_pipeline_log(pipeline_status, cache_log_message, 10)
                     log_message = cache_log_message
                 except Exception as cache_delete_error:
                     log_message = f"Failed to delete LLM cache for document {doc_id}: {cache_delete_error}"
@@ -3665,7 +3666,7 @@ class LightRAG:
                     logger.error(traceback.format_exc())
                     async with pipeline_status_lock:
                         pipeline_status["latest_message"] = log_message
-                        pipeline_status["history_messages"].append(log_message)
+                        append_pipeline_log(pipeline_status, log_message, 20)
 
             return DeletionResult(
                 status="success",
@@ -3723,7 +3724,7 @@ class LightRAG:
                         f"Deletion process completed for document: {doc_id}"
                     )
                     pipeline_status["latest_message"] = completion_msg
-                    pipeline_status["history_messages"].append(completion_msg)
+                    append_pipeline_log(pipeline_status, completion_msg, 20)
                     logger.info(completion_msg)
 
     async def adelete_by_entity(self, entity_name: str) -> DeletionResult:

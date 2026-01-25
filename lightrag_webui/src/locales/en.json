@@ -165,6 +165,8 @@
       "progress": "Progress",
       "unit": "Batch",
       "pipelineMessages": "Pipeline Messages",
+      "logLevel": "Log Level",
+      "logLevelUpdated": "Log level updated",
       "cancelButton": "Cancel",
       "cancelTooltip": "Cancel pipeline processing",
       "cancelConfirmTitle": "Confirm Pipeline Cancellation",

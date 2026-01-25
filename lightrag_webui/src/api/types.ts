@@ -252,6 +252,11 @@ export type DocActionResponse = {
     track_id?: string
 }
 
+export type DeleteDocResponse = {
+    status: string
+    message: string
+}
+
 export type ScanResponse = {
     status: 'scanning_started'
     message: string
@@ -286,6 +291,7 @@ export type PipelineStatusResponse = {
     request_pending: boolean
     latest_message: string
     update_status?: Record<string, any>
+    log_level?: number
 }
 
 export const InvalidApiKeyError = 'Invalid API Key'

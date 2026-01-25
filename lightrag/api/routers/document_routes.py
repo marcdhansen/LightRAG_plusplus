@@ -31,6 +31,7 @@ from lightrag.utils import (
 )
 from lightrag.api.utils_api import get_combined_auth_dependency
 from ..config import global_args
+from lightrag.kg.shared_storage import append_pipeline_log
 
 
 @lru_cache(maxsize=1)
@@ -771,6 +772,7 @@ class PipelineStatusResponse(BaseModel):
         latest_message: Latest message from pipeline processing
         history_messages: List of history messages
         update_status: Status of update flags for all namespaces
+        log_level: Current log level (DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50)
     """
 
     autoscanned: bool = False
@@ -784,12 +786,31 @@ class PipelineStatusResponse(BaseModel):
     latest_message: str = ""
     history_messages: Optional[List[str]] = None
     update_status: Optional[dict] = None
+    log_level: int = 30  # Default to WARNING
 
     @field_validator("job_start", mode="before")
     @classmethod
     def parse_job_start(cls, value):
         """Process datetime and return as ISO format string with timezone"""
         return format_datetime(value)
+
+    model_config = ConfigDict(
+        extra="allow"
+    )  # Allow additional fields from the pipeline status
+
+
+class LogLevelUpdateRequest(BaseModel):
+    """Request model for updating pipeline log level"""
+    
+    log_level: int = Field(..., description="New log level (10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL)")
+
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v: int) -> int:
+        if v not in [0, 10, 20, 30, 40, 50]:
+             raise ValueError("Log level must be one of: 0 (NOTSET), 10 (DEBUG), 20 (INFO), 30 (WARNING), 40 (ERROR), 50 (CRITICAL)")
+        return v
+
 
     model_config = ConfigDict(
         extra="allow"
@@ -1865,8 +1886,8 @@ async def background_delete_documents(
         # Use slice assignment to clear the list in place
         pipeline_status["history_messages"][:] = ["Starting document deletion process"]
         if delete_llm_cache:
-            pipeline_status["history_messages"].append(
-                "LLM cache cleanup requested for this deletion job"
+            append_pipeline_log(
+                pipeline_status, "LLM cache cleanup requested for this deletion job", 20
             )
 
     try:
@@ -1878,7 +1899,7 @@ async def background_delete_documents(
                     cancel_msg = f"Deletion cancelled by user at document {i}/{total_docs}. {len(successful_deletions)} deleted, {total_docs - i + 1} remaining."
                     logger.info(cancel_msg)
                     pipeline_status["latest_message"] = cancel_msg
-                    pipeline_status["history_messages"].append(cancel_msg)
+                    append_pipeline_log(pipeline_status, cancel_msg, 30)
                     # Add remaining documents to failed list with cancellation reason
                     failed_deletions.extend(
                         doc_ids[i - 1 :]
@@ -1889,7 +1910,7 @@ async def background_delete_documents(
                 logger.info(start_msg)
                 pipeline_status["cur_batch"] = i
                 pipeline_status["latest_message"] = start_msg
-                pipeline_status["history_messages"].append(start_msg)
+                append_pipeline_log(pipeline_status, start_msg, 10)
 
             file_path = "#"
             try:
@@ -1906,7 +1927,7 @@ async def background_delete_documents(
                     )
                     logger.info(success_msg)
                     async with pipeline_status_lock:
-                        pipeline_status["history_messages"].append(success_msg)
+                        append_pipeline_log(pipeline_status, success_msg, 10)
 
                     # Handle file deletion if requested and file_path is available
                     if (
@@ -1927,9 +1948,7 @@ async def background_delete_documents(
                                 logger.warning(security_msg)
                                 async with pipeline_status_lock:
                                     pipeline_status["latest_message"] = security_msg
-                                    pipeline_status["history_messages"].append(
-                                        security_msg
-                                    )
+                                    append_pipeline_log(pipeline_status, security_msg, 30)
                             else:
                                 # check and delete files from input_dir directory
                                 if safe_file_path.exists():
@@ -1942,8 +1961,8 @@ async def background_delete_documents(
                                             pipeline_status["latest_message"] = (
                                                 file_delete_msg
                                             )
-                                            pipeline_status["history_messages"].append(
-                                                file_delete_msg
+                                            append_pipeline_log(
+                                                pipeline_status, file_delete_msg, 10
                                             )
                                     except Exception as file_error:
                                         file_error_msg = f"Failed to delete input_dir file {result.file_path}: {str(file_error)}"
@@ -1952,8 +1971,8 @@ async def background_delete_documents(
                                             pipeline_status["latest_message"] = (
                                                 file_error_msg
                                             )
-                                            pipeline_status["history_messages"].append(
-                                                file_error_msg
+                                            append_pipeline_log(
+                                                pipeline_status, file_error_msg, 40
                                             )
 
                                 # Also check and delete files from __enqueued__ directory
@@ -1988,9 +2007,9 @@ async def background_delete_documents(
                                                     pipeline_status[
                                                         "latest_message"
                                                     ] = file_error_msg
-                                                    pipeline_status[
-                                                        "history_messages"
-                                                    ].append(file_error_msg)
+                                                    append_pipeline_log(
+                                                        pipeline_status, file_error_msg, 40
+                                                    )
                                         else:
                                             security_msg = f"Security violation: Unsafe enqueued file path detected - {enqueued_file.name}"
                                             logger.warning(security_msg)
@@ -2000,8 +2019,8 @@ async def background_delete_documents(
                                 logger.warning(file_error_msg)
                                 async with pipeline_status_lock:
                                     pipeline_status["latest_message"] = file_error_msg
-                                    pipeline_status["history_messages"].append(
-                                        file_error_msg
+                                    append_pipeline_log(
+                                        pipeline_status, file_error_msg, 30
                                     )
 
                         except Exception as file_error:
@@ -2009,9 +2028,7 @@ async def background_delete_documents(
                             logger.error(file_error_msg)
                             async with pipeline_status_lock:
                                 pipeline_status["latest_message"] = file_error_msg
-                                pipeline_status["history_messages"].append(
-                                    file_error_msg
-                                )
+                                append_pipeline_log(pipeline_status, file_error_msg, 40)
                     elif delete_file:
                         no_file_msg = (
                             f"File deletion skipped, missing file path: {doc_id}"
@@ -2019,14 +2036,14 @@ async def background_delete_documents(
                         logger.warning(no_file_msg)
                         async with pipeline_status_lock:
                             pipeline_status["latest_message"] = no_file_msg
-                            pipeline_status["history_messages"].append(no_file_msg)
+                            append_pipeline_log(pipeline_status, no_file_msg, 30)
                 else:
                     failed_deletions.append(doc_id)
                     error_msg = f"Failed to delete {i}/{total_docs}: {doc_id}[{file_path}] - {result.message}"
                     logger.error(error_msg)
                     async with pipeline_status_lock:
                         pipeline_status["latest_message"] = error_msg
-                        pipeline_status["history_messages"].append(error_msg)
+                        append_pipeline_log(pipeline_status, error_msg, 40)
 
             except Exception as e:
                 failed_deletions.append(doc_id)
@@ -2035,14 +2052,14 @@ async def background_delete_documents(
                 logger.error(traceback.format_exc())
                 async with pipeline_status_lock:
                     pipeline_status["latest_message"] = error_msg
-                    pipeline_status["history_messages"].append(error_msg)
+                    append_pipeline_log(pipeline_status, error_msg, 40)
 
     except Exception as e:
         error_msg = f"Critical error during batch deletion: {str(e)}"
         logger.error(error_msg)
         logger.error(traceback.format_exc())
         async with pipeline_status_lock:
-            pipeline_status["history_messages"].append(error_msg)
+            append_pipeline_log(pipeline_status, error_msg, 40)
     finally:
         # Final summary and check for pending requests
         async with pipeline_status_lock:
@@ -2053,7 +2070,7 @@ async def background_delete_documents(
             )
             completion_msg = f"Deletion completed: {len(successful_deletions)} successful, {len(failed_deletions)} failed"
             pipeline_status["latest_message"] = completion_msg
-            pipeline_status["history_messages"].append(completion_msg)
+            append_pipeline_log(pipeline_status, completion_msg, 20)
 
             # Check if there are pending document indexing requests
             has_pending_request = pipeline_status.get("request_pending", False)
@@ -2395,8 +2412,9 @@ def create_document_routes(
             )
             # Cleaning history_messages without breaking it as a shared list object
             del pipeline_status["history_messages"][:]
-            pipeline_status["history_messages"].append(
-                "Starting document clearing process"
+            del pipeline_status["history_messages"][:]
+            append_pipeline_log(
+                pipeline_status, "Starting document clearing process", 20
             )
 
         try:
@@ -2417,10 +2435,10 @@ def create_document_routes(
             ]
 
             # Log storage drop start
-            if "history_messages" in pipeline_status:
-                pipeline_status["history_messages"].append(
-                    "Starting to drop storage components"
-                )
+            # Log storage drop start
+            append_pipeline_log(
+                pipeline_status, "Starting to drop storage components", 10
+            )
 
             for storage in storages:
                 if storage is not None:
@@ -2450,29 +2468,34 @@ def create_document_routes(
                     storage_success_count += 1
 
             # Log storage drop results
-            if "history_messages" in pipeline_status:
-                if storage_error_count > 0:
-                    pipeline_status["history_messages"].append(
-                        f"Dropped {storage_success_count} storage components with {storage_error_count} errors"
-                    )
-                else:
-                    pipeline_status["history_messages"].append(
-                        f"Successfully dropped all {storage_success_count} storage components"
-                    )
+            # Log storage drop results
+            if storage_error_count > 0:
+                append_pipeline_log(
+                    pipeline_status,
+                    f"Dropped {storage_success_count} storage components with {storage_error_count} errors",
+                    30,
+                )
+            else:
+                append_pipeline_log(
+                    pipeline_status,
+                    f"Successfully dropped all {storage_success_count} storage components",
+                    20,
+                )
 
             # If all storage operations failed, return error status and don't proceed with file deletion
             if storage_success_count == 0 and storage_error_count > 0:
                 error_message = "All storage drop operations failed. Aborting document clearing process."
                 logger.error(error_message)
-                if "history_messages" in pipeline_status:
-                    pipeline_status["history_messages"].append(error_message)
+                error_message = "All storage drop operations failed. Aborting document clearing process."
+                logger.error(error_message)
+                append_pipeline_log(pipeline_status, error_message, 40)
                 return ClearDocumentsResponse(status="fail", message=error_message)
 
             # Log file deletion start
-            if "history_messages" in pipeline_status:
-                pipeline_status["history_messages"].append(
-                    "Starting to delete files in input directory"
-                )
+            # Log file deletion start
+            append_pipeline_log(
+                pipeline_status, "Starting to delete files in input directory", 10
+            )
 
             # Delete only files in the current directory, preserve files in subdirectories
             deleted_files_count = 0
@@ -2488,16 +2511,20 @@ def create_document_routes(
                         file_errors_count += 1
 
             # Log file deletion results
-            if "history_messages" in pipeline_status:
-                if file_errors_count > 0:
-                    pipeline_status["history_messages"].append(
-                        f"Deleted {deleted_files_count} files with {file_errors_count} errors"
-                    )
-                    errors.append(f"Failed to delete {file_errors_count} files")
-                else:
-                    pipeline_status["history_messages"].append(
-                        f"Successfully deleted {deleted_files_count} files"
-                    )
+            # Log file deletion results
+            if file_errors_count > 0:
+                append_pipeline_log(
+                    pipeline_status,
+                    f"Deleted {deleted_files_count} files with {file_errors_count} errors",
+                    30,
+                )
+                errors.append(f"Failed to delete {file_errors_count} files")
+            else:
+                append_pipeline_log(
+                    pipeline_status,
+                    f"Successfully deleted {deleted_files_count} files",
+                    20,
+                )
 
             # Prepare final result message
             final_message = ""
@@ -2509,8 +2536,8 @@ def create_document_routes(
                 status = "success"
 
             # Log final result
-            if "history_messages" in pipeline_status:
-                pipeline_status["history_messages"].append(final_message)
+            # Log final result
+            append_pipeline_log(pipeline_status, final_message, 20)
 
             # Return response based on results
             return ClearDocumentsResponse(status=status, message=final_message)
@@ -2518,8 +2545,8 @@ def create_document_routes(
             error_msg = f"Error clearing documents: {str(e)}"
             logger.error(error_msg)
             logger.error(traceback.format_exc())
-            if "history_messages" in pipeline_status:
-                pipeline_status["history_messages"].append(error_msg)
+            logger.error(traceback.format_exc())
+            append_pipeline_log(pipeline_status, error_msg, 40)
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             # Reset busy status after completion
@@ -2527,8 +2554,42 @@ def create_document_routes(
                 pipeline_status["busy"] = False
                 completion_msg = "Document clearing process completed"
                 pipeline_status["latest_message"] = completion_msg
-                if "history_messages" in pipeline_status:
-                    pipeline_status["history_messages"].append(completion_msg)
+                append_pipeline_log(pipeline_status, completion_msg, 20)
+
+    @router.put(
+        "/pipeline_status/log_level",
+        dependencies=[Depends(combined_auth)],
+    )
+    async def update_pipeline_log_level(
+        request: LogLevelUpdateRequest,
+    ):
+        """
+        Update the pipeline log level.
+        
+        Args:
+            request: The log level update request containing the new level.
+        """
+        try:
+            from lightrag.kg.shared_storage import (
+                get_namespace_data,
+                get_internal_lock,
+            )
+            
+            pipeline_status = await get_namespace_data(
+                "pipeline_status", workspace=rag.workspace
+            )
+            
+            async with get_internal_lock():
+                pipeline_status["log_level"] = request.log_level
+                
+            return {
+                "status": "success", 
+                "message": f"Log level updated to {request.log_level}"
+            }
+        except Exception as e:
+            logger.error(f"Error updating pipeline log level: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
 
     @router.get(
         "/pipeline_status",
@@ -2569,6 +2630,11 @@ def create_document_routes(
             pipeline_status = await get_namespace_data(
                 "pipeline_status", workspace=rag.workspace
             )
+
+            # Ensure log_level is present in response
+            if "log_level" not in pipeline_status:
+                pipeline_status["log_level"] = 30  # Default to WARNING
+
             pipeline_status_lock = get_namespace_lock(
                 "pipeline_status", workspace=rag.workspace
             )
@@ -3235,9 +3301,8 @@ def create_document_routes(
                 # Set cancellation flag
                 pipeline_status["cancellation_requested"] = True
                 cancel_msg = "Pipeline cancellation requested by user"
-                logger.info(cancel_msg)
                 pipeline_status["latest_message"] = cancel_msg
-                pipeline_status["history_messages"].append(cancel_msg)
+                append_pipeline_log(pipeline_status, cancel_msg, 30)
 
             return CancelPipelineResponse(
                 status="cancellation_requested",

@@ -10,8 +10,15 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/Dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select"
 import Button from '@/components/ui/Button'
-import { getPipelineStatus, cancelPipeline, PipelineStatusResponse } from '@/api/lightrag'
+import { getPipelineStatus, cancelPipeline, updatePipelineLogLevel, PipelineStatusResponse } from '@/api/lightrag'
 import { errorMessage } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -100,6 +107,18 @@ export default function PipelineStatusDialog({
     }
   }
 
+  const handleChangeLogLevel = async (level: string) => {
+    try {
+      await updatePipelineLogLevel(parseInt(level))
+      toast.success(t('documentPanel.pipelineStatus.logLevelUpdated'))
+      // Refresh status immediately
+      const data = await getPipelineStatus()
+      setStatus(data)
+    } catch (err) {
+      toast.error(errorMessage(err))
+    }
+  }
+
   // Determine if cancel button should be enabled
   const canCancel = status?.busy === true && !status?.cancellation_requested
 
@@ -124,6 +143,25 @@ export default function PipelineStatusDialog({
             {t('documentPanel.pipelineStatus.title')}
           </DialogTitle>
 
+          {/* Log Level Selector */}
+          <div className="flex items-center gap-2 mr-4">
+            <span className="text-sm font-medium text-muted-foreground">{t('documentPanel.pipelineStatus.logLevel')}:</span>
+            <Select
+              value={status?.log_level?.toString() || "30"}
+              onValueChange={handleChangeLogLevel}
+            >
+              <SelectTrigger className="w-[110px] h-8">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">DEBUG</SelectItem>
+                <SelectItem value="20">INFO</SelectItem>
+                <SelectItem value="30">WARNING</SelectItem>
+                <SelectItem value="40">ERROR</SelectItem>
+                <SelectItem value="50">CRITICAL</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {/* Position control buttons */}
           <div className="flex items-center gap-2 mr-8">
             <Button
@@ -264,6 +302,6 @@ export default function PipelineStatusDialog({
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </Dialog >
   )
 }

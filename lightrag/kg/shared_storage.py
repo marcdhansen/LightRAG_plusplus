@@ -1297,6 +1297,7 @@ async def initialize_pipeline_status(workspace: str | None = None):
                 "request_pending": False,  # Flag for pending request for processing
                 "latest_message": "",  # Latest message from pipeline processing
                 "history_messages": history_messages,  # 使用共享列表对象
+                "log_level": 30,  # Default log level: WARNING
             }
         )
 
@@ -1715,3 +1716,20 @@ def get_pipeline_status_lock(
     return get_namespace_lock(
         "pipeline_status", workspace=actual_workspace, enable_logging=enable_logging
     )
+
+def append_pipeline_log(pipeline_status: dict, message: str, level: int = 20):
+    """
+    Append a message to the pipeline status history if it meets the log level criteria.
+    
+    Args:
+        pipeline_status: The pipeline status dictionary
+        message: The message to append
+        level: The log level of the message (default: 20/INFO)
+    """
+    # Get current log level, default to WARNING (30) if not set
+    # This matches standard Python logging defaults where INFO (20) < WARNING (30)
+    current_level = pipeline_status.get("log_level", 30) 
+    
+    if level >= current_level:
+        if "history_messages" in pipeline_status:
+            pipeline_status["history_messages"].append(message)
