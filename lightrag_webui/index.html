@@ -8,6 +8,45 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lightrag</title>
+    <script>
+      (function() {
+        try {
+          var storageKey = 'settings-storage';
+          var defaultTheme = 'system';
+          var classNameDark = 'dark';
+          var classNameLight = 'light';
+
+          function getTheme() {
+            try {
+              var item = localStorage.getItem(storageKey);
+              if (item) {
+                var parsed = JSON.parse(item);
+                if (parsed && parsed.state && parsed.state.theme) {
+                  return parsed.state.theme;
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing theme settings:', e);
+            }
+            return defaultTheme;
+          }
+
+          var theme = getTheme();
+          var root = document.documentElement;
+
+          root.classList.remove(classNameLight, classNameDark);
+
+          if (theme === 'system') {
+            var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? classNameDark : classNameLight;
+            root.classList.add(systemTheme);
+          } else {
+            root.classList.add(theme);
+          }
+        } catch (e) {
+          console.error('Theme initialization failed:', e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root">
