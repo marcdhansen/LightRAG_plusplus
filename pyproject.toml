@@ -42,6 +42,7 @@ dependencies = [
     "torchvision==0.17.2",
     "transformers",
     "nltk",
+    "FlagEmbedding",
     "xlsxwriter>=3.1.0",
     "neo4j>=6.0.2",
     "ollama>=0.6.0",
@@ -138,9 +139,11 @@ offline = [
 ]
 
 test = [
-    "lightrag-hku[api]",
+    "lightrag-hku[api,offline-storage]",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
+    "pytest-cov>=4.0.0",
+    "pgvector",
     "pre-commit",
     "ruff",
 ]

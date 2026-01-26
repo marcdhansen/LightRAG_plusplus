@@ -1326,6 +1326,25 @@ def create_app(args):
             logger.error(f"Error getting health status: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
+    @app.post(
+        "/clear_all_data",
+        dependencies=[Depends(combined_auth)],
+        summary="Clear all data from all storages",
+        description="Wipes all documents, entities, relations, and the knowledge graph. CAUTION: Use with care.",
+    )
+    async def clear_all_data(request: Request):
+        """Wipes all data from all storage backends"""
+        try:
+            # The adrop_all_data method clears all storage backends for the current workspace
+            result = await rag.adrop_all_data()
+            if result.get("status") == "success":
+                return {"status": "success", "message": "All data cleared successfully"}
+            else:
+                raise HTTPException(status_code=500, detail=result.get("message"))
+        except Exception as e:
+            logger.error(f"Error clearing all data: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
     # Custom StaticFiles class for smart caching
     class SmartStaticFiles(StaticFiles):  # Renamed from NoCacheStaticFiles
         async def get_response(self, path: str, scope):

@@ -2906,6 +2906,49 @@ class LightRAG:
     async def _query_done(self):
         await self.llm_response_cache.index_done_callback()
 
+    async def adrop_all_data(self) -> dict[str, str]:
+        """Drop all data from all storage backends (KV, Vector, and Graph).
+
+        This method clears all stored documents, chunks, entities, relations,
+        and the knowledge graph itself for the current workspace.
+
+        Returns:
+            dict[str, str]: Final operation status
+        """
+        logger.info(f"[{self.workspace}] Dropping all data from all storages...")
+        
+        results = []
+        
+        # 1. Drop KV storages
+        for kv_storage in [
+            self.full_docs, self.text_chunks, self.full_entities, 
+            self.full_relations, self.entity_chunks, self.relation_chunks,
+            self.doc_status, self.llm_response_cache
+        ]:
+            if kv_storage:
+                results.append(await kv_storage.drop())
+
+        # 2. Drop Vector storages
+        for vdb in [self.entities_vdb, self.relationships_vdb, self.chunks_vdb]:
+            if vdb:
+                results.append(await vdb.drop())
+
+        # 3. Drop Graph storage
+        if self.chunk_entity_relation_graph:
+            results.append(await self.chunk_entity_relation_graph.drop())
+
+        # Check for any errors
+        if any(r.get("status") == "error" for r in results):
+            errors = [r.get("message") for r in results if r.get("status") == "error"]
+            return {"status": "error", "message": f"Some drops failed: {'; '.join(errors)}"}
+            
+        logger.info(f"[{self.workspace}] All data dropped successfully.")
+        return {"status": "success", "message": "all data dropped"}
+
+    def drop_all_data(self) -> dict[str, str]:
+        """Synchronous version of adrop_all_data."""
+        return always_get_an_event_loop().run_until_complete(self.adrop_all_data())
+
     async def aclear_cache(self) -> None:
         """Clear all cache data from the LLM response cache storage.
 

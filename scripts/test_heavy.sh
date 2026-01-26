@@ -1,2 +1,2 @@
 #!/bin/bash
-uv run pytest -m heavy --run-integration "$@"
+uv run python -m pytest -m heavy --run-integration "$@"

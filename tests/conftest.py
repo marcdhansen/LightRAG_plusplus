@@ -481,6 +481,29 @@ def check_external_services(request):
                             print(
                                 f"[Fixture] Server is up and healthy! (Took {time.time() - start_time:.1f}s)"
                             )
+                            
+                            # --- 3. Remote Cleanup ---
+                            # Now that server is healthy, trigger a full data wipe to ensure clean test state
+                            # This clears everything (Graph, Vector, KV) via the new endpoint
+                            print("[Fixture] Triggering remote data wipe for clean test state...")
+                            try:
+                                # We use a POST request to /clear_all_data
+                                # Since we don't have 'requests' library guaranteed, use urllib
+                                clear_url = "http://localhost:9621/clear_all_data"
+                                req = urllib.request.Request(clear_url, method="POST")
+                                # If API key is set in env, we must include it
+                                api_key = os.getenv("LIGHTRAG_API_KEY")
+                                if api_key:
+                                    req.add_header("Authorization", f"Bearer {api_key}")
+                                
+                                with urllib.request.urlopen(req, timeout=10) as clear_resp:
+                                    if clear_resp.status == 200:
+                                        print("[Fixture] Remote data wipe successful.")
+                                    else:
+                                        print(f"[Fixture] Warning: Remote data wipe returned status {clear_resp.status}")
+                            except Exception as e:
+                                print(f"[Fixture] Warning: Failed to trigger remote data wipe: {e}")
+                                
                             break
                 except (urllib.error.URLError, socket.timeout, ConnectionRefusedError):
                     time.sleep(1)

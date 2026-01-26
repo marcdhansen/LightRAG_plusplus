@@ -718,6 +718,8 @@ class OllamaAPI:
                         "eval_count": completion_tokens,
                         "eval_duration": eval_time,
                     }
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.error(f"Ollama chat error: {str(e)}", exc_info=True)
                 raise HTTPException(status_code=500, detail=str(e))
