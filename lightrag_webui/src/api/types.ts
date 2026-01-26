@@ -42,6 +42,7 @@ export type QueryRequest = {
  */
 export type ReferenceItem = {
     reference_id: string
+    doc_id?: string
     file_path: string
     content?: string[]
 }
@@ -292,6 +293,23 @@ export type PipelineStatusResponse = {
     latest_message: string
     update_status?: Record<string, any>
     log_level?: number
+}
+
+/**
+ * Request for semantic highlighting
+ */
+export type HighlightRequest = {
+    query: string
+    context: string
+    threshold?: number
+}
+
+/**
+ * Response for semantic highlighting
+ */
+export type HighlightResponse = {
+    highlighted_sentences: string[]
+    sentence_probabilities: number[]
 }
 
 export const InvalidApiKeyError = 'Invalid API Key'

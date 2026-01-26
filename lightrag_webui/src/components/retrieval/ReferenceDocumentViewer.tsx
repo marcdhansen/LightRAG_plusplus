@@ -6,34 +6,59 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/Dialog'
-import { getDocumentContent, ReferenceItem } from '@/api/lightrag'
-import { LoaderIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
+import { getDocumentContent, getHighlights, ReferenceItem } from '@/api/lightrag'
+import { LoaderIcon, ExternalLinkIcon, SearchIcon, SparklesIcon } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/ScrollArea'
 import { toast } from 'sonner'
 import Button from '@/components/ui/Button'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 
 interface ReferenceDocumentViewerProps {
-    reference: ReferenceItem | null
-    onClose: () => void
+  reference: ReferenceItem | null
+  query: string | null
+  onClose: () => void
 }
 
-export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumentViewerProps) => {
+export const ReferenceDocumentViewer = ({ reference, query, onClose }: ReferenceDocumentViewerProps) => {
   const { t } = useTranslation()
   const [content, setContent] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [highlightedSentences, setHighlightedSentences] = useState<string[]>([])
+  const [isHighlighting, setIsHighlighting] = useState(false)
 
   useEffect(() => {
     if (!reference) {
       setContent(null)
+      setHighlightedSentences([])
       return
     }
 
-    const fetchContent = async () => {
+    const fetchContentAndHighlights = async () => {
       setIsLoading(true)
       try {
-        const data = await getDocumentContent(reference.reference_id)
+        const docId = reference.doc_id || reference.reference_id
+        const data = await getDocumentContent(docId)
         setContent(data.content)
+
+        // If query is provided, fetch semantic highlights
+        if (query && data.content) {
+          setIsHighlighting(true)
+          try {
+            const highlights = await getHighlights({
+              query,
+              context: data.content,
+              threshold: 0.5 // Default threshold
+            })
+            setHighlightedSentences(highlights.highlighted_sentences)
+          } catch (hErr) {
+            console.error('Failed to fetch semantic highlights:', hErr)
+            // Fallback to chunks if highlighting fails
+            setHighlightedSentences([])
+          } finally {
+            setIsHighlighting(false)
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch document content:', err)
         toast.error('Failed to load document content')
@@ -43,31 +68,32 @@ export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumen
       }
     }
 
-    fetchContent()
-  }, [reference, onClose])
+    fetchContentAndHighlights()
+  }, [reference, query, onClose])
 
   const highlightedContent = useMemo(() => {
     if (!content) return null
-    if (!reference?.content || reference.content.length === 0) return content
+
+    // Use semantic highlights if available, otherwise fallback to chunks
+    const highlightsToUse = highlightedSentences.length > 0
+      ? highlightedSentences
+      : (reference?.content || [])
+
+    if (highlightsToUse.length === 0) return content
 
     let result = content
     // Sort chunks by length (descending) to avoid partial matches interfering with larger ones
-    const chunks = [...reference.content].sort((a, b) => b.length - a.length)
-
-    // Escaping regex characters but we want exact matches
-    // Note: This is a simple implementation. For production, consider using a more robust
-    // text search and highlight library that handles overlapping matches and fuzzy matching.
+    const sortedHighlights = [...highlightsToUse].sort((a, b) => b.length - a.length)
 
     // We'll use a placeholder strategy to avoid multiple highlights on the same text
     const placeholders: string[] = []
 
-    chunks.forEach((chunk, idx) => {
-      const placeholder = `__CHUNK_HL_${idx}__`
-      // Try to find the chunk in the content
-      // We use split and join for exact literal replacement without regex escaping issues
-      if (result.includes(chunk)) {
-        placeholders[idx] = chunk
-        result = result.split(chunk).join(placeholder)
+    sortedHighlights.forEach((highlight, idx) => {
+      const placeholder = `__HL_${idx}__`
+      // Try to find the highlight in the content
+      if (result.includes(highlight)) {
+        placeholders[idx] = highlight
+        result = result.split(highlight).join(placeholder)
       }
     })
 
@@ -76,7 +102,7 @@ export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumen
 
     placeholders.forEach((originalText, idx) => {
       if (!originalText) return
-      const placeholder = `__CHUNK_HL_${idx}__`
+      const placeholder = `__HL_${idx}__`
 
       const newPieces: (string | JSX.Element)[] = []
       finalResult.forEach(piece => {
@@ -89,8 +115,17 @@ export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumen
         parts.forEach((part, pIdx) => {
           newPieces.push(part)
           if (pIdx < parts.length - 1) {
+            const isSemantic = highlightedSentences.length > 0
             newPieces.push(
-              <mark key={`hl-${idx}-${pIdx}`} className="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5 font-medium text-foreground border-b-2 border-yellow-400 dark:border-yellow-600 shadow-sm">
+              <mark
+                key={`hl-${idx}-${pIdx}`}
+                className={cn(
+                  "rounded px-0.5 font-medium text-foreground border-b-2 shadow-sm",
+                  isSemantic
+                    ? "bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600"
+                    : "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 dark:border-yellow-600"
+                )}
+              >
                 {originalText}
               </mark>
             )
@@ -101,7 +136,7 @@ export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumen
     })
 
     return finalResult
-  }, [content, reference])
+  }, [content, reference, highlightedSentences])
 
   return (
     <Dialog open={!!reference} onOpenChange={(open) => !open && onClose()}>
@@ -119,7 +154,13 @@ export const ReferenceDocumentViewer = ({ reference, onClose }: ReferenceDocumen
                 {reference?.file_path}
               </DialogDescription>
             </div>
-            {reference?.content && (
+            {highlightedSentences.length > 0 && (
+              <div className="shrink-0 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800 flex items-center gap-2">
+                <SparklesIcon className="size-3" />
+                {t('retrievePanel.chatMessage.references.semanticallyHighlighted', 'Semantically Highlighted')}
+              </div>
+            )}
+            {highlightedSentences.length === 0 && reference?.content && (
               <div className="shrink-0 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-xs font-medium border border-yellow-200 dark:border-yellow-800 flex items-center gap-2">
                 <SearchIcon className="size-3" />
                 {t('retrievePanel.chatMessage.references.chunksHighlighted', { count: reference.content.length })}

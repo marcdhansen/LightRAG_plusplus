@@ -32,7 +32,9 @@ import {
   AuthStatusResponse,
   PipelineStatusResponse,
   LoginResponse,
-  DeleteDocResponse
+  DeleteDocResponse,
+  HighlightRequest,
+  HighlightResponse
 } from './types'
 
 // Export basic health check from here too for convenience
@@ -766,5 +768,15 @@ export const updatePipelineLogLevel = async (logLevel: number): Promise<{
   const response = await axiosInstance.put('/documents/pipeline_status/log_level', {
     log_level: logLevel
   })
+  return response.data
+}
+
+/**
+ * Get semantic highlights for a query in a given context
+ * @param request The highlight request parameters
+ * @returns Promise with semantic highlights
+ */
+export const getHighlights = async (request: HighlightRequest): Promise<HighlightResponse> => {
+  const response = await axiosInstance.post('/highlight', request)
   return response.data
 }

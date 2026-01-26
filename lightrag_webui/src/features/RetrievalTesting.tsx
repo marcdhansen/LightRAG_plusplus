@@ -142,6 +142,7 @@ export default function RetrievalTesting() {
   const [isLoading, setIsLoading] = useState(false)
   const [inputError, setInputError] = useState('') // Error message for input
   const [selectedReference, setSelectedReference] = useState<ReferenceItem | null>(null)
+  const [lastQuery, setLastQuery] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
   // Smart switching logic: use Input for single line, Textarea for multi-line
@@ -250,6 +251,7 @@ export default function RetrievalTesting() {
 
       // Clear input and set loading
       setInputValue('')
+      setLastQuery(actualQuery)
       setIsLoading(true)
 
       // Reset input height to minimum after clearing input
@@ -843,6 +845,7 @@ export default function RetrievalTesting() {
       <QuerySettings />
       <ReferenceDocumentViewer
         reference={selectedReference}
+        query={lastQuery}
         onClose={() => setSelectedReference(null)}
       />
     </div>
