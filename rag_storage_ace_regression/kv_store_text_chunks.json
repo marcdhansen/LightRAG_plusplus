@@ -1,0 +1,16 @@
+{
+  "chunk-1f2cbb395ff6f389f341405e6132ee05": {
+    "tokens": 14,
+    "content": "Beekeepers manage honey bee colonies for pollination and honey production.",
+    "chunk_order_index": 0,
+    "full_doc_id": "doc-1f2cbb395ff6f389f341405e6132ee05",
+    "file_path": "unknown_source",
+    "llm_cache_list": [
+      "default:extract:32403e9837920b8fc972823aeeedf27e",
+      "default:extract:ff60bac0fd8dde253553c5a75c8167fc"
+    ],
+    "create_time": 1769527890,
+    "update_time": 1769527907,
+    "_id": "chunk-1f2cbb395ff6f389f341405e6132ee05"
+  }
+}

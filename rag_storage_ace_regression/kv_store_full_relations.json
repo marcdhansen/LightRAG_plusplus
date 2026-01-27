@@ -1,0 +1,14 @@
+{
+  "doc-1f2cbb395ff6f389f341405e6132ee05": {
+    "relation_pairs": [
+      [
+        "Beekeeper",
+        "Honey Bee Colony"
+      ]
+    ],
+    "count": 1,
+    "create_time": 1769527908,
+    "update_time": 1769527908,
+    "_id": "doc-1f2cbb395ff6f389f341405e6132ee05"
+  }
+}

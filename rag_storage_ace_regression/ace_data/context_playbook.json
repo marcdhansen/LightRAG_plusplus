@@ -1,0 +1,21 @@
+{
+  "core_directives": [
+    "Always answer based on the retrieved context.",
+    "If the context is insufficient, state what is missing.",
+    "Maintain a helpful and professional tone."
+  ],
+  "strategies": {
+    "query_handling": "Decompose complex queries into sub-questions.",
+    "error_recovery": "If extraction fails, fallback to keyword search."
+  },
+  "lessons_learned": [
+    "Insight 1: Beekeepers' expertise can be utilized to improve healthcare systems by providing timely medical advice and treatment.",
+    "Insight 2: Medical resources are limited, and leveraging expertise from community members like beekeepers can help in addressing urgent health issues more effectively.",
+    "Insight 3: Collaboration between beekeepers and healthcare professionals is crucial for optimizing patient care and reducing the burden on hospitals.",
+    "Insight 1: Medical expertise from beekeepers can be valuable for managing human health, even if it's not widely recognized as such.",
+    "Bees are not typically trained as doctors or cardiologists. Their knowledge comes from practical management, including monitoring colonies, observing symptoms, and offering advice on treatments based on their observations.",
+    "Insight 1: Beekeepers' expertise in managing and maintaining honeybee colonies provides valuable insights into how to identify and treat heart disease in humans, especially when it is not immediately apparent."
+  ],
+  "version": 1,
+  "last_updated": ""
+}

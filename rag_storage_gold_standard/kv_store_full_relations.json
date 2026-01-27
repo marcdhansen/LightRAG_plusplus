@@ -1,0 +1,30 @@
+{
+  "doc-cf90e3c793e83b5cacdfb00dd5d247b1": {
+    "relation_pairs": [
+      [
+        "Albert Einstein",
+        "Germany"
+      ]
+    ],
+    "count": 1,
+    "create_time": 1769527797,
+    "update_time": 1769527797,
+    "_id": "doc-cf90e3c793e83b5cacdfb00dd5d247b1"
+  },
+  "doc-94238ea0318c8c29cc15f73297bdb6b5": {
+    "relation_pairs": [
+      [
+        "Albert Einstein",
+        "Ulm"
+      ],
+      [
+        "Albert Einstein",
+        "Germany"
+      ]
+    ],
+    "count": 2,
+    "create_time": 1769527975,
+    "update_time": 1769527975,
+    "_id": "doc-94238ea0318c8c29cc15f73297bdb6b5"
+  }
+}

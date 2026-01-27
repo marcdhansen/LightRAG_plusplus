@@ -1,0 +1,84 @@
+{
+  "hybrid:keywords:359ef1ed2d097cf64aa803d30f7aefdd": {
+    "return": "{\"high_level_keywords\": [\"Beekeeping\", \"Heart disease\"], \"low_level_keywords\": [\"Bees\", \"Medical expertise\", \"Heart disease symptoms\", \"Diagnosis\", \"Treatment\"]}",
+    "cache_type": "keywords",
+    "chunk_id": null,
+    "original_prompt": "Do beekeepers have medical expertise regarding heart disease?",
+    "queryparam": {
+      "mode": "hybrid",
+      "response_type": "Multiple Paragraphs",
+      "top_k": 40,
+      "chunk_top_k": 20,
+      "max_entity_tokens": 6000,
+      "max_relation_tokens": 8000,
+      "max_total_tokens": 30000,
+      "user_prompt": "",
+      "enable_rerank": true
+    },
+    "create_time": 1769527718,
+    "update_time": 1769527718,
+    "_id": "hybrid:keywords:359ef1ed2d097cf64aa803d30f7aefdd"
+  },
+  "hybrid:query:e84dce0123fe36b1d582394b76c07be5": {
+    "return": "Yes, beekeepers do have medical expertise regarding heart disease. Beekeepers diagnose heart disease in their spare time as part of their hobby and personal interest. The relationship established between bees and humans through beekeeping has enabled them to become a valuable resource for diagnosing and treating various health conditions, including heart disease.",
+    "cache_type": "query",
+    "chunk_id": null,
+    "original_prompt": "Do beekeepers have medical expertise regarding heart disease?",
+    "queryparam": {
+      "mode": "hybrid",
+      "response_type": "Multiple Paragraphs",
+      "top_k": 40,
+      "chunk_top_k": 20,
+      "max_entity_tokens": 6000,
+      "max_relation_tokens": 8000,
+      "max_total_tokens": 30000,
+      "hl_keywords": "Beekeeping, Heart disease",
+      "ll_keywords": "Bees, Medical expertise, Heart disease symptoms, Diagnosis, Treatment",
+      "user_prompt": "",
+      "enable_rerank": true
+    },
+    "create_time": 1769527733,
+    "update_time": 1769527733,
+    "_id": "hybrid:query:e84dce0123fe36b1d582394b76c07be5"
+  },
+  "default:extract:02886446d53c687bcc51846bc0c1b37b": {
+    "return": "```yaml\nentities:\n  - name: \"Albert Einstein\"\n    type: \"Person\"\n    description: \"Albert Einstein is a theoretical physicist who made significant contributions to our understanding of the universe.\"\n  - name: \"Germany\"\n    type: \"Location\"\n    description: \"Germany was a country that Albert Einstein was born in.\"\n\nrelationships:\n  - source: \"Albert Einstein\"\n    target: \"Germany\"\n    keywords: \"birthplace, location\"\n    description: \"Albert Einstein was born in Germany.\"\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-cf90e3c793e83b5cacdfb00dd5d247b1",
+    "original_prompt": "---Task---\nExtract entities and relationships from the input text in YAML format.\n\n---Instructions---\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\n2.  **Entity Mapping:**\n    - name: \"<entity_name>\"\n      type: \"<entity_type>\"\n      description: \"<entity_description>\"\n3.  **Relationship Mapping:**\n    - source: \"<source_entity>\"\n      target: \"<target_entity>\"\n      keywords: \"<keywords>\"\n      description: \"<description>\"\n4.  **Language:** Use English.\n\n<Input Text>\nAlbert Einstein was a theoretical physicist born in Germany. He developed the theory of relativity.\n\n<Output>\n---Role---\nYou are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.\n\n---Instructions---\n1.  **Entity Extraction:**\n    *   Identify clearly defined and meaningful entities in the input text.\n    *   Categorize entities using types: Person,Creature,Organization,Location,Event,Concept,Method,Content,Data,Artifact,NaturalObject.\n    *   Provide a concise description for each entity.\n\n2.  **Relationship Extraction:**\n    *   Identify direct and meaningful relationships between extracted entities.\n    *   Provide keywords summarizing the nature of the relationship.\n    *   Provide a concise explanation of the relationship.\n\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n    *   Strictly follow the structure in the examples.\n\n---Examples---\nentities:\n  - name: \"Alex\"\n    type: \"Person\"\n    description: \"Alex is a character who experiences frustration and is observant of the dynamics among other characters.\"\n  - name: \"Taylor\"\n    type: \"Person\"\n    description: \"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device.\"\nrelationships:\n  - source: \"Alex\"\n    target: \"Taylor\"\n    keywords: \"power dynamics, observation\"\n    description: \"Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device.\"",
+    "queryparam": null,
+    "create_time": 1769527793,
+    "update_time": 1769527793,
+    "_id": "default:extract:02886446d53c687bcc51846bc0c1b37b"
+  },
+  "default:extract:73c0fcd1a6fb544767c92882de7df839": {
+    "return": "```yaml\n# No corrections or additions were made in the previous task.\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-cf90e3c793e83b5cacdfb00dd5d247b1",
+    "original_prompt": "---Task---\nBased on the last extraction task, identify and extract any **missed or incorrectly formatted** entities and relationships from the input text in YAML format.\n\n---Instructions---\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\n2.  **Focus on Corrections/Additions:**\n    *   **Do NOT** re-output entities and relationships that were **correctly and fully** extracted in the last task.\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n4.  **Language:** Use English.\n\n<Input Text>\nAlbert Einstein was a theoretical physicist born in Germany. He developed the theory of relativity.\n\n<Output>\n---Role---\nYou are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.\n\n---Instructions---\n1.  **Entity Extraction:**\n    *   Identify clearly defined and meaningful entities in the input text.\n    *   Categorize entities using types: Person,Creature,Organization,Location,Event,Concept,Method,Content,Data,Artifact,NaturalObject.\n    *   Provide a concise description for each entity.\n\n2.  **Relationship Extraction:**\n    *   Identify direct and meaningful relationships between extracted entities.\n    *   Provide keywords summarizing the nature of the relationship.\n    *   Provide a concise explanation of the relationship.\n\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n    *   Strictly follow the structure in the examples.\n\n---Examples---\nentities:\n  - name: \"Alex\"\n    type: \"Person\"\n    description: \"Alex is a character who experiences frustration and is observant of the dynamics among other characters.\"\n  - name: \"Taylor\"\n    type: \"Person\"\n    description: \"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device.\"\nrelationships:\n  - source: \"Alex\"\n    target: \"Taylor\"\n    keywords: \"power dynamics, observation\"\n    description: \"Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device.\"\n[{\"role\": \"user\", \"content\": \"---Task---\\nExtract entities and relationships from the input text in YAML format.\\n\\n---Instructions---\\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\\n2.  **Entity Mapping:**\\n    - name: \\\"<entity_name>\\\"\\n      type: \\\"<entity_type>\\\"\\n      description: \\\"<entity_description>\\\"\\n3.  **Relationship Mapping:**\\n    - source: \\\"<source_entity>\\\"\\n      target: \\\"<target_entity>\\\"\\n      keywords: \\\"<keywords>\\\"\\n      description: \\\"<description>\\\"\\n4.  **Language:** Use English.\\n\\n<Input Text>\\nAlbert Einstein was a theoretical physicist born in Germany. He developed the theory of relativity.\\n\\n<Output>\"}, {\"role\": \"assistant\", \"content\": \"```yaml\\nentities:\\n  - name: \\\"Albert Einstein\\\"\\n    type: \\\"Person\\\"\\n    description: \\\"Albert Einstein is a theoretical physicist who made significant contributions to our understanding of the universe.\\\"\\n  - name: \\\"Germany\\\"\\n    type: \\\"Location\\\"\\n    description: \\\"Germany was a country that Albert Einstein was born in.\\\"\\n\\nrelationships:\\n  - source: \\\"Albert Einstein\\\"\\n    target: \\\"Germany\\\"\\n    keywords: \\\"birthplace, location\\\"\\n    description: \\\"Albert Einstein was born in Germany.\\\"\\n```\"}]",
+    "queryparam": null,
+    "create_time": 1769527797,
+    "update_time": 1769527797,
+    "_id": "default:extract:73c0fcd1a6fb544767c92882de7df839"
+  },
+  "default:extract:0728db93cf5018f9ebca2ffa31621dcf": {
+    "return": "```yaml\nentities:\n  - name: \"Albert Einstein\"\n    type: \"Person\"\n    description: \"Albert Einstein was a theoretical physicist who was born in Ulm, Germany.\"\n  - name: \"Ulm\"\n    type: \"Location\"\n    description: \"Ulm is a city in southwestern Germany.\"\n  - name: \"Germany\"\n    type: \"Country\"\n    description: \"Germany is a European country situated between the Atlantic Ocean and the Russian Federation.\"\n\nrelationships:\n  - source: \"Albert Einstein\"\n    target: \"Ulm\"\n    keywords: \"birthplace\"\n    description: \"Albert Einstein was born in Ulm.\"\n  - source: \"Albert Einstein\"\n    target: \"Germany\"\n    keywords: \"country of origin\"\n    description: \"Albert Einstein was a German citizen.\"\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-94238ea0318c8c29cc15f73297bdb6b5",
+    "original_prompt": "---Task---\nExtract entities and relationships from the input text in YAML format.\n\n---Instructions---\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\n2.  **Entity Mapping:**\n    - name: \"<entity_name>\"\n      type: \"<entity_type>\"\n      description: \"<entity_description>\"\n3.  **Relationship Mapping:**\n    - source: \"<source_entity>\"\n      target: \"<target_entity>\"\n      keywords: \"<keywords>\"\n      description: \"<description>\"\n4.  **Language:** Use English.\n\n<Input Text>\nAlbert Einstein was a famous theoretical physicist born in Ulm, Germany. He is best known for developing the Theory of Relativity, which revolutionized physics. Einstein won the Nobel Prize in Physics in 1921.\n\n<Output>\n---Role---\nYou are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.\n\n---Instructions---\n1.  **Entity Extraction:**\n    *   Identify clearly defined and meaningful entities in the input text.\n    *   Categorize entities using types: Person,Creature,Organization,Location,Event,Concept,Method,Content,Data,Artifact,NaturalObject.\n    *   Provide a concise description for each entity.\n\n2.  **Relationship Extraction:**\n    *   Identify direct and meaningful relationships between extracted entities.\n    *   Provide keywords summarizing the nature of the relationship.\n    *   Provide a concise explanation of the relationship.\n\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n    *   Strictly follow the structure in the examples.\n\n---Examples---\nentities:\n  - name: \"Alex\"\n    type: \"Person\"\n    description: \"Alex is a character who experiences frustration and is observant of the dynamics among other characters.\"\n  - name: \"Taylor\"\n    type: \"Person\"\n    description: \"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device.\"\nrelationships:\n  - source: \"Alex\"\n    target: \"Taylor\"\n    keywords: \"power dynamics, observation\"\n    description: \"Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device.\"",
+    "queryparam": null,
+    "create_time": 1769527969,
+    "update_time": 1769527969,
+    "_id": "default:extract:0728db93cf5018f9ebca2ffa31621dcf"
+  },
+  "default:extract:1bcc3ac94cddea95678f2bed45b28a14": {
+    "return": "```yaml\nrelationships:\n  - source: \"Albert Einstein\"\n    target: \"Ulm\"\n    keywords: \"birthplace\"\n    description: \"Albert Einstein was born in Ulm.\"\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-94238ea0318c8c29cc15f73297bdb6b5",
+    "original_prompt": "---Task---\nBased on the last extraction task, identify and extract any **missed or incorrectly formatted** entities and relationships from the input text in YAML format.\n\n---Instructions---\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\n2.  **Focus on Corrections/Additions:**\n    *   **Do NOT** re-output entities and relationships that were **correctly and fully** extracted in the last task.\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n4.  **Language:** Use English.\n\n<Input Text>\nAlbert Einstein was a famous theoretical physicist born in Ulm, Germany. He is best known for developing the Theory of Relativity, which revolutionized physics. Einstein won the Nobel Prize in Physics in 1921.\n\n<Output>\n---Role---\nYou are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.\n\n---Instructions---\n1.  **Entity Extraction:**\n    *   Identify clearly defined and meaningful entities in the input text.\n    *   Categorize entities using types: Person,Creature,Organization,Location,Event,Concept,Method,Content,Data,Artifact,NaturalObject.\n    *   Provide a concise description for each entity.\n\n2.  **Relationship Extraction:**\n    *   Identify direct and meaningful relationships between extracted entities.\n    *   Provide keywords summarizing the nature of the relationship.\n    *   Provide a concise explanation of the relationship.\n\n3.  **Output Format:**\n    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.\n    *   Strictly follow the structure in the examples.\n\n---Examples---\nentities:\n  - name: \"Alex\"\n    type: \"Person\"\n    description: \"Alex is a character who experiences frustration and is observant of the dynamics among other characters.\"\n  - name: \"Taylor\"\n    type: \"Person\"\n    description: \"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device.\"\nrelationships:\n  - source: \"Alex\"\n    target: \"Taylor\"\n    keywords: \"power dynamics, observation\"\n    description: \"Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device.\"\n[{\"role\": \"user\", \"content\": \"---Task---\\nExtract entities and relationships from the input text in YAML format.\\n\\n---Instructions---\\n1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.\\n2.  **Entity Mapping:**\\n    - name: \\\"<entity_name>\\\"\\n      type: \\\"<entity_type>\\\"\\n      description: \\\"<entity_description>\\\"\\n3.  **Relationship Mapping:**\\n    - source: \\\"<source_entity>\\\"\\n      target: \\\"<target_entity>\\\"\\n      keywords: \\\"<keywords>\\\"\\n      description: \\\"<description>\\\"\\n4.  **Language:** Use English.\\n\\n<Input Text>\\nAlbert Einstein was a famous theoretical physicist born in Ulm, Germany. He is best known for developing the Theory of Relativity, which revolutionized physics. Einstein won the Nobel Prize in Physics in 1921.\\n\\n<Output>\"}, {\"role\": \"assistant\", \"content\": \"```yaml\\nentities:\\n  - name: \\\"Albert Einstein\\\"\\n    type: \\\"Person\\\"\\n    description: \\\"Albert Einstein was a theoretical physicist who was born in Ulm, Germany.\\\"\\n  - name: \\\"Ulm\\\"\\n    type: \\\"Location\\\"\\n    description: \\\"Ulm is a city in southwestern Germany.\\\"\\n  - name: \\\"Germany\\\"\\n    type: \\\"Country\\\"\\n    description: \\\"Germany is a European country situated between the Atlantic Ocean and the Russian Federation.\\\"\\n\\nrelationships:\\n  - source: \\\"Albert Einstein\\\"\\n    target: \\\"Ulm\\\"\\n    keywords: \\\"birthplace\\\"\\n    description: \\\"Albert Einstein was born in Ulm.\\\"\\n  - source: \\\"Albert Einstein\\\"\\n    target: \\\"Germany\\\"\\n    keywords: \\\"country of origin\\\"\\n    description: \\\"Albert Einstein was a German citizen.\\\"\\n```\"}]",
+    "queryparam": null,
+    "create_time": 1769527975,
+    "update_time": 1769527975,
+    "_id": "default:extract:1bcc3ac94cddea95678f2bed45b28a14"
+  }
+}

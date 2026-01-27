@@ -1,0 +1,21 @@
+{
+  "Beekeeper": {
+    "chunk_ids": [
+      "manual_creation",
+      "chunk-1f2cbb395ff6f389f341405e6132ee05"
+    ],
+    "count": 2,
+    "create_time": 1769527907,
+    "update_time": 1769527907,
+    "_id": "Beekeeper"
+  },
+  "Honey Bee Colony": {
+    "chunk_ids": [
+      "chunk-1f2cbb395ff6f389f341405e6132ee05"
+    ],
+    "count": 1,
+    "create_time": 1769527907,
+    "update_time": 1769527907,
+    "_id": "Honey Bee Colony"
+  }
+}

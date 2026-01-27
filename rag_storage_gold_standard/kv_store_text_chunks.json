@@ -1,0 +1,30 @@
+{
+  "chunk-cf90e3c793e83b5cacdfb00dd5d247b1": {
+    "tokens": 19,
+    "content": "Albert Einstein was a theoretical physicist born in Germany. He developed the theory of relativity.",
+    "chunk_order_index": 0,
+    "full_doc_id": "doc-cf90e3c793e83b5cacdfb00dd5d247b1",
+    "file_path": "unknown_source",
+    "llm_cache_list": [
+      "default:extract:02886446d53c687bcc51846bc0c1b37b",
+      "default:extract:73c0fcd1a6fb544767c92882de7df839"
+    ],
+    "create_time": 1769527787,
+    "update_time": 1769527797,
+    "_id": "chunk-cf90e3c793e83b5cacdfb00dd5d247b1"
+  },
+  "chunk-94238ea0318c8c29cc15f73297bdb6b5": {
+    "tokens": 44,
+    "content": "Albert Einstein was a famous theoretical physicist born in Ulm, Germany. He is best known for developing the Theory of Relativity, which revolutionized physics. Einstein won the Nobel Prize in Physics in 1921.",
+    "chunk_order_index": 0,
+    "full_doc_id": "doc-94238ea0318c8c29cc15f73297bdb6b5",
+    "file_path": "unknown_source",
+    "llm_cache_list": [
+      "default:extract:0728db93cf5018f9ebca2ffa31621dcf",
+      "default:extract:1bcc3ac94cddea95678f2bed45b28a14"
+    ],
+    "create_time": 1769527954,
+    "update_time": 1769527975,
+    "_id": "chunk-94238ea0318c8c29cc15f73297bdb6b5"
+  }
+}
