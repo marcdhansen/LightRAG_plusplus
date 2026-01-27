@@ -48,6 +48,30 @@ The feature was validated using a sample of the **HotpotQA** dataset with **Raga
 > [!NOTE]
 > **Top Performer**: Scenario B (Relations-only) yielded the highest overall RAGAS Score boost of **+13.8%** over the baseline.
 
+## ⚡ Speed vs. Accuracy Tradeoff
+
+Reranking graph elements significantly improves retrieval quality but introduces additional processing latency, especially in CPU-bound environments.
+
+### Latency Breakdown (Local CPU, BGE Reranker)
+
+The following metrics were captured using a local `qwen2.5-coder:1.5b` model on CPU. Latency is primarily driven by the number of tokens processed by the reranker.
+
+| Stage | Latency | Note |
+| :--- | :--- | :--- |
+| **Search & Retrieval** (No Rerank) | ~25 ms | Initial vector and graph search. |
+| **Entity Reranking** (~10 items) | ~7 - 10 s | Added by `rerank_entities: true`. |
+| **Relation Reranking** (~15 items) | ~7 - 10 s | Added by `rerank_relations: true`. |
+| **Final Chunk Reranking** (5 items) | ~15 - 25 s | Standard reranking (long context). |
+
+### Summary of Impact
+
+- **Accuracy Gain**: +13.8% (RAGAS Score 0.61 $\rightarrow$ 0.69).
+- **Latency Cost**: +15 - 20 s total added time for full graph reranking.
+- **Efficiency Tip**: In performance-sensitive local environments, enabling **only relation reranking** (Scenario B) often provides the best "accuracy per second" boost.
+
+> [!TIP]
+> **GPU Acceleration**: When using high-performance reranking APIs (Cohere, Jina) or local GPU acceleration, the added latency per stage typically drops to < 500ms, making full graph reranking highly recommended.
+
 ## 🔗 Related Tasks (Beads)
 
 - `lightrag-bkj.4`: Implement performance-focused graph reranking.
