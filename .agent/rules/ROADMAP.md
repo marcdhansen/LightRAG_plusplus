@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: ACE Performance & Visualization (lightrag-ace-viz)
-- **Status**: IN-PROGRESS
-- **Result**: Comprehensive ACE loop integration and UI-based graph exploration.
-- **Next Step**: Implement graph visualization tools.
+- **Task**: Phase 3: ACE Framework Expansion (lightrag-q29)
+- **Status**: HIGH-PRIORITY
+- **Result**: Self-evolving RAG loop with persistent context playbooks.
+- **Next Step**: Implement the Reflector and Curator logic for automated graph repair.
 
 ## 🚀 Active Work
 
@@ -44,4 +44,4 @@ This is the central directory for all project-specific planning, tracking, and i
 - ✓ **Baseline RAGAS Evaluation** (2026-01-22): Preliminary pass successful.
 
 ---
-Last Updated: 2026-01-26
+Last Updated: 2026-01-27
