@@ -469,6 +469,9 @@ class LightRAG:
     ace_config: Optional[ACEConfig] = field(default=None)
     """ACE Configuration. If None and enable_ace is True, defaults are used."""
 
+    ace_allow_small_reflector: bool = field(default=False)
+    """Override the 7B parameter minimum requirement for ACE Reflector models."""
+
     _storages_status: StoragesStatus = field(default=StoragesStatus.NOT_CREATED)
 
     def __post_init__(self):
@@ -488,6 +491,23 @@ class LightRAG:
             self.ace_reflector = ACEReflector(self)
             self.ace_curator = ACECurator(self, self.ace_playbook)
             logger.info("ACE Framework initialized")
+
+            # Quality Analyst: Reasoning Threshold Policy (lightrag-oi6)
+            # Enforce that ACE Reflector models must be 7B+ parameters unless explicitly overridden
+            reflex_size = parse_model_size(self.reflection_llm_model_name)
+            if reflex_size is not None and reflex_size < 7.0:
+                if not self.ace_allow_small_reflector:
+                    raise ValueError(
+                        f"Reasoning Threshold Violation: Reflection model '{self.reflection_llm_model_name}' "
+                        f"has {reflex_size}B parameters. ACE Policy requires a 7B+ model for graph repair to prevent data corruption. "
+                        "To bypass this check (NOT RECOMMENDED), set `ace_allow_small_reflector=True`."
+                    )
+                else:
+                    logger.warning(
+                        f"ACE WARNING: Using small model '{self.reflection_llm_model_name}' ({reflex_size}B) for reflection "
+                        "due to 'ace_allow_small_reflector=True'. Graph quality may degrade."
+                    )
+
 
         # Auto-detect best extraction format for Ollama
         # If extraction_format is "standard" (default) and we detect Ollama use, switch to "key_value" (YAML)
@@ -743,15 +763,6 @@ class LightRAG:
 
         if self.reflection_llm_model_name is None:
             self.reflection_llm_model_name = self.llm_model_name
-
-        # Quality Analyst: Model Threshold Check for Reflection
-        if self.enable_ace:
-            reflex_size = parse_model_size(self.reflection_llm_model_name)
-            if reflex_size is not None and reflex_size < 7.0:
-                logger.warning(
-                    f"Reflection model '{self.reflection_llm_model_name}' has {reflex_size}B parameters. "
-                    "A model with 7B+ parameters is recommended for reliable ACE reflection and graph repair."
-                )
 
         self._storages_status = StoragesStatus.CREATED
 

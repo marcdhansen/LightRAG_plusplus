@@ -1,23 +1,22 @@
-# Task: Extraction Standardization (lightrag-6h1)
+# Task: Reasoning Threshold Policy (lightrag-oi6)
 
 ## Status: COMPLETED
 
 ### Objective
 
-Standardize the entity extraction format to YAML for local/offline LLMs (e.g., Ollama). This improves reliability and parsing success rates compared to JSON for smaller models (7B and below).
+Formalize the requirement that ACE "Reflector" models (used for graph repair) should be 7B+ parameters to ensure high-quality reasoning, preventing small models from damaging the graph with poor edits.
 
 ### Tasks
 
-- [x] Identify location of extraction prompts in `lightrag`.
-- [x] Modify `lightrag/llm/ollama.py` or `lightrag/prompt.py` to use YAML format by default or when configured.
-- [x] Update `lightrag/utils.py` to support robust YAML parsing for extraction.
-- [x] Verify extraction with a local model (e.g., `qwen2.5-coder:7b` or `1.5b`).
-- [x] Ensure existing JSON extraction still works for other models/modes if needed.
+- [x] Verify `parse_model_size` utility in `lightrag/utils.py`.
+- [x] Determine if the current warning in `lightrag/core.py` is sufficient or if it should be an exception/strict check.
+- [x] Implement an override mechanism (e.g., `allow_small_reflector` config).
+- [x] Document the policy in `docs/ACE_FRAMEWORK.md` or similar.
+- [x] Verify via test (mocking a small model name).
 
 ### Steps
 
-1. [x] Locate usage of extraction prompts.
-2. [x] Implement YAML extraction prompt template.
-3. [x] Implement `parse_yaml` or equivalent helper if missing.
-4. [x] Create a test script `tests/test_extraction_yaml.py`.
-5. [x] Verify and Commit.
+1. [x] Check `lightrag/utils.py`.
+2. [x] Update `lightrag/core.py` and `lightrag/ace/config.py` (if needed) to support the policy and override.
+3. [x] Create/Update documentation.
+4. [x] Create a test case.

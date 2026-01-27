@@ -38,6 +38,17 @@ The effectiveness of the ACE loop is highly dependent on the reasoning capabilit
 
 For detailed latency and accuracy metrics, see [MODEL_PROFILING_RESULTS](../MODEL_PROFILING_RESULTS.md).
 
+## 🛡️ Reasoning Threshold Policy (Review Before Deployment)
+
+Effective from **v0.5.0**, the ACE framework enforces a **Minimum Reasoning Threshold** for the Reflector component to prevent graph corruption.
+
+### The Policy
+
+- **Requirement**: The model used for `reflection_llm_model_name` MUST have at least **7 Billion Parameters** (e.g., `qwen2.5-coder:7b`).
+- **Rationale**: Empirical testing shows that models < 7B (like 1.5B or 3B) often fail to distinguish between *structural* graph errors and *semantic* nuances, leading to "repair" actions that actually damage the graph (e.g., merging distinct entities incorrectly).
+- **Enforcement**: Use of a small model for reflection will raise a `ValueError` at initialization.
+- **Override**: For experimentation or resource-constrained environments, you can bypass this check by setting `ace_allow_small_reflector=True` in the `LightRAG` configuration.
+
 ---
 
 ## 📚 Resources
