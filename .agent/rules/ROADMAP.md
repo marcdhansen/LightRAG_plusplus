@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: Standardize Evaluation & Testing (lightrag-doc-test)
-- **Status**: [✓] COMPLETED
-- **Result**: Tiered testing (Light/Heavy), Integrated Langfuse Tracing, Comprehensive Evaluation Docs.
-- **Next Step**: Implement performance-focused graph reranking.
+- **Task**: ACE Performance & Visualization (lightrag-ace-viz)
+- **Status**: IN-PROGRESS
+- **Result**: Comprehensive ACE loop integration and UI-based graph exploration.
+- **Next Step**: Implement graph visualization tools.
 
 ## 🚀 Active Work
 
@@ -36,6 +36,7 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 📈 Recent Accomplishments
 
+- ✓ **Graph Reranking Implementation** (2026-01-27): Implemented `rerank_entities` and `rerank_relations` toggles, integrated into context building, and benchmarked with Ragas (+13.8% boost).
 - ✓ **Evaluation & Testing Standardization** (2026-01-26): Implemented tiered testing (Light/Heavy), integrated Langfuse, and created documentation for RAGAS and ACE.
 - ✓ **Refactor Project Structure** (2026-01-26): Cleaned up workspace, moved docs, created global symlinks.
 - ✓ **ACE Minimal Prototype** (2026-01-22): Implemented and verified the Core Loop (Generate-Reflect-Curate).

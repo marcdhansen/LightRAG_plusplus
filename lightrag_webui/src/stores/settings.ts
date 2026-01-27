@@ -134,6 +134,8 @@ const useSettingsStoreBase = create<SettingsState>()(
         history_turns: 0,
         user_prompt: '',
         enable_rerank: true,
+        rerank_entities: true,
+        rerank_relations: true,
         include_references: true,
         include_chunk_content: true
       },
@@ -240,12 +242,12 @@ const useSettingsStoreBase = create<SettingsState>()(
     {
       name: 'settings-storage',
       storage: createJSONStorage(() => localStorage),
-      version: 20,
+      version: 21,
       migrate: (persistedState: any, version: number) => {
         try {
           if (!persistedState) return {};
           const state = persistedState as any
-          console.log(`Migrating settings-storage from version ${version} to 20`);
+          console.log(`Migrating settings-storage from version ${version} to 21`);
 
           if (version < 2) {
             state.showEdgeLabel = false
@@ -348,6 +350,12 @@ const useSettingsStoreBase = create<SettingsState>()(
               state.querySettings.include_chunk_content = true
             }
           }
+          if (version < 21) {
+            if (state.querySettings) {
+              state.querySettings.rerank_entities = true
+              state.querySettings.rerank_relations = true
+            }
+          }
 
           // FINAL VALIDATION: Ensure critical fields exist and have correct types
           if (!Array.isArray(state.retrievalHistory)) {
@@ -370,6 +378,9 @@ const useSettingsStoreBase = create<SettingsState>()(
               stream: true,
               history_turns: 0,
               user_prompt: '',
+              enable_rerank: true,
+              rerank_entities: true,
+              rerank_relations: true,
               include_references: true,
               include_chunk_content: true
             }

@@ -375,6 +375,52 @@ export default function QuerySettings() {
                 />
               </div>
 
+              {querySettings.enable_rerank && (
+                <>
+                  <div className="flex items-center gap-2 pl-4">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <label htmlFor="rerank_entities" className="flex-1 ml-1 cursor-help opacity-80">
+                            {t('retrievePanel.querySettings.rerankEntities', 'Rerank Entities')}
+                          </label>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          <p>{t('retrievePanel.querySettings.rerankEntitiesTooltip', 'Priority reranking for Knowledge Graph entities')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Checkbox
+                      className="mr-10 cursor-pointer"
+                      id="rerank_entities"
+                      checked={querySettings.rerank_entities}
+                      onCheckedChange={(checked) => handleChange('rerank_entities', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pl-4">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <label htmlFor="rerank_relations" className="flex-1 ml-1 cursor-help opacity-80">
+                            {t('retrievePanel.querySettings.rerankRelations', 'Rerank Relations')}
+                          </label>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          <p>{t('retrievePanel.querySettings.rerankRelationsTooltip', 'Priority reranking for Knowledge Graph relationships')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Checkbox
+                      className="mr-10 cursor-pointer"
+                      id="rerank_relations"
+                      checked={querySettings.rerank_relations}
+                      onCheckedChange={(checked) => handleChange('rerank_relations', checked)}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="flex items-center gap-2">
                 <TooltipProvider>
                   <Tooltip>

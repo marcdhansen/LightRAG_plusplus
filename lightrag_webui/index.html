@@ -51,8 +51,32 @@
   <body>
     <div id="root">
       <style>
-        .initial-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        :root {
+          --initial-bg: hsl(0 0% 100%);
+          --initial-fg: hsl(240 10% 3.9%);
+        }
+        :root.dark {
+          --initial-bg: hsl(240 10% 3.9%);
+          --initial-fg: hsl(0 0% 98%);
+        }
+        html, body {
+          background-color: var(--initial-bg);
+          color: var(--initial-fg);
+          margin: 0;
+          padding: 0;
+          transition: background-color 0.2s ease;
+        }
+        .initial-loader { 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center; 
+          height: 100vh; 
+          font-family: system-ui, sans-serif; 
+          background-color: var(--initial-bg);
+          color: var(--initial-fg);
+        }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--initial-fg); border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; opacity: 0.5; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #startup-error { display: none; color: #dc2626; padding: 20px; max-width: 600px; margin: 0 auto; background: #fee2e2; border-radius: 8px; margin-top: 20px; font-family: monospace; }
       </style>

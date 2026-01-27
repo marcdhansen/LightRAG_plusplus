@@ -33,6 +33,8 @@ export type QueryRequest = {
     history_turns?: number
     user_prompt?: string
     enable_rerank?: boolean
+    rerank_entities?: boolean
+    rerank_relations?: boolean
     include_references?: boolean
     include_chunk_content?: boolean
 }
