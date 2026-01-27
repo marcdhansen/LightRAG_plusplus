@@ -2,13 +2,13 @@
 Query + LLM
 Entity Name:  Beekeeper
 Entity Type: PERSON
-Description: A Beekeeper is 
+Description: A Beekeeper is
 an individual who produces ...
 Original Chunks ID: xxx
 Source: Honey Bee
 Target: Industrial agriculture
 Keywords: Agriculture ...
-Description:Honey Bees are 
+Description:Honey Bees are
 negatively impacted ...
 Original Chunks ID: xxx
 ... BEEKEEPER‘spractices involve
@@ -45,15 +45,15 @@ Graph-based Text Indexing Dual-level Retrieval Paradigm
 Entity & Rel Extraction
 Beekeeper BeesObserve
 Beekeeper
-A beekeeper 
-is an person 
+A beekeeper
+is an person
 who…
 LLM Profiling
 Beekeeper beekeeper
 Deduplication
 …
 Match
-Index Graph 
+Index Graph
 used for Retrieval
 Beekeeper Honey Bee
 …Formers Hive

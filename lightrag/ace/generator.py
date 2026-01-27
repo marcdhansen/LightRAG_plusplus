@@ -88,16 +88,28 @@ class ACEGenerator:
             insights = await self.rag.ace_reflector.reflect(query, generation_result)
             if insights:
                 await self.rag.ace_curator.curate(insights)
-                trajectory.append({"step": "reflection_insights", "status": f"Added {len(insights)} insights"})
+                trajectory.append(
+                    {
+                        "step": "reflection_insights",
+                        "status": f"Added {len(insights)} insights",
+                    }
+                )
         except Exception as e:
             logger.error(f"ACE Generator: Reflection/Curation failed: {e}")
 
         # 7. ACE Graph Repair (New in Phase 3)
         try:
-            repairs = await self.rag.ace_reflector.reflect_graph_issues(query, generation_result)
+            repairs = await self.rag.ace_reflector.reflect_graph_issues(
+                query, generation_result
+            )
             if repairs:
                 await self.rag.ace_curator.apply_repairs(repairs)
-                trajectory.append({"step": "graph_repair", "status": f"Applied {len(repairs)} repairs"})
+                trajectory.append(
+                    {
+                        "step": "graph_repair",
+                        "status": f"Applied {len(repairs)} repairs",
+                    }
+                )
         except Exception as e:
             logger.error(f"ACE Generator: Graph repair failed: {e}")
 

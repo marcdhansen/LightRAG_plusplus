@@ -16,7 +16,7 @@ def server_process():
     # Start the server process with NetworkXStorage to avoid Memgraph/Docker dependency for UI tests
     env = os.environ.copy()
     env["LIGHTRAG_GRAPH_STORAGE"] = "NetworkXStorage"
-    
+
     process = subprocess.Popen(
         [sys.executable, "-m", "lightrag.api.lightrag_server", "--port", str(port)],
         cwd=os.path.join(os.path.dirname(__file__), "../../"),

@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
+
 async def test_beekeeping():
     # Initialize LightRAG
     working_dir = "./rag_storage_beekeeping"
@@ -49,7 +50,7 @@ async def test_beekeeping():
 
     with open(beekeeping_text_path, "r") as f:
         content = f.read()
-    
+
     print("Ingesting beekeeping data...")
     await rag.ainsert(content)
     print("Ingestion complete.")
@@ -58,12 +59,12 @@ async def test_beekeeping():
     queries = [
         "What is a beekeeper according to the text?",
         "How do beekeepers manage bees?",
-        "What role does beekeeping play in agriculture?"
+        "What role does beekeeping play in agriculture?",
     ]
 
     for query in queries:
         print(f"\nQuery: {query}")
-        
+
         # Test Hybrid Retrieval
         print("--- Hybrid Retrieval ---")
         response = await rag.aquery(query, param=QueryParam(mode="hybrid"))
@@ -78,6 +79,7 @@ async def test_beekeeping():
         print("--- global Retrieval ---")
         response = await rag.aquery(query, param=QueryParam(mode="global"))
         print(f"Response: {response}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_beekeeping())

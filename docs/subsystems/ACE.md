@@ -20,7 +20,7 @@ graph TD
     Reflector --> Playbook
     Playbook --> Curator["ACE Curator"]
     Curator --> Generator
-    
+
     subgraph "ACE Loop"
         Generator
         Reflector

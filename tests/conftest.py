@@ -101,8 +101,13 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "manual: marks tests intended for manual/interactive execution"
     )
-    config.addinivalue_line("markers", "light: marks tests as part of the light path (quick verification)")
-    config.addinivalue_line("markers", "heavy: marks tests as part of the heavy path (benchmarks, full eval)")
+    config.addinivalue_line(
+        "markers", "light: marks tests as part of the light path (quick verification)"
+    )
+    config.addinivalue_line(
+        "markers",
+        "heavy: marks tests as part of the heavy path (benchmarks, full eval)",
+    )
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):

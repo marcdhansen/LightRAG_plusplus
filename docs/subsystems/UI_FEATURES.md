@@ -44,7 +44,7 @@ graph TD
     NX --> Layout["Layout Engine (Spring/Circular)"]
     Layout --> MGL["ModernGL (3D Rendering)"]
     MGL --> Canvas["Interactive Canvas (ImGui)"]
-    
+
     subgraph "Navigation"
         WASD["WASD Movement"]
         Mouse["Mouse Rotation/Zoom"]

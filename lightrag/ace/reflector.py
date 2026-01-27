@@ -66,7 +66,7 @@ class ACEReflector:
         Returns a list of repair actions.
         """
         context_data = generation_result.get("context_data", {})
-        entities = context_data.get("entities", [])
+
         relations = context_data.get("relationships", [])
         chunks = context_data.get("chunks", [])
 
@@ -86,7 +86,9 @@ class ACEReflector:
 
         prompt += "\n### Relationships to Verify\n"
         for i, r in enumerate(relations[:50]):
-            prompt += f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}\n"
+            prompt += (
+                f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}\n"
+            )
 
         prompt += (
             "\n### Verification Logic\n"
@@ -95,7 +97,7 @@ class ACEReflector:
             "### Example\n"
             "Relation: 'Beekeeper -> Heart Disease' (Description: Beekeepers diagnose heart disease)\n"
             "Source Text: 'Beekeepers manage hives... Heart disease is a serious condition.'\n"
-            "Result: [{\"action\": \"delete_relation\", \"source\": \"Beekeeper\", \"target\": \"Heart Disease\", \"reason\": \"Not in source text and medically false.\"}]\n\n"
+            'Result: [{"action": "delete_relation", "source": "Beekeeper", "target": "Heart Disease", "reason": "Not in source text and medically false."}]\n\n'
             "### Actual Tasks\n"
             "For each hallucinated relationship, suggest a repair action in JSON format.\n"
             "Supported actions: delete_relation, delete_entity.\n"
@@ -115,10 +117,14 @@ class ACEReflector:
             if isinstance(repairs, list):
                 # Filter to only supported actions for safety
                 valid_repairs = [
-                    r for r in repairs if r.get("action") in ["delete_relation", "delete_entity"]
+                    r
+                    for r in repairs
+                    if r.get("action") in ["delete_relation", "delete_entity"]
                 ]
                 if valid_repairs:
-                    logger.info(f"ACE Reflector: Identified {len(valid_repairs)} graph repairs.")
+                    logger.info(
+                        f"ACE Reflector: Identified {len(valid_repairs)} graph repairs."
+                    )
                 return valid_repairs
             return []
 

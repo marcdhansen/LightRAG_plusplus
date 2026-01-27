@@ -1,10 +1,8 @@
-
-import asyncio
 import json
 import logging
 import sys
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 # Add project root to path
 sys.path.append(".")
@@ -16,6 +14,7 @@ from lightrag.ace.curator import ACECurator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class TestACEReflector(unittest.IsolatedAsyncioTestCase):
     async def test_reflect_graph_issues_identifies_hallucination(self):
         """
@@ -24,16 +23,18 @@ class TestACEReflector(unittest.IsolatedAsyncioTestCase):
         """
         # Mock LightRAG instance
         rag_mock = MagicMock()
-        
+
         # Mock LLM response to simulate Reflector logic
         # The Reflector sends a prompt asking to verify relations.
         # We simulate the LLM responding with a delete_relation JSON.
-        expected_repair = [{
-            "action": "delete_relation",
-            "source": "Beekeeper",
-            "target": "Mars",
-            "reason": "Not supported by source text."
-        }]
+        expected_repair = [
+            {
+                "action": "delete_relation",
+                "source": "Beekeeper",
+                "target": "Mars",
+                "reason": "Not supported by source text.",
+            }
+        ]
         rag_mock.llm_model_func = AsyncMock(return_value=json.dumps(expected_repair))
 
         reflector = ACEReflector(rag_mock)
@@ -48,11 +49,11 @@ class TestACEReflector(unittest.IsolatedAsyncioTestCase):
                     {
                         "src_id": "Beekeeper",
                         "tgt_id": "Mars",
-                        "description": "Beekeepers fly to Mars on weekends." 
+                        "description": "Beekeepers fly to Mars on weekends.",
                     }
                 ],
-                "entities": []
-            }
+                "entities": [],
+            },
         }
 
         # Run reflection
@@ -63,8 +64,11 @@ class TestACEReflector(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(repairs[0]["action"], "delete_relation")
         self.assertEqual(repairs[0]["source"], "Beekeeper")
         self.assertEqual(repairs[0]["target"], "Mars")
-        
-        logger.info("TestACEReflector passed: Correctly identified hallucinated relation.")
+
+        logger.info(
+            "TestACEReflector passed: Correctly identified hallucinated relation."
+        )
+
 
 class TestACECurator(unittest.IsolatedAsyncioTestCase):
     async def test_apply_repairs_valid_delete_relation(self):
@@ -74,18 +78,18 @@ class TestACECurator(unittest.IsolatedAsyncioTestCase):
         """
         # Mock LightRAG instance and playbook
         rag_mock = MagicMock()
-        rag_mock.adelete_relation = AsyncMock() # This is the key method we expect to be called
-        
+        rag_mock.adelete_relation = (
+            AsyncMock()
+        )  # This is the key method we expect to be called
+
         playbook_mock = MagicMock()
-        
+
         curator = ACECurator(rag_mock, playbook_mock)
 
         # Define repair action
-        repairs = [{
-            "action": "delete_relation",
-            "source": "Beekeeper",
-            "target": "Mars"
-        }]
+        repairs = [
+            {"action": "delete_relation", "source": "Beekeeper", "target": "Mars"}
+        ]
 
         # Apply repairs
         await curator.apply_repairs(repairs)
@@ -101,17 +105,16 @@ class TestACECurator(unittest.IsolatedAsyncioTestCase):
         """
         # Mock LightRAG instance and playbook
         rag_mock = MagicMock()
-        rag_mock.adelete_entity = AsyncMock() # This is the key method we expect to be called
-        
+        rag_mock.adelete_entity = (
+            AsyncMock()
+        )  # This is the key method we expect to be called
+
         playbook_mock = MagicMock()
-        
+
         curator = ACECurator(rag_mock, playbook_mock)
 
         # Define repair action
-        repairs = [{
-            "action": "delete_entity",
-            "name": "Unicorn"
-        }]
+        repairs = [{"action": "delete_entity", "name": "Unicorn"}]
 
         # Apply repairs
         await curator.apply_repairs(repairs)
@@ -119,6 +122,7 @@ class TestACECurator(unittest.IsolatedAsyncioTestCase):
         # Verify adelete_entity was called with correct args
         rag_mock.adelete_entity.assert_called_once_with("Unicorn")
         logger.info("TestACECurator passed: Correctly called adelete_entity.")
+
 
 if __name__ == "__main__":
     unittest.main()

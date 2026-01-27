@@ -3717,7 +3717,9 @@ async def rerank_graph_elements(
         else:  # relation
             src = el.get("src_id") or (el.get("src_tgt")[0] if "src_tgt" in el else "")
             tgt = el.get("tgt_id") or (el.get("src_tgt")[1] if "src_tgt" in el else "")
-            content = f"Relation: {src} -> {tgt} | Description: {el.get('description', '')}"
+            content = (
+                f"Relation: {src} -> {tgt} | Description: {el.get('description', '')}"
+            )
 
         # Create a proxy dict for apply_rerank_if_enabled
         formatted_elements.append({"content": content, "_original": el})
@@ -4255,9 +4257,7 @@ async def _build_query_context(
             getattr(query_param, "rerank_entities", True)
             and search_result["final_entities"]
         ):
-            logger.info(
-                f"Reranking {len(search_result['final_entities'])} entities..."
-            )
+            logger.info(f"Reranking {len(search_result['final_entities'])} entities...")
             search_result["final_entities"] = await rerank_graph_elements(
                 query,
                 search_result["final_entities"],

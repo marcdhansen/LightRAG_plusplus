@@ -51,7 +51,9 @@ class ACECurator:
                     source = repair.get("source")
                     target = repair.get("target")
                     if source and target:
-                        logger.info(f"ACE Curator: Deleting relation {source} -> {target}")
+                        logger.info(
+                            f"ACE Curator: Deleting relation {source} -> {target}"
+                        )
                         await self.rag.adelete_relation(source, target)
                 elif action == "delete_entity":
                     name = repair.get("name")
