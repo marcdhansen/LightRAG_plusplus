@@ -31,6 +31,12 @@
 - Server may run from different directory than workspace - check `.env` path
 - Note: Server config showed old model (`qwen2.5-coder:1.5b`) - verify `.env` is being used
 
+### 2026-01-27: Extraction Standardization
+
+- **Ollama Formatting**: Small local models (e.g., `qwen2.5-coder:1.5b/7b`) via Ollama struggle with reliable JSON generation for complex entity extraction.
+- **YAML Solution**: Switching to `key_value` (YAML) extraction format significantly improves parsing success rates and reduces "json decode error" retries.
+- **Auto-Switching**: Implemented auto-detection in `LightRAG` core to enforce YAML format when an Ollama model function is detected, ensuring smoother out-of-the-box experience for local users.
+
 ## ACE Framework Summary
 
 The **Agentic Context Engineering (ACE)** framework optimizes LLM performance by dynamically evolving context (input instructions, memory, strategies) rather than modifying model weights.
