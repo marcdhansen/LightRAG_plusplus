@@ -37,8 +37,10 @@ class ACEReflector:
         )
 
         try:
-            # We use the same LLM for reflection for now
-            llm_output = await self.rag.llm_model_func(prompt)
+            # Use the dedicated reflection LLM if available, passing the model name explicitly
+            llm_output = await self.rag.reflection_llm_model_func(
+                prompt, model=self.rag.reflection_llm_model_name
+            )
 
             # Simple parsing of the list (robustness improvements needed for prod)
             # Assuming the LLM returns a valid JSON string or close to it
@@ -109,7 +111,9 @@ class ACEReflector:
         )
 
         try:
-            llm_output = await self.rag.llm_model_func(prompt)
+            llm_output = await self.rag.reflection_llm_model_func(
+                prompt, model=self.rag.reflection_llm_model_name
+            )
             cleaned_output = llm_output.strip()
             if cleaned_output.startswith("```json"):
                 cleaned_output = cleaned_output.replace("```json", "").replace(

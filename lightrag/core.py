@@ -112,6 +112,7 @@ from lightrag.utils import (
     subtract_source_ids,
     make_relation_chunk_key,
     normalize_source_ids_limit_method,
+    parse_model_size,
 )
 from lightrag.core_types import KnowledgeGraph
 from lightrag.ace.config import ACEConfig
@@ -354,6 +355,18 @@ class LightRAG:
     default_llm_timeout: int = field(
         default=int(os.getenv("LLM_TIMEOUT", DEFAULT_LLM_TIMEOUT))
     )
+
+    # Reflection LLM Configuration (for ACE/Reflector)
+    # ---
+
+    reflection_llm_model_name: str | None = field(default=None)
+    """Name of the LLM model used for reflection/ACE. Falls back to llm_model_name if None."""
+
+    reflection_llm_model_func: Callable[..., object] | None = field(default=None)
+    """Function for interacting with the reflection LLM. Falls back to llm_model_func if None."""
+
+    reflection_llm_model_kwargs: dict[str, Any] = field(default_factory=dict)
+    """Additional keyword arguments passed to the reflection LLM function."""
 
     # Rerank Configuration
     # ---
@@ -694,6 +707,35 @@ class LightRAG:
                 **self.llm_model_kwargs,
             )
         )
+
+        # Initialize Reflection LLM if specified, otherwise fall back to main LLM
+        if self.reflection_llm_model_func is None:
+            self.reflection_llm_model_func = self.llm_model_func
+        else:
+            # If a separate function is provided, we still need to wrap and bind it
+            self.reflection_llm_model_func = priority_limit_async_func_call(
+                self.llm_model_max_async,
+                llm_timeout=self.default_llm_timeout,
+                queue_name="Reflection LLM func",
+            )(
+                partial(
+                    self.reflection_llm_model_func,  # type: ignore
+                    hashing_kv=hashing_kv,
+                    **self.reflection_llm_model_kwargs,
+                )
+            )
+
+        if self.reflection_llm_model_name is None:
+            self.reflection_llm_model_name = self.llm_model_name
+
+        # Quality Analyst: Model Threshold Check for Reflection
+        if self.enable_ace:
+            reflex_size = parse_model_size(self.reflection_llm_model_name)
+            if reflex_size is not None and reflex_size < 7.0:
+                logger.warning(
+                    f"Reflection model '{self.reflection_llm_model_name}' has {reflex_size}B parameters. "
+                    "A model with 7B+ parameters is recommended for reliable ACE reflection and graph repair."
+                )
 
         self._storages_status = StoragesStatus.CREATED
 

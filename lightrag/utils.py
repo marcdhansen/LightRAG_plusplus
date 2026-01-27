@@ -225,6 +225,23 @@ def get_env_value(
         return default
 
 
+def parse_model_size(model_name: str) -> float | None:
+    """
+    Attempts to parse the model size from its name (e.g., 'qwen2.5-coder:7b' -> 7.0)
+    Returns size in billions of parameters, or None if not found.
+    """
+    if not model_name:
+        return None
+    # Look for patterns like 7b, 1.5b, 70B, etc.
+    match = re.search(r"(\d+(?:\.\d+)?)[bB]\b", model_name)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            return None
+    return None
+
+
 # Use TYPE_CHECKING to avoid circular imports
 if TYPE_CHECKING:
     from lightrag.base import BaseKVStorage, BaseVectorStorage, QueryParam

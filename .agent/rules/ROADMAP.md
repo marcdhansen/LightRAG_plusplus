@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: Phase 4: ACE Reflector Implementation (lightrag-bkj)
-- **Status**: HIGH-PRIORITY
-- **Result**: Automated graph repair and hallucination pruning validated with 7B model.
-- **Next Step**: Phase 5: ACE Curator - Implement Graph Deduplication and Pruning.
+- **Task**: Phase 5: ACE Curator (lightrag-curator)
+- **Status**: ACTIVE
+- **Result**: Automated graph repair and pruning logic.
+- **Next Step**: Phase 6: ACE Optimizer - Systematic prompt refinement.
 
 ## 🚀 Active Work
 
@@ -36,6 +36,7 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 📈 Recent Accomplishments
 
+- ✓ **ACE Asymmetric Routing** (2026-01-27): Implemented model-specific routing for extraction vs. reflection (lightrag-043).
 - ✓ **Documentation Validator** (2026-01-27): Created `scripts/validate_docs.py` to ensure `ARCHITECTURE.md` integrity (lightrag-rxg).
 - ✓ **Gold Standard Tests** (2026-01-27): Implemented `tests/test_gold_standard_extraction.py` validating extraction quality with pass/fail thresholds (lightrag-d9h).
 - ✓ **Graph Visualization** (2026-01-27): Implemented `GraphControl` with `useLightragGraph` and integrated Sigma.js for knowledge graph inspection.
