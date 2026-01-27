@@ -76,8 +76,8 @@ class ACEReflector:
         # Construct Repair Reflection Prompt
         prompt = (
             "You are the Reflector component of the ACE Framework, specializing in Graph Integrity.\n"
-            "CRITICAL TASK: Verify the retrieved relationships against the source text chunks provided below. "
-            "Identify relationships that are NOT supported by the source text or are logically impossible.\n\n"
+            "CRITICAL TASK: Verify the retrieved relationships and entities against the source text chunks provided below. "
+            "Identify anything that is NOT supported by the source text or is logically impossible.\n\n"
             "### Source Text Chunks\n"
         )
 
@@ -98,9 +98,13 @@ class ACEReflector:
             "Relation: 'Beekeeper -> Heart Disease' (Description: Beekeepers diagnose heart disease)\n"
             "Source Text: 'Beekeepers manage hives... Heart disease is a serious condition.'\n"
             'Result: [{"action": "delete_relation", "source": "Beekeeper", "target": "Heart Disease", "reason": "Not in source text and medically false."}]\n\n'
-            "### Actual Tasks\n"
-            "For each hallucinated relationship, suggest a repair action in JSON format.\n"
-            "Supported actions: delete_relation, delete_entity.\n"
+            "\n### Actual Tasks\n"
+            "1. **Relation Verification:** Check each relationship against source chunks. Delete if unsupported or false.\n"
+            "2. **Entity Verification:** Look at the entities mentioned. If an entity itself is a hallucination (not mentioned or implied by the text), suggest deleting it.\n"
+            "For each issue, suggest a repair action in JSON format.\n"
+            "Actions: \n"
+            "  - `{\"action\": \"delete_relation\", \"source\": \"Node A\", \"target\": \"Node B\", \"reason\": \"...\"}`\n"
+            "  - `{\"action\": \"delete_entity\", \"name\": \"Node X\", \"reason\": \"...\"}`\n"
             "Return ONLY the JSON list. If everything is correct, return []."
         )
 

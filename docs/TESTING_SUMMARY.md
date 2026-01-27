@@ -28,6 +28,14 @@ All retrieval and generation steps are traced using **Langfuse**.
 - **Traces**: Every query's internal execution path (chunk retrieval, reranking, LLM call) is recorded.
 - **Metrics Dashboard**: RAGAS scores are automatically pushed to Langfuse for visualization and trend analysis.
 
+### 4. ACE Stability & Graph Repair
+
+Specialized tests evaluate the system's ability to self-heal the Knowledge Graph.
+
+- **Hallucination Repair Test**: (`tests/test_ace_reflector_repair.py`) Manually injects illogical edges into the graph and verifies that the **Reflector** correctly identifies and removes them.
+
+For model performance tradeoffs discovered during these tests, see [MODEL_PROFILING_RESULTS](../MODEL_PROFILING_RESULTS.md).
+
 ## 🛠️ Key Scripts
 
 - `tests/test_rag_quality.py`: The main entry point for running quality benchmarks via pytest.

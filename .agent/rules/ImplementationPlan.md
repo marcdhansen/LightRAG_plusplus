@@ -11,6 +11,9 @@ Establish a robust evaluation pipeline to measure RAG quality (Context Recall, F
 * [x] **Langfuse Integration**: Traces and RAGAS scores are automatically sent to local Langfuse.
 * [x] **Tiered Testing**: Pytest-based `light` and `heavy` paths implemented.
 * [x] **Graph Reranking**: Implemented `rerank_entities` and `rerank_relations` with perfect faithfulness.
+* [x] **Prompt Optimization**:
+  * Implemented YAML-based extraction for small models.
+  * 7B reaches 100% entity recall on Einstein benchmark; 1.5B/3B require gleaning=2 for similar results but remain inconsistent on abstract concepts.
 * [x] **Documentation**:
   * `docs/OBSERVABILITY.md`, `docs/EVALUATION.md`, `docs/ACE_FRAMEWORK.md`, `docs/GRAPH_RERANKING.md`.
 
@@ -21,3 +24,5 @@ Establish the full ACE cycle in production and provide visual tooling for graph 
 * [x] **Graph Visualization**: Implement/Verify a dedicated visualizer for the knowledge graph (Beads: lightrag-42q).
 * [x] **ACE Phase 3**: Finalize minimal framework prototype and deployment endpoints (Beads: lightrag-q29).
 * [x] **UI Integration**: Add reranking toggles and ACE controls to the WebUI.
+* [x] **ACE Phase 4 (Reflector)**: Implement automated edge verification against source chunks. **Note**: 7B+ model recommended for reliable reflection; small models (<3B) tend to hallucinate along with the graph.
+* [ ] **ACE Curator (Phase 5)**: Implement graph pruning and deduplication logic.

@@ -28,9 +28,15 @@ graph TD
 - **Contextual Awareness**: Learns the best traversal paths for your specific dataset over time.
 - **Reduced Hallucinations**: Continually refines the "facts" stored in the graph for higher precision.
 
-## 🛠️ Usage
+## ⚙️ Model Recommendations
 
-ACE components are integrated into the core LightRAG API and can be triggered via specialized endpoints or scheduled background tasks.
+The effectiveness of the ACE loop is highly dependent on the reasoning capability of the **Reflector** component.
+
+- **Reflector (Critical)**: Recommend **7B models or larger** (e.g., `qwen2.5-coder:7b`). Smaller models (<3B) lack the critical discernment to distinguish between a hallucinated graph edge and the source text, often "accepting" the hallucination as fact.
+- **Generator**: 3B+ models are sufficient for general query generation when guided by high-quality playbooks.
+- **Curator**: 1.5B+ models are acceptable for standard structural repairs like deduplication.
+
+For detailed latency and accuracy metrics, see [MODEL_PROFILING_RESULTS](../MODEL_PROFILING_RESULTS.md).
 
 ---
 

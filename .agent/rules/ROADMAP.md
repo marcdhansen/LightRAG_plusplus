@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: Phase 4: ACE Reflector & Curator (lightrag-new)
+- **Task**: Phase 4: ACE Reflector Implementation (lightrag-bkj)
 - **Status**: HIGH-PRIORITY
-- **Result**: Automated graph repair and hallucination pruning.
-- **Next Step**: Implement the Reflector logic to verify edges against source chunks.
+- **Result**: Automated graph repair and hallucination pruning validated with 7B model.
+- **Next Step**: Phase 5: ACE Curator - Implement Graph Deduplication and Pruning.
 
 ## 🚀 Active Work
 
