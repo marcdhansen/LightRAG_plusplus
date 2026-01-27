@@ -1,23 +1,23 @@
-# Task: Skill Enhancement - Flight Director (lightrag-ijs)
+# Task: Extraction Standardization (lightrag-6h1)
 
-## Status: IN_PROGRESS
+## Status: COMPLETED
 
 ### Objective
 
-Enhance the Flight Director skill to automate SMP validation, specifically for Return To Base (RTB) procedures including temporary file cleanup and documentation linting.
+Standardize the entity extraction format to YAML for local/offline LLMs (e.g., Ollama). This improves reliability and parsing success rates compared to JSON for smaller models (7B and below).
 
 ### Tasks
 
-- [x] Analyze current `check_flight_readiness.py` logic.
-- [x] Implement detection for temporary `rag_storage_*` directories.
-- [x] Implement detection for common orphan files (`test_output.txt`, `debug_*.py`).
-- [x] Integrate `markdownlint` check for planning documents.
-- [x] Add a "Dry Run" or "Auto-fix" mode if possible, or clear instructions for the agent.
-- [x] Verify the script by running it in the current repo.
+- [x] Identify location of extraction prompts in `lightrag`.
+- [x] Modify `lightrag/llm/ollama.py` or `lightrag/prompt.py` to use YAML format by default or when configured.
+- [x] Update `lightrag/utils.py` to support robust YAML parsing for extraction.
+- [x] Verify extraction with a local model (e.g., `qwen2.5-coder:7b` or `1.5b`).
+- [x] Ensure existing JSON extraction still works for other models/modes if needed.
 
 ### Steps
 
-1. [ ] Update `ImplementationPlan.md` with the skill enhancement phase.
-2. [ ] Modify `~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py`.
-3. [ ] Test `--pfc` and `--rtb` in the current environment.
-4. [ ] Perform a clean RTB using the new script.
+1. [x] Locate usage of extraction prompts.
+2. [x] Implement YAML extraction prompt template.
+3. [x] Implement `parse_yaml` or equivalent helper if missing.
+4. [x] Create a test script `tests/test_extraction_yaml.py`.
+5. [x] Verify and Commit.

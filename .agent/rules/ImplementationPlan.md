@@ -32,7 +32,7 @@ Establish the full ACE cycle in production and provide visual tooling for graph 
 Strengthen the development lifecycle by enhancing automated checks and standardizing environment-specific configurations.
 
 * [x] **Flight Director Enhancement**: Automate RTB cleanup and document verification (Beads: lightrag-ijs).
-* [ ] **Extraction Standardization**: Hard-code YAML for offline LLMs (Beads: lightrag-6h1).
+* [x] **Extraction Standardization**: Hard-code YAML for offline LLMs (Beads: lightrag-6h1).
 * [ ] **Reasoning Threshold Policy**: Formalize model requirements for reflection (Beads: lightrag-oi6).
 
 ## Phase 6: ACE Optimizer (Upcoming)

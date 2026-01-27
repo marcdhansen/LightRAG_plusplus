@@ -618,6 +618,7 @@ async def rebuild_knowledge_from_chunks(
                     chunk_id=chunk_id,
                     extraction_result=result[0],
                     timestamp=result[1],
+                    extraction_format=global_config.get("extraction_format", "standard"),
                 )
 
                 # Merge entities and relationships from this extraction result
@@ -1112,6 +1113,7 @@ async def _rebuild_from_extraction_result(
     extraction_result: str,
     chunk_id: str,
     timestamp: int,
+    extraction_format: str = "standard",
 ) -> tuple[dict, dict]:
     """Parse cached extraction result using the same logic as extract_entities
 
@@ -1131,6 +1133,14 @@ async def _rebuild_from_extraction_result(
         if chunk_data
         else "unknown_source"
     )
+
+    if extraction_format == "key_value":
+        return await _parse_yaml_extraction(
+            extraction_result,
+            chunk_id,
+            timestamp,
+            file_path,
+        )
 
     # Call the shared processing function
     return await _process_extraction_result(
@@ -2987,14 +2997,22 @@ async def extract_entities(
             )
 
             # Process gleaning result separately with file path
-            glean_nodes, glean_edges = await _process_extraction_result(
-                glean_result,
-                chunk_key,
-                timestamp,
-                file_path,
-                tuple_delimiter=context_base["tuple_delimiter"],
-                completion_delimiter=context_base["completion_delimiter"],
-            )
+            if extraction_format == "key_value":
+                glean_nodes, glean_edges = await _parse_yaml_extraction(
+                    glean_result,
+                    chunk_key,
+                    timestamp,
+                    file_path,
+                )
+            else:
+                glean_nodes, glean_edges = await _process_extraction_result(
+                    glean_result,
+                    chunk_key,
+                    timestamp,
+                    file_path,
+                    tuple_delimiter=context_base["tuple_delimiter"],
+                    completion_delimiter=context_base["completion_delimiter"],
+                )
 
             # Merge results - compare description lengths to choose better version
             for entity_name, glean_entities in glean_nodes.items():

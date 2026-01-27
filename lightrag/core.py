@@ -489,6 +489,22 @@ class LightRAG:
             self.ace_curator = ACECurator(self, self.ace_playbook)
             logger.info("ACE Framework initialized")
 
+        # Auto-detect best extraction format for Ollama
+        # If extraction_format is "standard" (default) and we detect Ollama use, switch to "key_value" (YAML)
+        is_ollama = False
+        if self.llm_model_func:
+            func_name = getattr(self.llm_model_func, "__name__", "")
+            if "ollama" in func_name:
+                is_ollama = True
+            elif hasattr(self.llm_model_func, "func"):
+                inner_name = getattr(self.llm_model_func.func, "__name__", "")
+                if "ollama" in inner_name:
+                    is_ollama = True
+        
+        if is_ollama and self.extraction_format == "standard":
+             logger.info("Ollama detected: switching 'extraction_format' from 'standard' to 'key_value' for better reliability.")
+             self.extraction_format = "key_value"
+             
         # Handle deprecated parameters
         if self.log_level is not None:
             warnings.warn(
