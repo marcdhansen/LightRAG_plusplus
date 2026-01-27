@@ -1,6 +1,9 @@
-# Current Task: ACE Framework Expansion
+# Current Task: Implement Graph Visualizer (lightrag-42q)
 
 ## Status
 
-- [x] **Fix CI/CD Linting**: Reproduce and fix linting/formatting errors locally (pre-commit).
-- [x] **Verify**: Ensure local checks pass.
+- [x] **Analyze Requirements**: Frontend is React/Vite with Sigma.js; fetching logic was missing.
+- [x] **Technical Design**: Hook up `useLightragGraph` in `GraphControl` to trigger `queryGraphs`.
+- [x] **Implementation**: Modified `GraphControl.tsx`.
+- [x] **Verify**: Build passed. Visual verification skipped (Quota Limit). Manual check recommended.
+- [ ] **Verify**: Test with sample graph data.

@@ -5,7 +5,7 @@ import { useLayoutForceAtlas2 } from '@react-sigma/layout-forceatlas2'
 import { useEffect, useState } from 'react'
 
 // import useRandomGraph, { EdgeType, NodeType } from '@/hooks/useRandomGraph'
-import { EdgeType, NodeType } from '@/hooks/useLightragGraph'
+import useLightragGraph, { EdgeType, NodeType } from '@/hooks/useLightragGraph'
 import useTheme from '@/hooks/useTheme'
 import * as Constants from '@/lib/constants'
 
@@ -22,6 +22,9 @@ const isButtonPressed = (ev: MouseEvent | TouchEvent) => {
 }
 
 const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) => {
+  // Initialize graph data fetching hook
+  useLightragGraph()
+
   const sigma = useSigma<NodeType, EdgeType>()
   const registerEvents = useRegisterEvents<NodeType, EdgeType>()
   const setSettings = useSetSettings<NodeType, EdgeType>()
