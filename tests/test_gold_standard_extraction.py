@@ -58,6 +58,11 @@ async def gold_rag():
     rag = LightRAG(
         working_dir=WORKING_DIR,
         llm_model_name="qwen2.5-coder:1.5b", # efficient local model
+        extraction_format="key_value",
+        entity_extract_max_gleaning=0,
+        addon_params={
+            "entity_types": ["Person", "Location", "Organization", "Concept", "Theory", "Event"]
+        },
         llm_model_func=ollama_model_complete,
         embedding_func=EmbeddingFunc(
             embedding_dim=768,

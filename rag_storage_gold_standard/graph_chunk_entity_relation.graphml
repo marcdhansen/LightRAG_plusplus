@@ -16,73 +16,64 @@
 <graph edgedefault="undirected"><node id="Steve Jobs">
   <data key="d0">Steve Jobs</data>
   <data key="d1">Person</data>
-  <data key="d2">Steve Jobs was a renowned entrepreneur and inventor who is widely credited with inventing the personal computer.</data>
+  <data key="d2">Steve Jobs is an American entrepreneur, inventor, and businessman who co-founded Apple Inc.</data>
   <data key="d3">chunk-f62d22bc770c3ed9f8af643692dfae3f</data>
   <data key="d4">unknown_source</data>
-  <data key="d5">1769532998</data>
+  <data key="d5">1769543066</data>
   <data key="d6"></data>
 </node>
-<node id="Apple">
-  <data key="d0">Apple</data>
+<node id="Apple Inc.">
+  <data key="d0">Apple Inc.</data>
   <data key="d3">chunk-f62d22bc770c3ed9f8af643692dfae3f</data>
-  <data key="d2">Steve Jobs founded Apple in 1976, launching the first product in his company.</data>
+  <data key="d2">Steve Jobs founded Apple Inc.</data>
   <data key="d1">UNKNOWN</data>
   <data key="d4">unknown_source</data>
-  <data key="d5">1769532998</data>
+  <data key="d5">1769543066</data>
   <data key="d6"></data>
 </node>
 <node id="Albert Einstein">
   <data key="d0">Albert Einstein</data>
   <data key="d1">Person</data>
-  <data key="d2">Albert Einstein is a renowned theoretical physicist widely recognized for his groundbreaking contributions to physics, particularly the theory of relativity.</data>
+  <data key="d2">Albert Einstein was a German theoretical physicist born in Ulm.</data>
   <data key="d3">chunk-f4df69a51ae967ceec3364438ced590f</data>
   <data key="d4">unknown_source</data>
-  <data key="d5">1769533015</data>
+  <data key="d5">1769543073</data>
   <data key="d6"></data>
 </node>
 <node id="Ulm">
   <data key="d0">Ulm</data>
   <data key="d1">Location</data>
-  <data key="d2">Ulm is a city in southwestern Germany known for its rich history and cultural heritage.</data>
+  <data key="d2">A city located in southern Germany, United Kingdom.</data>
   <data key="d3">chunk-f4df69a51ae967ceec3364438ced590f</data>
   <data key="d4">unknown_source</data>
-  <data key="d5">1769533015</data>
+  <data key="d5">1769543073</data>
   <data key="d6"></data>
 </node>
 <node id="Germany">
   <data key="d0">Germany</data>
-  <data key="d1">Country</data>
-  <data key="d2">Germany is a major European country located on the North Atlantic coast of Europe.</data>
+  <data key="d1">Location</data>
+  <data key="d2">A country that is part of the European Union.</data>
   <data key="d3">chunk-f4df69a51ae967ceec3364438ced590f</data>
   <data key="d4">unknown_source</data>
-  <data key="d5">1769533015</data>
+  <data key="d5">1769543073</data>
   <data key="d6"></data>
 </node>
-<edge source="Steve Jobs" target="Apple">
+<edge source="Steve Jobs" target="Apple Inc.">
   <data key="d7">1.0</data>
-  <data key="d8">Steve Jobs founded Apple in 1976, launching the first product in his company.</data>
-  <data key="d9">founded,invention</data>
+  <data key="d8">Steve Jobs founded Apple Inc.</data>
+  <data key="d9">co-founder</data>
   <data key="d10">chunk-f62d22bc770c3ed9f8af643692dfae3f</data>
   <data key="d11">unknown_source</data>
-  <data key="d12">1769532999</data>
+  <data key="d12">1769543066</data>
   <data key="d13"></data>
 </edge>
 <edge source="Albert Einstein" target="Ulm">
   <data key="d7">1.0</data>
-  <data key="d8">Albert Einstein was born in Ulm, Germany.</data>
+  <data key="d8">Albert Einstein was born in Ulm.</data>
   <data key="d9">birthplace,location</data>
   <data key="d10">chunk-f4df69a51ae967ceec3364438ced590f</data>
   <data key="d11">unknown_source</data>
-  <data key="d12">1769533015</data>
-  <data key="d13"></data>
-</edge>
-<edge source="Albert Einstein" target="Germany">
-  <data key="d7">1.0</data>
-  <data key="d8">Albert Einstein is a German citizen.</data>
-  <data key="d9">nationality</data>
-  <data key="d10">chunk-f4df69a51ae967ceec3364438ced590f</data>
-  <data key="d11">unknown_source</data>
-  <data key="d12">1769533015</data>
+  <data key="d12">1769543073</data>
   <data key="d13"></data>
 </edge>
 </graph></graphml>

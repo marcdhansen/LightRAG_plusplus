@@ -107,6 +107,7 @@ You are a Knowledge Graph Specialist responsible for extracting entities and rel
     *   Identify clearly defined and meaningful entities in the input text.
     *   Categorize entities using types: {entity_types}.
     *   Provide a concise description for each entity.
+    *   **Decomposition:** Split compound entities (e.g., "Paris, France" -> "Paris", "France"). **Do NOT** split full names (e.g., "Steve Jobs").
 
 2.  **Relationship Extraction:**
     *   Identify direct and meaningful relationships between extracted entities.
@@ -173,6 +174,26 @@ relationships:
     target: "Taylor"
     keywords: "power dynamics, observation"
     description: "Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device."
+""",
+    """entities:
+  - name: "Theory of Evolution"
+    type: "Concept"
+    description: "A scientific theory explaining the diversity of life on Earth through natural selection."
+  - name: "Charles Darwin"
+    type: "Person"
+    description: "A British naturalist and biologist best known for his contributions to the science of evolution."
+  - name: "England"
+    type: "Location"
+    description: "A country that is part of the United Kingdom."
+relationships:
+  - source: "Charles Darwin"
+    target: "Theory of Evolution"
+    keywords: "development, scientific contribution"
+    description: "Charles Darwin developed the Theory of Evolution."
+  - source: "Charles Darwin"
+    target: "England"
+    keywords: "origin, nationality"
+    description: "Charles Darwin was a British naturalist from England."
 """
 ]
 

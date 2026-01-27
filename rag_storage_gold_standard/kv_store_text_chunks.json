@@ -6,11 +6,10 @@
     "full_doc_id": "doc-f62d22bc770c3ed9f8af643692dfae3f",
     "file_path": "unknown_source",
     "llm_cache_list": [
-      "default:extract:12fd5cca87e0e1f1268dbe3c1eaccad3",
-      "default:extract:4e0a5bfc1b9fc06bbc11520355158756"
+      "default:extract:9a2a8c57df0674b1c0f8d4d79883accd"
     ],
-    "create_time": 1769532986,
-    "update_time": 1769532998,
+    "create_time": 1769543054,
+    "update_time": 1769543066,
     "_id": "chunk-f62d22bc770c3ed9f8af643692dfae3f"
   },
   "chunk-f4df69a51ae967ceec3364438ced590f": {
@@ -20,11 +19,10 @@
     "full_doc_id": "doc-f4df69a51ae967ceec3364438ced590f",
     "file_path": "unknown_source",
     "llm_cache_list": [
-      "default:extract:7366559a65356939fe73ac32fc0e1205",
-      "default:extract:ace06e4b6bd6c359fbce26118ac395ed"
+      "default:extract:d5c4e981da1404313f425f074137d7a0"
     ],
-    "create_time": 1769532999,
-    "update_time": 1769533015,
+    "create_time": 1769543066,
+    "update_time": 1769543073,
     "_id": "chunk-f4df69a51ae967ceec3364438ced590f"
   }
 }
