@@ -33,6 +33,6 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 
 * [x] **Flight Director Enhancement**: Automate RTB cleanup and document verification (Beads: lightrag-ijs).
 * [x] **Extraction Standardization**: Hard-code YAML for offline LLMs (Beads: lightrag-6h1).
-* [ ] **Reasoning Threshold Policy**: Formalize model requirements for reflection (Beads: lightrag-oi6).
+* [x] **Reasoning Threshold Policy**: Formalize model requirements for reflection (Beads: lightrag-oi6).
 
 ## Phase 6: ACE Optimizer (Upcoming)
