@@ -117,14 +117,14 @@ def test_query_endpoint_references():
             # Check response structure
             assert "response" in data, "Missing 'response' field"
 
-            assert "references" in data, (
-                "Missing 'references' field when include_references=True"
-            )
+            assert (
+                "references" in data
+            ), "Missing 'references' field when include_references=True"
 
             references = data["references"]
-            assert references is not None, (
-                "References should not be None when include_references=True"
-            )
+            assert (
+                references is not None
+            ), "References should not be None when include_references=True"
 
             if not validate_references_format(references):
                 assert False, "References format validation failed"
@@ -168,9 +168,9 @@ def test_query_endpoint_references():
             assert "response" in data, "Missing 'response' field"
 
             references = data.get("references")
-            assert references is None, (
-                "References should be None when include_references=False"
-            )
+            assert (
+                references is None
+            ), "References should be None when include_references=False"
 
             print("✅ References disabled: No references field present")
             print(f"   Response length: {len(data['response'])} characters")

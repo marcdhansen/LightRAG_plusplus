@@ -21,19 +21,20 @@ export type EdgeType = { label: string }
  * The goal of this file is to seed random generators if the query params 'seed' is present.
  */
 const useRandomGraph = () => {
-  const [faker, setFaker] = useState<Faker>(fak)
-
-  useEffect(() => {
-    // Globally seed the Math.random
-    const params = new URLSearchParams(document.location.search)
-    const seed = params.get('seed') // is the string "Jonathan"
+  const [faker] = useState<Faker>(() => {
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    const seed = params.get('seed')
     if (seed) {
       seedrandom(seed, { global: true })
-      // seed faker with the random function
       const f = new Faker({ locale: en })
       f.seed(Math.random())
-      setFaker(f)
+      return f
     }
+    return fak
+  })
+
+  useEffect(() => {
+    // Math.random is already seeded by the lazy initializer if seed was present
   }, [])
 
   const randomGraph = useCallback(() => {

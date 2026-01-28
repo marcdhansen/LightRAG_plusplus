@@ -18,7 +18,7 @@ import GraphViewer from '@/features/GraphViewer'
 import { useSettingsStore } from '@/stores/settings'
 
 export default function AceReview() {
-  const { t } = useTranslation()
+  useTranslation()
   const [repairs, setRepairs] = useState<RepairType[]>([])
   const [loading, setLoading] = useState(false)
   const [visualizingRepair, setVisualizingRepair] = useState<RepairType | null>(null)
@@ -29,7 +29,7 @@ export default function AceReview() {
     try {
       const data = await getPendingRepairs()
       setRepairs(data)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to fetch repairs', error)
       toast.error('Failed to fetch pending repairs')
     } finally {
@@ -49,7 +49,7 @@ export default function AceReview() {
       if (visualizingRepair?.id === id) {
         setVisualizingRepair(null)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to approve repair')
     }
   }
@@ -62,7 +62,7 @@ export default function AceReview() {
       if (visualizingRepair?.id === id) {
         setVisualizingRepair(null)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to reject repair')
     }
   }

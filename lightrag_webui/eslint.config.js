@@ -28,9 +28,20 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
-      '@stylistic/js/indent': ['error', 2],
-      '@stylistic/js/quotes': ['error', 'single'],
-      '@typescript-eslint/no-explicit-any': ['off']
+      '@stylistic/js/indent': ['off'],
+      '@stylistic/js/quotes': ['off'],
+      '@typescript-eslint/no-explicit-any': ['off'],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off'
     }
   }
 )

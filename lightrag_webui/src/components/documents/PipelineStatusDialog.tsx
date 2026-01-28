@@ -264,13 +264,13 @@ export default function PipelineStatusDialog({ open, onOpenChange }: PipelineSta
                 {t('documentPanel.pipelineStatus.startTime')}:{' '}
                 {status?.job_start
                   ? new Date(status.job_start).toLocaleString(undefined, {
-                    year: 'numeric',
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    second: 'numeric'
-                  })
+                      year: 'numeric',
+                      month: 'numeric',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                      second: 'numeric'
+                    })
                   : '-'}
               </span>
               <span>
@@ -294,10 +294,10 @@ export default function PipelineStatusDialog({ open, onOpenChange }: PipelineSta
             >
               {status?.history_messages?.length
                 ? status.history_messages.map((msg, idx) => (
-                  <div key={idx} className="break-all whitespace-pre-wrap">
-                    {msg}
-                  </div>
-                ))
+                    <div key={idx} className="break-all whitespace-pre-wrap">
+                      {msg}
+                    </div>
+                  ))
                 : '-'}
             </div>
           </div>

@@ -35,7 +35,6 @@ const LoginPage = () => {
       authCheckRef.current = true
 
       // Track mount status
-      const isMounted = true
       const isMountedRef = { current: true }
 
       try {

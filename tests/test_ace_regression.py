@@ -89,9 +89,7 @@ async def test_beekeeping_hallucination_repair(rag_instance):
         print("Edge still exists. Checking if it was even in context...")
         # (This is hard to check without internal instrumentation, but we can infer)
 
-    assert not exists_after, (
-        "ACE should have deleted the logically unsound relationship 'Beekeeper -> Heart Disease'."
-    )
+    assert not exists_after, "ACE should have deleted the logically unsound relationship 'Beekeeper -> Heart Disease'."
 
 
 if __name__ == "__main__":

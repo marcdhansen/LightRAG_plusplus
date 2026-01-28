@@ -1,5 +1,4 @@
 import Textarea from '@/components/ui/Textarea'
-import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { throttle } from '@/lib/utils'
@@ -381,9 +380,9 @@ export default function RetrievalTesting() {
         conversation_history:
           effectiveHistoryTurns > 0
             ? prevMessages
-              .filter((m) => m.isError !== true)
-              .slice(-effectiveHistoryTurns * 2)
-              .map((m) => ({ role: m.role, content: m.content }))
+                .filter((m) => m.isError !== true)
+                .slice(-effectiveHistoryTurns * 2)
+                .map((m) => ({ role: m.role, content: m.content }))
             : [],
         ...(modeOverride ? { mode: modeOverride } : {})
       }

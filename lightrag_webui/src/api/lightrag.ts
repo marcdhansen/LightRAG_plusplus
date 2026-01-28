@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 import {
   backendBaseUrl,
   popularLabelsDefaultLimit,
@@ -11,36 +11,28 @@ import { navigationService } from '@/services/navigation'
 import { axiosInstance, checkHealth as baseCheckHealth } from './base'
 
 import {
-  LightragNodeType,
-  LightragEdgeType,
-  LightragGraphType,
-  LightragStatus,
-  LightragDocumentsScanProgress,
-  QueryMode,
-  Message,
-  QueryRequest,
-  ReferenceItem,
-  QueryResponse,
-  ACEQueryResponse,
-  EntityUpdateResponse,
-  DocActionResponse,
-  ScanResponse,
-  ReprocessFailedResponse,
-  DocStatus,
-  DocStatusResponse,
-  DocsStatusesResponse,
-  TrackStatusResponse,
-  DocumentsRequest,
-  PaginationInfo,
-  PaginatedDocsResponse,
-  StatusCountsResponse,
-  AuthStatusResponse,
-  PipelineStatusResponse,
-  LoginResponse,
-  DeleteDocResponse,
-  HighlightRequest,
-  HighlightResponse,
-  RepairType
+  type LightragGraphType,
+  type LightragDocumentsScanProgress,
+  type QueryRequest,
+  type ReferenceItem,
+  type QueryResponse,
+  type ACEQueryResponse,
+  type EntityUpdateResponse,
+  type DocActionResponse,
+  type ScanResponse,
+  type ReprocessFailedResponse,
+  type DocsStatusesResponse,
+  type TrackStatusResponse,
+  type DocumentsRequest,
+  type PaginatedDocsResponse,
+  type StatusCountsResponse,
+  type AuthStatusResponse,
+  type PipelineStatusResponse,
+  type LoginResponse,
+  type DeleteDocResponse,
+  type HighlightRequest,
+  type HighlightResponse,
+  type RepairType
 } from './types'
 
 // Export basic health check from here too for convenience
@@ -154,8 +146,8 @@ axiosInstance.interceptors.response.use(
           try {
             const newToken = await silentRefreshGuestToken()
 
-            // Mark as retried to prevent infinite loop
-            ;(originalRequest as any)._retry = true
+              // Mark as retried to prevent infinite loop
+              ; (originalRequest as any)._retry = true
 
             // Update token in request headers
             originalRequest.headers['Authorization'] = `Bearer ${newToken}`
@@ -466,27 +458,27 @@ export const queryTextStream = async (
       let userMessage = message
 
       switch (statusCode) {
-      case 403:
-        userMessage = 'You do not have permission to access this resource (403 Forbidden)'
-        console.error('Permission denied for stream request:', message)
-        break
-      case 404:
-        userMessage = 'The requested resource does not exist (404 Not Found)'
-        console.error('Resource not found for stream request:', message)
-        break
-      case 429:
-        userMessage = 'Too many requests, please try again later (429 Too Many Requests)'
-        console.error('Rate limited for stream request:', message)
-        break
-      case 500:
-      case 502:
-      case 503:
-      case 504:
-        userMessage = `Server error, please try again later (${statusCode})`
-        console.error('Server error for stream request:', message)
-        break
-      default:
-        console.error('Stream request failed with status code:', statusCode, message)
+        case 403:
+          userMessage = 'You do not have permission to access this resource (403 Forbidden)'
+          console.error('Permission denied for stream request:', message)
+          break
+        case 404:
+          userMessage = 'The requested resource does not exist (404 Not Found)'
+          console.error('Resource not found for stream request:', message)
+          break
+        case 429:
+          userMessage = 'Too many requests, please try again later (429 Too Many Requests)'
+          console.error('Rate limited for stream request:', message)
+          break
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          userMessage = `Server error, please try again later (${statusCode})`
+          console.error('Server error for stream request:', message)
+          break
+        default:
+          console.error('Stream request failed with status code:', statusCode, message)
       }
 
       if (onError) {

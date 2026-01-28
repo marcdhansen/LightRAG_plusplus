@@ -27,8 +27,8 @@ const getApiKey = () => {
       const settings = JSON.parse(settingsStr)
       return settings.state?.apiKey || null
     }
-  } catch (e) {
-    // console.error('Failed to get API key from storage', e)
+  } catch (_e) {
+    // console.error('Failed to get API key from storage', _e)
   }
   return null
 }

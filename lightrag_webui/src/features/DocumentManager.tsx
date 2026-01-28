@@ -26,7 +26,7 @@ import {
   DocStatus,
   DocStatusResponse,
   DocumentsRequest,
-  PaginationInfo
+  type PaginationInfo
 } from '@/api/lightrag'
 import { errorMessage } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -810,11 +810,7 @@ export default function DocumentManager() {
 
   // New paginated data fetching function
   const fetchPaginatedDocuments = useCallback(
-    async (
-      page: number,
-      pageSize: number,
-      _statusFilter: StatusFilter // eslint-disable-line @typescript-eslint/no-unused-vars
-    ) => {
+    async (page: number, pageSize: number, _statusFilter: StatusFilter) => {
       // Update pagination state
       setPagination((prev) => ({ ...prev, page, page_size: pageSize }))
 
@@ -909,7 +905,7 @@ export default function DocumentManager() {
       // Check if component is still mounted before starting the request
       if (!isMountedRef.current) return
 
-      const { status, message, track_id: _track_id } = await scanNewDocuments() // eslint-disable-line @typescript-eslint/no-unused-vars
+      const { status, message, track_id: _track_id } = await scanNewDocuments()
 
       // Check again if component is still mounted after the request completes
       if (!isMountedRef.current) return

@@ -29,7 +29,6 @@ export const ReferenceDocumentViewer = ({
   const [content, setContent] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [highlightedSentences, setHighlightedSentences] = useState<string[]>([])
-  const [isHighlighting, setIsHighlighting] = useState(false)
 
   useEffect(() => {
     if (!reference) {
@@ -47,7 +46,6 @@ export const ReferenceDocumentViewer = ({
 
         // If query is provided, fetch semantic highlights
         if (query && data.content) {
-          setIsHighlighting(true)
           try {
             const highlights = await getHighlights({
               query,
@@ -55,12 +53,10 @@ export const ReferenceDocumentViewer = ({
               threshold: 0.5 // Default threshold
             })
             setHighlightedSentences(highlights.highlighted_sentences)
-          } catch (hErr) {
-            console.error('Failed to fetch semantic highlights:', hErr)
+          } catch (_hErr) {
+            console.error('Failed to fetch semantic highlights:', _hErr)
             // Fallback to chunks if highlighting fails
             setHighlightedSentences([])
-          } finally {
-            setIsHighlighting(false)
           }
         }
       } catch (err) {

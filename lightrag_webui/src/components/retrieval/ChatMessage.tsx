@@ -264,7 +264,7 @@ export const ChatMessage = ({
                             }
                           }
                         ] as any
-                    ]
+                      ]
                     : [])
                 ]}
                 skipHtml={false}
@@ -316,7 +316,7 @@ export const ChatMessage = ({
                           }
                         }
                       ] as any
-                  ]
+                    ]
                   : [])
               ]}
               skipHtml={false}

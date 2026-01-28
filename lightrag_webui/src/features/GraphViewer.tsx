@@ -25,7 +25,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useGraphStore } from '@/stores/graph'
 import { useBackendState } from '@/stores/state'
 import { labelColorDarkTheme, labelColorLightTheme } from '@/lib/constants'
-import { Terminal, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Terminal, AlertCircle, X, ChevronDown } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 import '@react-sigma/core/lib/style.css'
