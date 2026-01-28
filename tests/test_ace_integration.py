@@ -1,6 +1,4 @@
 import pytest
-
-pytestmark = pytest.mark.heavy
 from lightrag.core import LightRAG
 from lightrag.ace.config import ACEConfig
 from lightrag.ace.playbook import ContextPlaybook
@@ -9,6 +7,8 @@ from lightrag.ace.reflector import ACEReflector
 from lightrag.ace.curator import ACECurator
 from lightrag.llm.ollama import ollama_model_complete, ollama_embed
 from lightrag.utils import EmbeddingFunc
+
+pytestmark = pytest.mark.heavy
 
 # Define the models to be used (must be pulled in Ollama)
 LLM_MODEL = "qwen2.5-coder:1.5b"
@@ -58,7 +58,7 @@ async def test_ace_live_integration(tmp_path):
 
     generator = ACEGenerator(rag, playbook)
     reflector = ACEReflector(rag)
-    curator = ACECurator(playbook)
+    curator = ACECurator(rag, playbook)
 
     # 3. Execute ACE Loop
     query = "What is LightRAG and how does it work?"

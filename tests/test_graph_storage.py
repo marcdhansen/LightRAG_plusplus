@@ -14,28 +14,29 @@ Supported graph storage types include:
 """
 
 import asyncio
+import pytest
 import os
 import sys
 import importlib
 import numpy as np
-import pytest
 
-pytestmark = pytest.mark.heavy
 from dotenv import load_dotenv
 from ascii_colors import ASCIIColors
+
+pytestmark = pytest.mark.heavy
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lightrag.core_types import KnowledgeGraph
-from lightrag.kg import (
+from lightrag.core_types import KnowledgeGraph  # noqa: E402
+from lightrag.kg import (  # noqa: E402
     STORAGE_IMPLEMENTATIONS,
     STORAGE_ENV_REQUIREMENTS,
     STORAGES,
     verify_storage_implementation,
 )
-from lightrag.kg.shared_storage import initialize_share_data
-from lightrag.constants import GRAPH_FIELD_SEP
+from lightrag.kg.shared_storage import initialize_share_data  # noqa: E402
+from lightrag.constants import GRAPH_FIELD_SEP  # noqa: E402
 
 
 # Mock embedding function that returns random vectors

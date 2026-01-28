@@ -1,7 +1,8 @@
 import pytest
 
-pytestmark = pytest.mark.heavy
 import httpx
+
+pytestmark = pytest.mark.heavy
 
 # Configuration
 BASE_URL = "http://localhost:9621"

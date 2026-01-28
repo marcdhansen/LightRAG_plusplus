@@ -1,10 +1,10 @@
+import pytest
 import os
 import shutil
-import pytest
-
-pytestmark = pytest.mark.heavy
 from lightrag import LightRAG
 from lightrag.utils import EmbeddingFunc
+
+pytestmark = pytest.mark.heavy
 
 # Use short-lived test directory
 TEST_DIR = "test_ace_core_storage"

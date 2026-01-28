@@ -25,7 +25,6 @@ import shutil
 import numpy as np
 import pytest
 
-pytestmark = pytest.mark.heavy
 from pathlib import Path
 from typing import List, Tuple, Dict
 from lightrag.kg.shared_storage import (
@@ -42,6 +41,8 @@ from lightrag.kg.shared_storage import (
     get_all_update_flags_status,
     get_update_flag,
 )
+
+pytestmark = pytest.mark.heavy
 
 
 # =============================================================================

@@ -10,12 +10,12 @@ Updated to handle the new data format where:
 """
 
 import pytest
-
-pytestmark = pytest.mark.heavy
 import requests
 import time
 import json
 from typing import Dict, Any, List, Optional
+
+pytestmark = pytest.mark.heavy
 
 # API configuration
 API_KEY = "your-secure-api-key-here-123"

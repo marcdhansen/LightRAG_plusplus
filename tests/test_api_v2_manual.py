@@ -1,8 +1,8 @@
 import pytest
-
-pytestmark = pytest.mark.heavy
 import httpx
 import time
+
+pytestmark = pytest.mark.heavy
 
 # Configuration
 TIMEOUT = 300  # 5 minutes specifically for indexing

@@ -1,14 +1,15 @@
 import pytest
 
-pytestmark = pytest.mark.light
 import asyncio
 import os
 import sys
 
+pytestmark = pytest.mark.light
+
 # Add the root directory to sys.path to import lightrag
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from lightrag.rerank import local_rerank
+from lightrag.rerank import local_rerank  # noqa: E402
 
 
 async def test_reranker():

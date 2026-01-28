@@ -10,14 +10,14 @@ import asyncio
 import os
 import sys
 import pytest
+import numpy as np
 
 pytestmark = pytest.mark.heavy
-import numpy as np
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lightrag.kg.shared_storage import initialize_share_data
+from lightrag.kg.shared_storage import initialize_share_data  # noqa: E402
 
 
 # Mock embedding function that returns random vectors

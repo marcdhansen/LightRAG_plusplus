@@ -12,13 +12,14 @@ Prerequisites:
 
 import pytest
 
-pytestmark = pytest.mark.heavy
 import asyncio
 import os
 import time
 from dotenv import load_dotenv
 from unittest.mock import patch
 from lightrag.kg.postgres_impl import PostgreSQLDB
+
+pytestmark = pytest.mark.heavy
 
 asyncpg = pytest.importorskip("asyncpg")
 

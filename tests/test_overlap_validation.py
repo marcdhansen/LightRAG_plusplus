@@ -1,14 +1,10 @@
 import pytest
+from lightrag.rerank import chunk_documents_for_rerank
 
 pytestmark = pytest.mark.light
 """
-Test for overlap_tokens validation to prevent infinite loop.
-
-This test validates the fix for the bug where overlap_tokens >= max_tokens
-causes an infinite loop in the chunking function.
+Tests for overlap validation in chunking.
 """
-
-from lightrag.rerank import chunk_documents_for_rerank
 
 
 class TestOverlapValidation:

@@ -9,6 +9,7 @@ import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from lightrag.core import LightRAG
+from lightrag.utils import EmbeddingFunc
 
 
 # Mock function with "ollama" in name
@@ -26,7 +27,7 @@ relationships:
 """
 
 
-from lightrag.utils import EmbeddingFunc
+pytestmark = pytest.mark.heavy
 
 
 async def mock_embed(texts):

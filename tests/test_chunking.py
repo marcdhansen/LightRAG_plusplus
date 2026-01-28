@@ -1,10 +1,9 @@
 import pytest
-
-pytestmark = pytest.mark.light
-
 from lightrag.exceptions import ChunkTokenLimitExceededError
 from lightrag.operate import chunking_by_token_size
 from lightrag.utils import Tokenizer, TokenizerInterface
+
+pytestmark = pytest.mark.light
 
 
 class DummyTokenizer(TokenizerInterface):

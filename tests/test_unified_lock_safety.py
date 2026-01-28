@@ -20,14 +20,14 @@ from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
-pytestmark = pytest.mark.light
-
 from lightrag.kg.shared_storage import (
     UnifiedLock,
     get_internal_lock,
     get_data_init_lock,
     finalize_share_data,
 )
+
+pytestmark = pytest.mark.light
 
 
 class TestUnifiedLockSafety:

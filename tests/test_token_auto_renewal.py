@@ -9,12 +9,13 @@ Tests:
 
 import pytest
 
-pytestmark = pytest.mark.heavy
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 from fastapi import Response
 import time
 import sys
+
+pytestmark = pytest.mark.heavy
 
 # Mock the config before importing utils_api
 sys.modules["lightrag.api.config"] = Mock()

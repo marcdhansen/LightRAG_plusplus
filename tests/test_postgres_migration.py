@@ -1,6 +1,4 @@
 import pytest
-
-pytestmark = pytest.mark.heavy
 from unittest.mock import patch, AsyncMock
 import numpy as np
 from lightrag.utils import EmbeddingFunc
@@ -8,6 +6,8 @@ from lightrag.kg.postgres_impl import (
     PGVectorStorage,
 )
 from lightrag.namespace import NameSpace
+
+pytestmark = pytest.mark.heavy
 
 
 # Mock PostgreSQLDB

@@ -1,11 +1,12 @@
 import pytest
 
-pytestmark = pytest.mark.heavy
 from unittest.mock import MagicMock, patch, AsyncMock
 import numpy as np
 from qdrant_client import models
 from lightrag.utils import EmbeddingFunc
 from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
+
+pytestmark = pytest.mark.heavy
 
 
 # Mock QdrantClient

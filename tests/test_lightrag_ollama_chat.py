@@ -10,8 +10,6 @@ All responses use the JSON Lines format, complying with the Ollama API specifica
 """
 
 import pytest
-
-pytestmark = pytest.mark.heavy
 import requests
 import json
 import argparse
@@ -21,6 +19,8 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
 from enum import Enum, auto
+
+pytestmark = pytest.mark.heavy
 
 
 class ErrorCode(Enum):

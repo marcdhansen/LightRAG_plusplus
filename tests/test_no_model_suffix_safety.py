@@ -1,6 +1,3 @@
-import pytest
-
-pytestmark = pytest.mark.light
 """
 Tests for safety when model suffix is absent (no model_name provided).
 
@@ -13,10 +10,12 @@ On second startup, Case 1 logic would delete the only table/collection thinking
 it's "legacy", causing all subsequent operations to fail.
 """
 
+import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
-
 from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
 from lightrag.kg.postgres_impl import PGVectorStorage
+
+pytestmark = pytest.mark.heavy
 
 
 class TestNoModelSuffixSafety:
