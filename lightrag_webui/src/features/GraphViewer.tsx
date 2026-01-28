@@ -255,24 +255,19 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
               </Button>
             </>
           )}
-          {/* <ThemeToggle /> */}
         </div>
 
         {showPropertyPanel && (
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-2 right-2 z-50">
             <PropertiesView />
           </div>
         )}
 
         {showLegend && (
-          <div className="absolute right-2 bottom-10 z-0">
+          <div className="absolute right-2 bottom-10 z-50">
             <Legend className="bg-background/60 backdrop-blur-lg" />
           </div>
         )}
-
-        {/* <div className="absolute bottom-2 right-2 flex flex-col rounded-xl border-2">
-          <MiniMap width="100px" height="100px" />
-        </div> */}
 
         <SettingsDisplay />
       </SigmaContainer>

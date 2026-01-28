@@ -224,6 +224,14 @@ export default function RetrievalTesting() {
         role: 'user'
       }
 
+      // Prepare query parameters
+      const state = useSettingsStore.getState()
+
+      // Add user prompt to history if it exists and is not empty
+      if (state.querySettings.user_prompt && state.querySettings.user_prompt.trim()) {
+        state.addUserPromptToHistory(state.querySettings.user_prompt.trim())
+      }
+
       const assistantMessage: MessageWithError = {
         id: generateUniqueId(), // Use browser-compatible ID generation
         content: '',
@@ -357,13 +365,7 @@ export default function RetrievalTesting() {
         })
       }
 
-      // Prepare query parameters
-      const state = useSettingsStore.getState()
-
       // Add user prompt to history if it exists and is not empty
-      if (state.querySettings.user_prompt && state.querySettings.user_prompt.trim()) {
-        state.addUserPromptToHistory(state.querySettings.user_prompt.trim())
-      }
 
       // Determine the effective mode
       const effectiveMode = modeOverride || state.querySettings.mode
@@ -380,9 +382,9 @@ export default function RetrievalTesting() {
         conversation_history:
           effectiveHistoryTurns > 0
             ? prevMessages
-                .filter((m) => m.isError !== true)
-                .slice(-effectiveHistoryTurns * 2)
-                .map((m) => ({ role: m.role, content: m.content }))
+              .filter((m) => m.isError !== true)
+              .slice(-effectiveHistoryTurns * 2)
+              .map((m) => ({ role: m.role, content: m.content }))
             : [],
         ...(modeOverride ? { mode: modeOverride } : {})
       }
@@ -704,7 +706,7 @@ export default function RetrievalTesting() {
 
           toast.success(
             methodMessages[result.method] ||
-              t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard')
+            t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard')
           )
         } else {
           // Show error with fallback instructions

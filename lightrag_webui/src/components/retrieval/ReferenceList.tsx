@@ -28,7 +28,9 @@ export const ReferenceList = ({ references, onReferenceClick }: ReferenceListPro
                 onClick={() => onReferenceClick?.(ref)}
               >
                 <FileTextIcon className="text-muted-foreground size-3" />
-                <span className="max-w-[150px] truncate">{ref.file_path.split('/').pop()}</span>
+                <span className="max-w-[150px] truncate">
+                  {ref.file_path ? ref.file_path.split('/').pop() : 'Unknown Source'}
+                </span>
               </Badge>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-xs break-all">

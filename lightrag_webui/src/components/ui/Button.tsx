@@ -58,6 +58,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <Comp
               className={cn(buttonVariants({ variant, size, className }), 'cursor-pointer')}
               ref={ref}
+              aria-label={props['aria-label'] || tooltip}
               {...props}
             />
           </TooltipTrigger>

@@ -29,7 +29,7 @@ export default function AceReview() {
     try {
       const data = await getPendingRepairs()
       setRepairs(data)
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to fetch repairs', error)
       toast.error('Failed to fetch pending repairs')
     } finally {
