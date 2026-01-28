@@ -44,7 +44,7 @@ export const supportedFileTypes = {
   'text/plain': [
     '.txt',
     '.md',
-    '.rtf',  //# Rich Text Format
+    '.rtf', //# Rich Text Format
     '.odt', // # OpenDocument Text
     '.tex', // # LaTeX
     '.epub', // # Electronic Publication
@@ -73,7 +73,7 @@ export const supportedFileTypes = {
     '.rb', // # Ruby source code
     '.php', // # PHP source code
     '.css', // # Cascading Style Sheets
-    '.scss',  //# Sassy CSS
+    '.scss', //# Sassy CSS
     '.less'
   ],
   'application/pdf': ['.pdf'],

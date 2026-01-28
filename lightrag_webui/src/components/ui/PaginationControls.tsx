@@ -4,7 +4,12 @@ import Button from './Button'
 import Input from './Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './Select'
 import { cn } from '@/lib/utils'
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from 'lucide-react'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon
+} from 'lucide-react'
 
 export type PaginationControlsProps = {
   currentPage: number
@@ -62,19 +67,25 @@ export default function PaginationControls({
   }, [inputPage, totalPages, onPageChange, currentPage])
 
   // Handle page input key press
-  const handlePageInputKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handlePageInputSubmit()
-    }
-  }, [handlePageInputSubmit])
+  const handlePageInputKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handlePageInputSubmit()
+      }
+    },
+    [handlePageInputSubmit]
+  )
 
   // Handle page size change
-  const handlePageSizeChange = useCallback((value: string) => {
-    const newPageSize = parseInt(value, 10)
-    if (!isNaN(newPageSize)) {
-      onPageSizeChange(newPageSize)
-    }
-  }, [onPageSizeChange])
+  const handlePageSizeChange = useCallback(
+    (value: string) => {
+      const newPageSize = parseInt(value, 10)
+      if (!isNaN(newPageSize)) {
+        onPageSizeChange(newPageSize)
+      }
+    },
+    [onPageSizeChange]
+  )
 
   // Navigation handlers
   const goToFirstPage = useCallback(() => {

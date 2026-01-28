@@ -48,8 +48,8 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
   const sigmaGraph = useGraphStore.use.sigmaGraph()
 
   // Track system theme changes when theme is set to 'system'
-  const [systemThemeIsDark, setSystemThemeIsDark] = useState(() =>
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [systemThemeIsDark, setSystemThemeIsDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
   )
 
   useEffect(() => {
@@ -71,71 +71,78 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
         // Ensure sigma binding to sigmaGraph
         try {
           if (typeof sigma.setGraph === 'function') {
-            sigma.setGraph(sigmaGraph as unknown as AbstractGraph<NodeType, EdgeType>);
-            console.log('Binding graph to sigma instance');
+            sigma.setGraph(sigmaGraph as unknown as AbstractGraph<NodeType, EdgeType>)
+            console.log('Binding graph to sigma instance')
           } else {
-            (sigma as any).graph = sigmaGraph;
-            console.warn('Simgma missing setGraph function, set graph property directly');
+            ;(sigma as any).graph = sigmaGraph
+            console.warn('Simgma missing setGraph function, set graph property directly')
           }
         } catch (error) {
-          console.error('Error setting graph on sigma instance:', error);
+          console.error('Error setting graph on sigma instance:', error)
         }
 
         // Initialize random coordinates if nodes are at (0,0) or missing coordinates
         // This is crucial for ForceAtlas2 to work, as it fails to disperse nodes if they all start at the same point
-        let zeroCoordCount = 0;
+        let zeroCoordCount = 0
         sigmaGraph.forEachNode((node, attributes) => {
           if (!attributes.x || !attributes.y || (attributes.x === 0 && attributes.y === 0)) {
-            sigmaGraph.setNodeAttribute(node, 'x', Math.random() * 100);
-            sigmaGraph.setNodeAttribute(node, 'y', Math.random() * 100);
-            zeroCoordCount++;
+            sigmaGraph.setNodeAttribute(node, 'x', Math.random() * 100)
+            sigmaGraph.setNodeAttribute(node, 'y', Math.random() * 100)
+            zeroCoordCount++
           }
-        });
+        })
 
         if (zeroCoordCount > 0) {
-          console.log(`Initialized random coordinates for ${zeroCoordCount} nodes to prevent layout singularity`);
+          console.log(
+            `Initialized random coordinates for ${zeroCoordCount} nodes to prevent layout singularity`
+          )
         }
 
-        assignLayout();
+        assignLayout()
 
         // Log coordinate stats to verify dispersion
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        let minX = Infinity,
+          maxX = -Infinity,
+          minY = Infinity,
+          maxY = -Infinity
         sigmaGraph.forEachNode((_, attr) => {
-          if (attr.x < minX) minX = attr.x;
-          if (attr.x > maxX) maxX = attr.x;
-          if (attr.y < minY) minY = attr.y;
-          if (attr.y > maxY) maxY = attr.y;
-        });
-        console.log(`Layout bounds after assign: X[${minX.toFixed(2)}, ${maxX.toFixed(2)}], Y[${minY.toFixed(2)}, ${maxY.toFixed(2)}]`);
+          if (attr.x < minX) minX = attr.x
+          if (attr.x > maxX) maxX = attr.x
+          if (attr.y < minY) minY = attr.y
+          if (attr.y > maxY) maxY = attr.y
+        })
+        console.log(
+          `Layout bounds after assign: X[${minX.toFixed(2)}, ${maxX.toFixed(2)}], Y[${minY.toFixed(2)}, ${maxY.toFixed(2)}]`
+        )
 
         // Robust camera centering sequence to handle race conditions with container sizing
         const resetCamera = () => {
           // duration: 0 ensures immediate update without animation for initial load
-          sigma.getCamera().animatedReset({ duration: 0 });
-          sigma.refresh();
-        };
+          sigma.getCamera().animatedReset({ duration: 0 })
+          sigma.refresh()
+        }
 
-        resetCamera();
-        console.log('Initial layout applied, camera reset, and sigma refreshed');
+        resetCamera()
+        console.log('Initial layout applied, camera reset, and sigma refreshed')
 
         // Retry sequence to handle container resizing or rendering delays
         // This ensures nodes are visible even if the container dimensions weren't ready immediately
-        const retryDelays = [50, 150, 300];
-        retryDelays.forEach(delay => {
+        const retryDelays = [50, 150, 300]
+        retryDelays.forEach((delay) => {
           setTimeout(() => {
             // Only reset if we still have the same graph instance to avoid jumping if user switched graphs
             if (sigma && sigma.getGraph() === sigmaGraph) {
-              resetCamera();
-              console.log(`Retry camera reset at ${delay}ms`);
+              resetCamera()
+              console.log(`Retry camera reset at ${delay}ms`)
             }
-          }, delay);
-        });
+          }, delay)
+        })
       } else {
         // Explicitly clear the graph if sigmaGraph is null (reset state)
         if (sigma.getGraph()) {
-          sigma.getGraph().clear();
-          sigma.refresh();
-          console.log('Graph cleared (sigmaGraph is null)');
+          sigma.getGraph().clear()
+          sigma.refresh()
+          console.log('Graph cleared (sigmaGraph is null)')
         }
       }
     }
@@ -148,13 +155,13 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
   useEffect(() => {
     if (sigma) {
       // Double-check that the store has the sigma instance
-      const currentInstance = useGraphStore.getState().sigmaInstance;
+      const currentInstance = useGraphStore.getState().sigmaInstance
       if (!currentInstance) {
-        console.log('Setting sigma instance from GraphControl');
-        useGraphStore.getState().setSigmaInstance(sigma);
+        console.log('Setting sigma instance from GraphControl')
+        useGraphStore.getState().setSigmaInstance(sigma)
       }
     }
-  }, [sigma]);
+  }, [sigma])
 
   /**
    * When component mount
@@ -239,7 +246,7 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
       let minWeight = Number.MAX_SAFE_INTEGER
       let maxWeight = 0
 
-      graph.forEachEdge(edge => {
+      graph.forEachEdge((edge) => {
         // Get original weight (before scaling)
         const weight = graph.getEdgeAttribute(edge, 'originalWeight') || 1
         if (typeof weight === 'number') {
@@ -252,16 +259,17 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
       const weightRange = maxWeight - minWeight
       if (weightRange > 0) {
         const sizeScale = maxEdgeSize - minEdgeSize
-        graph.forEachEdge(edge => {
+        graph.forEachEdge((edge) => {
           const weight = graph.getEdgeAttribute(edge, 'originalWeight') || 1
           if (typeof weight === 'number') {
-            const scaledSize = minEdgeSize + sizeScale * Math.pow((weight - minWeight) / weightRange, 0.5)
+            const scaledSize =
+              minEdgeSize + sizeScale * Math.pow((weight - minWeight) / weightRange, 0.5)
             graph.setEdgeAttribute(edge, 'size', scaledSize)
           }
         })
       } else {
         // If all weights are the same, use default size
-        graph.forEachEdge(edge => {
+        graph.forEachEdge((edge) => {
           graph.setEdgeAttribute(edge, 'size', minEdgeSize)
         })
       }
@@ -271,14 +279,14 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
     }
   }, [sigma, sigmaGraph, minEdgeSize, maxEdgeSize])
 
-
   /**
    * When component mount or hovered node change
    * => Setting the sigma reducers
    */
   useEffect(() => {
     // Check if dark mode is actually applied (handles both 'dark' theme and 'system' theme when OS is dark)
-    const isDarkTheme = theme === 'dark' ||
+    const isDarkTheme =
+      theme === 'dark' ||
       (theme === 'system' && window.document.documentElement.classList.contains('dark'))
     const labelColor = isDarkTheme ? Constants.labelColorDarkTheme : undefined
     const edgeColor = isDarkTheme ? Constants.edgeColorDarkTheme : undefined
@@ -296,7 +304,9 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
 
         // Add defensive check for node existence during theme switching
         if (!graph.hasNode(node)) {
-          console.warn(`Node ${node} not found in graph during theme switch, returning default data`)
+          console.warn(
+            `Node ${node} not found in graph during theme switch, returning default data`
+          )
           return { ...data, highlighted: false, labelColor }
         }
 
@@ -319,7 +329,7 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
                 }
               }
             } catch (error) {
-              console.error('Error in nodeReducer:', error);
+              console.error('Error in nodeReducer:', error)
               return { ...data, highlighted: false, labelColor }
             }
           } else if (_focusedEdge && graph.hasEdge(_focusedEdge)) {
@@ -329,7 +339,7 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
                 newData.size = 3
               }
             } catch (error) {
-              console.error('Error accessing edge extremities in nodeReducer:', error);
+              console.error('Error accessing edge extremities in nodeReducer:', error)
               return { ...data, highlighted: false, labelColor }
             }
           } else {
@@ -353,7 +363,9 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
 
         // Add defensive check for edge existence during theme switching
         if (!graph.hasEdge(edge)) {
-          console.warn(`Edge ${edge} not found in graph during theme switch, returning default data`)
+          console.warn(
+            `Edge ${edge} not found in graph during theme switch, returning default data`
+          )
           return { ...data, hidden: false, labelColor, color: edgeColor }
         }
 
@@ -378,12 +390,12 @@ const GraphControl = ({ disableHoverEffect }: { disableHoverEffect?: boolean }) 
                 }
               }
             } catch (error) {
-              console.error('Error in edgeReducer:', error);
+              console.error('Error in edgeReducer:', error)
               return { ...data, hidden: false, labelColor, color: edgeColor }
             }
           } else {
-            const _selectedEdge = selectedEdge && graph.hasEdge(selectedEdge) ? selectedEdge : null;
-            const _focusedEdge = focusedEdge && graph.hasEdge(focusedEdge) ? focusedEdge : null;
+            const _selectedEdge = selectedEdge && graph.hasEdge(selectedEdge) ? selectedEdge : null
+            const _focusedEdge = focusedEdge && graph.hasEdge(focusedEdge) ? focusedEdge : null
 
             if (_selectedEdge || _focusedEdge) {
               if (edge === _selectedEdge) {

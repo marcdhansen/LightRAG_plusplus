@@ -22,7 +22,7 @@ try:
             or "beekeeper" in page_text.lower()
             or "honey" in page_text.lower()
         ):
-            text += f"--- Page {i+1} ---\n"
+            text += f"--- Page {i + 1} ---\n"
             text += page_text + "\n"
 
     with open(output_path, "w") as f:

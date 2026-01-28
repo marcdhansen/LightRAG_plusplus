@@ -122,7 +122,7 @@ class ACEReflector:
                 cleaned_output = cleaned_output.replace("```json", "").replace(
                     "```", ""
                 )
-            
+
             # Find the first [ and last ] to extract JSON if LLM added text
             start = cleaned_output.find("[")
             end = cleaned_output.rfind("]")
@@ -134,11 +134,7 @@ class ACEReflector:
             if isinstance(repairs, list):
                 # Filter to only supported actions for safety
                 valid_actions = ["delete_relation", "delete_entity", "merge_entities"]
-                valid_repairs = [
-                    r
-                    for r in repairs
-                    if r.get("action") in valid_actions
-                ]
+                valid_repairs = [r for r in repairs if r.get("action") in valid_actions]
                 if valid_repairs:
                     logger.info(
                         f"ACE Reflector: Identified {len(valid_repairs)} graph repairs."

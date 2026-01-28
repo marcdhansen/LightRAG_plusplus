@@ -57,7 +57,7 @@ axiosInstance.interceptors.request.use((config) => {
  * Basic health check that doesn't depend on other high-level logic
  */
 export const checkHealth = async (): Promise<
-    LightragStatus | { status: 'error'; message: string }
+  LightragStatus | { status: 'error'; message: string }
 > => {
   try {
     const response = await axiosInstance.get('/health')

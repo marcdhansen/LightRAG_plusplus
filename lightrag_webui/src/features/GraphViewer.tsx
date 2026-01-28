@@ -99,7 +99,7 @@ const GraphEvents = () => {
       // Disable the autoscale at the first down interaction
       mousedown: (e) => {
         // Only set custom BBox if it's a drag operation (mouse button is pressed)
-        const mouseEvent = e.original as MouseEvent;
+        const mouseEvent = e.original as MouseEvent
         if (mouseEvent.buttons !== 0 && !sigma.getCustomBBox()) {
           sigma.setCustomBBox(sigma.getBBox())
         }
@@ -111,7 +111,7 @@ const GraphEvents = () => {
 }
 
 interface GraphViewerProps {
-  minimal?: boolean;
+  minimal?: boolean
 }
 
 const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
@@ -173,19 +173,19 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
     return () => {
       // TAB is mount twice in vite dev mode, this is a workaround
 
-      const sigma = useGraphStore.getState().sigmaInstance;
+      const sigma = useGraphStore.getState().sigmaInstance
       if (sigma) {
         try {
           // Destroy sigma，and clear WebGL context
-          sigma.kill();
-          useGraphStore.getState().setSigmaInstance(null);
-          console.log('Cleared sigma instance on Graphviewer unmount');
+          sigma.kill()
+          useGraphStore.getState().setSigmaInstance(null)
+          console.log('Cleared sigma instance on Graphviewer unmount')
         } catch (error) {
-          console.error('Error cleaning up sigma instance:', error);
+          console.error('Error cleaning up sigma instance:', error)
         }
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Note: There was a useLayoutEffect hook here to set up the sigma instance and graph data,
   // but testing showed it wasn't executing or having any effect, while the backup mechanism
@@ -265,7 +265,7 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
         )}
 
         {showLegend && (
-          <div className="absolute bottom-10 right-2 z-0">
+          <div className="absolute right-2 bottom-10 z-0">
             <Legend className="bg-background/60 backdrop-blur-lg" />
           </div>
         )}
@@ -279,17 +279,29 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
 
       {/* Logs Panel */}
       {showLogs && (
-        <div className="bg-background/80 absolute bottom-12 left-14 z-50 flex h-64 w-80 flex-col rounded-xl border-2 backdrop-blur-lg transition-all shadow-xl">
+        <div className="bg-background/80 absolute bottom-12 left-14 z-50 flex h-64 w-80 flex-col rounded-xl border-2 shadow-xl backdrop-blur-lg transition-all">
           <div className="flex items-center justify-between border-b p-2">
             <div className="flex items-center gap-2">
-              <Terminal className="h-4 w-4 text-primary" />
-              <span className="text-xs font-bold uppercase tracking-wider opacity-70">Process Logs</span>
+              <Terminal className="text-primary h-4 w-4" />
+              <span className="text-xs font-bold tracking-wider uppercase opacity-70">
+                Process Logs
+              </span>
             </div>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => useGraphStore.getState().clearLogs()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => useGraphStore.getState().clearLogs()}
+              >
                 <X className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowLogs(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setShowLogs(false)}
+              >
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </div>
@@ -312,24 +324,27 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
 
       {/* Error Overlay */}
       {errorMessage && !isFetching && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-background/40 backdrop-blur-[2px]">
-          <div className="bg-background max-w-md animate-in fade-in zoom-in duration-300 rounded-xl border-2 border-destructive/50 p-6 shadow-2xl">
-            <div className="mb-4 flex items-center gap-3 text-destructive">
+        <div className="bg-background/40 absolute inset-0 z-[60] flex items-center justify-center backdrop-blur-[2px]">
+          <div className="bg-background animate-in fade-in zoom-in border-destructive/50 max-w-md rounded-xl border-2 p-6 shadow-2xl duration-300">
+            <div className="text-destructive mb-4 flex items-center gap-3">
               <AlertCircle className="h-8 w-8" />
               <h3 className="text-xl font-bold">{errorMessageTitle || 'Error'}</h3>
             </div>
-            <p className="mb-6 text-sm opacity-80 font-mono bg-muted p-3 rounded border overflow-auto max-h-40">
+            <p className="bg-muted mb-6 max-h-40 overflow-auto rounded border p-3 font-mono text-sm opacity-80">
               {errorMessage}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => useBackendState.getState().clear()}>
                 Dismiss
               </Button>
-              <Button variant="destructive" onClick={() => {
-                useBackendState.getState().clear();
-                // Optionally retry or reset settings
-                useSettingsStore.getState().setQueryLabel('');
-              }}>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  useBackendState.getState().clear()
+                  // Optionally retry or reset settings
+                  useSettingsStore.getState().setQueryLabel('')
+                }}
+              >
                 Reset Connection
               </Button>
             </div>
@@ -339,9 +354,9 @@ const GraphViewer = ({ minimal = false }: GraphViewerProps) => {
 
       {/* Loading overlay - shown when data is loading or theme is switching */}
       {(isFetching || isThemeSwitching) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+        <div className="bg-background/80 absolute inset-0 z-10 flex items-center justify-center">
           <div className="text-center">
-            <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+            <div className="border-primary mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
             <p>{isThemeSwitching ? 'Switching Theme...' : 'Loading Graph Data...'}</p>
           </div>
         </div>

@@ -1,0 +1,38 @@
+{
+  "Steve Jobs": {
+    "chunk_ids": [
+      "chunk-f62d22bc770c3ed9f8af643692dfae3f"
+    ],
+    "count": 1,
+    "create_time": 1769564915,
+    "update_time": 1769564915,
+    "_id": "Steve Jobs"
+  },
+  "Apple": {
+    "chunk_ids": [
+      "chunk-f62d22bc770c3ed9f8af643692dfae3f"
+    ],
+    "count": 1,
+    "create_time": 1769564915,
+    "update_time": 1769564915,
+    "_id": "Apple"
+  },
+  "Albert Einstein": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1769564922,
+    "update_time": 1769564922,
+    "_id": "Albert Einstein"
+  },
+  "Ulm, Germany": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1769564922,
+    "update_time": 1769564922,
+    "_id": "Ulm, Germany"
+  }
+}

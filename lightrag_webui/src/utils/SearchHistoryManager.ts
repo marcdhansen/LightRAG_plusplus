@@ -11,15 +11,15 @@ import { searchHistoryMaxItems, searchHistoryVersion } from '@/lib/constants'
  */
 
 export interface SearchHistoryItem {
-  label: string           // Label name
-  lastAccessed: number   // Last access timestamp
-  accessCount: number    // Access count for sorting optimization
+  label: string // Label name
+  lastAccessed: number // Last access timestamp
+  accessCount: number // Access count for sorting optimization
 }
 
 export interface SearchHistoryData {
   items: SearchHistoryItem[]
-  version: string        // Data version for compatibility
-  workspace?: string     // Workspace isolation (if needed)
+  version: string // Data version for compatibility
+  workspace?: string // Workspace isolation (if needed)
 }
 
 export class SearchHistoryManager {
@@ -40,7 +40,9 @@ export class SearchHistoryManager {
 
       // Version compatibility check
       if (parsed.version !== this.VERSION) {
-        console.warn(`Search history version mismatch. Expected ${this.VERSION}, got ${parsed.version}. Clearing history.`)
+        console.warn(
+          `Search history version mismatch. Expected ${this.VERSION}, got ${parsed.version}. Clearing history.`
+        )
         this.clearHistory()
         return []
       }
@@ -53,7 +55,7 @@ export class SearchHistoryManager {
       }
 
       // Filter and validate items
-      const validItems = parsed.items.filter(item => this.validateItem(item));
+      const validItems = parsed.items.filter((item) => this.validateItem(item))
 
       // Sort by last accessed time (descending) then by access count (descending)
       return validItems.sort((a, b) => {
@@ -80,7 +82,7 @@ export class SearchHistoryManager {
       typeof item.label === 'string' &&
       item.label.trim().length > 0 &&
       (typeof item.lastAccessed === 'number' || typeof item.lastAccessed === 'string')
-    );
+    )
   }
 
   /**
@@ -98,7 +100,7 @@ export class SearchHistoryManager {
       const trimmedLabel = label.trim()
 
       // Find existing item
-      const existingIndex = history.findIndex(item => item.label === trimmedLabel)
+      const existingIndex = history.findIndex((item) => item.label === trimmedLabel)
 
       if (existingIndex >= 0) {
         // Update existing item
@@ -181,9 +183,7 @@ export class SearchHistoryManager {
    */
   static getRecentSearches(limit: number = 10): SearchHistoryItem[] {
     const history = this.getHistory()
-    return history
-      .filter(item => item.accessCount > 0)
-      .slice(0, limit)
+    return history.filter((item) => item.accessCount > 0).slice(0, limit)
   }
 
   /**
@@ -193,7 +193,7 @@ export class SearchHistoryManager {
    */
   static getPopularRecommendations(limit?: number): SearchHistoryItem[] {
     const history = this.getHistory()
-    const recommendations = history.filter(item => item.accessCount === 0)
+    const recommendations = history.filter((item) => item.accessCount === 0)
     return limit ? recommendations.slice(0, limit) : recommendations
   }
 
@@ -204,7 +204,7 @@ export class SearchHistoryManager {
    */
   static getHistoryLabels(limit?: number): string[] {
     const history = this.getHistory()
-    const labels = history.map(item => item.label)
+    const labels = history.map((item) => item.label)
     return limit ? labels.slice(0, limit) : labels
   }
 
@@ -216,7 +216,7 @@ export class SearchHistoryManager {
   static hasLabel(label: string): boolean {
     if (!label || typeof label !== 'string') return false
     const history = this.getHistory()
-    return history.some(item => item.label === label.trim())
+    return history.some((item) => item.label === label.trim())
   }
 
   /**
@@ -229,7 +229,7 @@ export class SearchHistoryManager {
     try {
       const history = this.getHistory()
       const trimmedLabel = label.trim()
-      const filteredHistory = history.filter(item => item.label !== trimmedLabel)
+      const filteredHistory = history.filter((item) => item.label !== trimmedLabel)
 
       if (filteredHistory.length !== history.length) {
         const data: SearchHistoryData = {
@@ -255,8 +255,8 @@ export class SearchHistoryManager {
     storageSize: number
   } {
     const history = this.getHistory()
-    const recentCount = history.filter(item => item.accessCount > 0).length
-    const popularCount = history.filter(item => item.accessCount === 0).length
+    const recentCount = history.filter((item) => item.accessCount > 0).length
+    const popularCount = history.filter((item) => item.accessCount === 0).length
 
     let storageSize = 0
     try {

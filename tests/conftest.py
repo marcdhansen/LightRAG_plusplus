@@ -370,7 +370,7 @@ def check_external_services(request):
                         docker_running = True
                         break
                     except subprocess.CalledProcessError:
-                        print(f"  ... waiting ({i+1}/12)")
+                        print(f"  ... waiting ({i + 1}/12)")
             except Exception as e:
                 print(f"[Fixture] Failed to launch Docker: {e}")
         else:

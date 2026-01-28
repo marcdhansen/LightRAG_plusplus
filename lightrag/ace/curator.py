@@ -3,7 +3,7 @@ import logging
 import json
 import os
 import uuid
-from typing import List, Dict, Any, TYPE_CHECKING, Optional
+from typing import List, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from lightrag.core import LightRAG
@@ -23,7 +23,9 @@ class ACECurator:
         self.rag = lightrag_instance
         self.playbook = playbook
         # Store repairs in the same directory as the playbook
-        self.repairs_file = os.path.join(self.playbook.config.base_dir, "ace_repairs.json")
+        self.repairs_file = os.path.join(
+            self.playbook.config.base_dir, "ace_repairs.json"
+        )
         self.pending_repairs: Dict[str, Dict[str, Any]] = {}
         self._load_repairs()
 
@@ -70,27 +72,30 @@ class ACECurator:
         # Check for HITL
         hitl_enabled = False
         if self.rag.ace_config and self.rag.ace_config.enable_human_in_the_loop:
-             hitl_enabled = True
+            hitl_enabled = True
 
         if hitl_enabled:
-             logger.info(f"ACE Curator: Staging {len(repairs)} graph repairs for Human Review.")
-             for repair in repairs:
-                 # Generate ID if not present
-                 if "id" not in repair:
+            logger.info(
+                f"ACE Curator: Staging {len(repairs)} graph repairs for Human Review."
+            )
+            for repair in repairs:
+                # Generate ID if not present
+                if "id" not in repair:
                     repair["id"] = str(uuid.uuid4())
-                 
-                 # Set status if not present
-                 if "status" not in repair:
+
+                # Set status if not present
+                if "status" not in repair:
                     repair["status"] = "pending"
-                 
-                 # Set timestamp if not present
-                 if "created_at" not in repair:
+
+                # Set timestamp if not present
+                if "created_at" not in repair:
                     import time
+
                     repair["created_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
-                 self.pending_repairs[repair["id"]] = repair
-             self._save_repairs()
-             return
+                self.pending_repairs[repair["id"]] = repair
+            self._save_repairs()
+            return
 
         logger.info(f"ACE Curator: Applying {len(repairs)} graph repairs.")
 
@@ -104,15 +109,13 @@ class ACECurator:
                 source = repair.get("source")
                 target = repair.get("target")
                 if source and target:
-                    logger.info(
-                        f"ACE Curator: Deleting relation {source} -> {target}"
-                    )
+                    logger.info(f"ACE Curator: Deleting relation {source} -> {target}")
                     await self.rag.adelete_relation(source, target)
             elif action == "delete_entity":
                 name = repair.get("name")
                 if name:
-                        logger.info(f"ACE Curator: Deleting entity {name}")
-                        await self.rag.adelete_entity(name)
+                    logger.info(f"ACE Curator: Deleting entity {name}")
+                    await self.rag.adelete_entity(name)
             elif action == "merge_entities":
                 sources = repair.get("sources")
                 target = repair.get("target")
@@ -146,9 +149,9 @@ class ACECurator:
         return False
 
     async def reject_repair(self, repair_id: str):
-         if repair_id in self.pending_repairs:
+        if repair_id in self.pending_repairs:
             logger.info(f"ACE Curator: Rejecting repair {repair_id}")
             del self.pending_repairs[repair_id]
             self._save_repairs()
             return True
-         return False
+        return False

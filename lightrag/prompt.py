@@ -194,7 +194,7 @@ relationships:
     target: "England"
     keywords: "origin, nationality"
     description: "Charles Darwin was a British naturalist from England."
-"""
+""",
 ]
 
 PROMPTS["entity_extraction_examples"] = [

@@ -20,7 +20,11 @@ interface ReferenceDocumentViewerProps {
   onClose: () => void
 }
 
-export const ReferenceDocumentViewer = ({ reference, query, onClose }: ReferenceDocumentViewerProps) => {
+export const ReferenceDocumentViewer = ({
+  reference,
+  query,
+  onClose
+}: ReferenceDocumentViewerProps) => {
   const { t } = useTranslation()
   const [content, setContent] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -75,9 +79,8 @@ export const ReferenceDocumentViewer = ({ reference, query, onClose }: Reference
     if (!content) return null
 
     // Use semantic highlights if available, otherwise fallback to chunks
-    const highlightsToUse = highlightedSentences.length > 0
-      ? highlightedSentences
-      : (reference?.content || [])
+    const highlightsToUse =
+      highlightedSentences.length > 0 ? highlightedSentences : reference?.content || []
 
     if (highlightsToUse.length === 0) return content
 
@@ -105,7 +108,7 @@ export const ReferenceDocumentViewer = ({ reference, query, onClose }: Reference
       const placeholder = `__HL_${idx}__`
 
       const newPieces: (string | JSX.Element)[] = []
-      finalResult.forEach(piece => {
+      finalResult.forEach((piece) => {
         if (typeof piece !== 'string') {
           newPieces.push(piece)
           return
@@ -120,10 +123,10 @@ export const ReferenceDocumentViewer = ({ reference, query, onClose }: Reference
               <mark
                 key={`hl-${idx}-${pIdx}`}
                 className={cn(
-                  "rounded px-0.5 font-medium text-foreground border-b-2 shadow-sm",
+                  'text-foreground rounded border-b-2 px-0.5 font-medium shadow-sm',
                   isSemantic
-                    ? "bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600"
-                    : "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 dark:border-yellow-600"
+                    ? 'border-blue-400 bg-blue-100 dark:border-blue-600 dark:bg-blue-900/40'
+                    : 'border-yellow-400 bg-yellow-100 dark:border-yellow-600 dark:bg-yellow-900/40'
                 )}
               >
                 {originalText}
@@ -140,57 +143,66 @@ export const ReferenceDocumentViewer = ({ reference, query, onClose }: Reference
 
   return (
     <Dialog open={!!reference} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-border/40 shadow-2xl backdrop-blur-sm">
-        <DialogHeader className="p-6 pb-2 border-b bg-muted/30">
+      <DialogContent className="border-border/40 flex max-h-[90vh] max-w-4xl flex-col overflow-hidden p-0 shadow-2xl backdrop-blur-sm">
+        <DialogHeader className="bg-muted/30 border-b p-6 pb-2">
           <div className="flex items-center justify-between">
             <div className="space-y-1 pr-4">
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-primary/10 text-primary">
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                <div className="bg-primary/10 text-primary rounded-md p-1.5">
                   <ExternalLinkIcon className="size-4" />
                 </div>
                 <span className="truncate">{reference?.file_path.split('/').pop()}</span>
               </DialogTitle>
-              <DialogDescription className="text-xs font-mono opacity-60 truncate">
+              <DialogDescription className="truncate font-mono text-xs opacity-60">
                 {reference?.file_path}
               </DialogDescription>
             </div>
             {highlightedSentences.length > 0 && (
-              <div className="shrink-0 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800 flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2 rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                 <SparklesIcon className="size-3" />
-                {t('retrievePanel.chatMessage.references.semanticallyHighlighted', 'Semantically Highlighted')}
+                {t(
+                  'retrievePanel.chatMessage.references.semanticallyHighlighted',
+                  'Semantically Highlighted'
+                )}
               </div>
             )}
             {highlightedSentences.length === 0 && reference?.content && (
-              <div className="shrink-0 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-xs font-medium border border-yellow-200 dark:border-yellow-800 flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2 rounded-full border border-yellow-200 bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
                 <SearchIcon className="size-3" />
-                {t('retrievePanel.chatMessage.references.chunksHighlighted', { count: reference.content.length })}
+                {t('retrievePanel.chatMessage.references.chunksHighlighted', {
+                  count: reference.content.length
+                })}
               </div>
             )}
           </div>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 relative">
+        <div className="relative min-h-0 flex-1">
           {isLoading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/50 backdrop-blur-sm z-10">
-              <LoaderIcon className="size-8 animate-spin text-primary opacity-60" />
-              <p className="text-sm font-medium text-muted-foreground animate-pulse">{t('retrievePanel.chatMessage.references.loading')}</p>
+            <div className="bg-background/50 absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
+              <LoaderIcon className="text-primary size-8 animate-spin opacity-60" />
+              <p className="text-muted-foreground animate-pulse text-sm font-medium">
+                {t('retrievePanel.chatMessage.references.loading')}
+              </p>
             </div>
           ) : content ? (
             <ScrollArea className="h-full">
-              <div className="p-8 prose dark:prose-invert max-w-none">
-                <div className="whitespace-pre-wrap font-sans leading-relaxed text-[15px] text-foreground/90 selection:bg-primary/20">
+              <div className="prose dark:prose-invert max-w-none p-8">
+                <div className="text-foreground/90 selection:bg-primary/20 font-sans text-[15px] leading-relaxed whitespace-pre-wrap">
                   {highlightedContent}
                 </div>
               </div>
             </ScrollArea>
           ) : (
-            <div className="flex items-center justify-center p-12 text-muted-foreground italic">
+            <div className="text-muted-foreground flex items-center justify-center p-12 italic">
               {t('retrievePanel.chatMessage.references.noContent')}
             </div>
           )}
         </div>
-        <div className="p-4 border-t bg-muted/20 flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
+        <div className="bg-muted/20 flex justify-end gap-2 border-t p-4">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

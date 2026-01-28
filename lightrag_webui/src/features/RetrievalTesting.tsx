@@ -21,11 +21,11 @@ import UserPromptInputWithHistory from '@/components/ui/UserPromptInputWithHisto
 const generateUniqueId = () => {
   // Use crypto.randomUUID() if available
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+    return crypto.randomUUID()
   }
   // Fallback to timestamp + random string for browsers without crypto.randomUUID
-  return `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-};
+  return `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+}
 
 // LaTeX completeness detection function
 const detectLatexCompleteness = (content: string): boolean => {
@@ -67,7 +67,7 @@ const parseCOTContent = (content: string) => {
   // Analyze COT state
   const hasThinkStart = startMatches.length > 0
   const hasThinkEnd = endMatches.length > 0
-  const isThinking = hasThinkStart && (startMatches.length > endMatches.length)
+  const isThinking = hasThinkStart && startMatches.length > endMatches.length
 
   let thinkingContent = ''
   let displayContent = content
@@ -79,10 +79,9 @@ const parseCOTContent = (content: string) => {
       const lastEndIndex = endMatches[endMatches.length - 1]
 
       if (lastEndIndex > lastStartIndex) {
-        thinkingContent = content.substring(
-          lastStartIndex + thinkStartTag.length,
-          lastEndIndex
-        ).trim()
+        thinkingContent = content
+          .substring(lastStartIndex + thinkStartTag.length, lastEndIndex)
+          .trim()
 
         // Remove all thinking blocks, keep only the final display content
         displayContent = content.substring(lastEndIndex + thinkEndTag.length).trim()
@@ -150,10 +149,13 @@ export default function RetrievalTesting() {
   const hasMultipleLines = inputValue.includes('\n')
 
   // Enhanced event handlers for smart switching
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setInputValue(e.target.value)
-    if (inputError) setInputError('')
-  }, [inputError])
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setInputValue(e.target.value)
+      if (inputError) setInputError('')
+    },
+    [inputError]
+  )
 
   // Unified height adjustment function for textarea
   const adjustTextareaHeight = useCallback((element: HTMLTextAreaElement) => {
@@ -199,7 +201,7 @@ export default function RetrievalTesting() {
         if (!allowedModes.includes(mode)) {
           setInputError(
             t('retrievePanel.retrieval.queryModeError', {
-              modes: 'naive, local, global, hybrid, mix, bypass',
+              modes: 'naive, local, global, hybrid, mix, bypass'
             })
           )
           return
@@ -228,11 +230,11 @@ export default function RetrievalTesting() {
         content: '',
         role: 'assistant',
         mermaidRendered: false,
-        latexRendered: false,      // Explicitly initialize to false
-        thinkingTime: null,        // Explicitly initialize to null
+        latexRendered: false, // Explicitly initialize to false
+        thinkingTime: null, // Explicitly initialize to null
         thinkingContent: undefined, // Explicitly initialize to undefined
-        displayContent: undefined,  // Explicitly initialize to undefined
-        isThinking: false,          // Explicitly initialize to false
+        displayContent: undefined, // Explicitly initialize to undefined
+        isThinking: false, // Explicitly initialize to false
         isACE: state.querySettings.enable_ace || false
       }
 
@@ -369,20 +371,20 @@ export default function RetrievalTesting() {
 
       // Determine effective history turns with bypass override
       const configuredHistoryTurns = state.querySettings.history_turns || 0
-      const effectiveHistoryTurns = (effectiveMode === 'bypass' && configuredHistoryTurns === 0)
-        ? 3
-        : configuredHistoryTurns
+      const effectiveHistoryTurns =
+        effectiveMode === 'bypass' && configuredHistoryTurns === 0 ? 3 : configuredHistoryTurns
 
       const queryParams = {
         ...state.querySettings,
         query: actualQuery,
         response_type: 'Multiple Paragraphs',
-        conversation_history: effectiveHistoryTurns > 0
-          ? prevMessages
-            .filter((m) => m.isError !== true)
-            .slice(-effectiveHistoryTurns * 2)
-            .map((m) => ({ role: m.role, content: m.content }))
-          : [],
+        conversation_history:
+          effectiveHistoryTurns > 0
+            ? prevMessages
+              .filter((m) => m.isError !== true)
+              .slice(-effectiveHistoryTurns * 2)
+              .map((m) => ({ role: m.role, content: m.content }))
+            : [],
         ...(modeOverride ? { mode: modeOverride } : {})
       }
 
@@ -429,7 +431,11 @@ export default function RetrievalTesting() {
           assistantMessage.isThinking = false
 
           // If we have a complete thinking block but time wasn't calculated, do final calculation
-          if (finalCotResult.hasValidThinkBlock && thinkingStartTime.current && !assistantMessage.thinkingTime) {
+          if (
+            finalCotResult.hasValidThinkBlock &&
+            thinkingStartTime.current &&
+            !assistantMessage.thinkingTime
+          ) {
             const duration = (Date.now() - thinkingStartTime.current) / 1000
             assistantMessage.thinkingTime = parseFloat(duration.toFixed(2))
           }
@@ -438,7 +444,6 @@ export default function RetrievalTesting() {
           if (finalCotResult.displayContent !== undefined) {
             assistantMessage.displayContent = finalCotResult.displayContent
           }
-
         } catch (error) {
           console.error('Error in final COT state validation:', error)
           // Force reset state on error
@@ -461,63 +466,69 @@ export default function RetrievalTesting() {
     [inputValue, isLoading, messages, setMessages, t, scrollToBottom]
   )
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      // Shift+Enter: Insert newline
-      e.preventDefault()
-      const target = e.target as HTMLInputElement | HTMLTextAreaElement
-      const start = target.selectionStart || 0
-      const end = target.selectionEnd || 0
-      const newValue = inputValue.slice(0, start) + '\n' + inputValue.slice(end)
-      setInputValue(newValue)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && e.shiftKey) {
+        // Shift+Enter: Insert newline
+        e.preventDefault()
+        const target = e.target as HTMLInputElement | HTMLTextAreaElement
+        const start = target.selectionStart || 0
+        const end = target.selectionEnd || 0
+        const newValue = inputValue.slice(0, start) + '\n' + inputValue.slice(end)
+        setInputValue(newValue)
 
-      // Set cursor position after the newline and adjust height if needed
-      setTimeout(() => {
-        if (target.setSelectionRange) {
-          target.setSelectionRange(start + 1, start + 1)
-        }
+        // Set cursor position after the newline and adjust height if needed
+        setTimeout(() => {
+          if (target.setSelectionRange) {
+            target.setSelectionRange(start + 1, start + 1)
+          }
 
-        // Manually trigger height adjustment for textarea after component switch
-        if (inputRef.current && inputRef.current.tagName === 'TEXTAREA') {
-          adjustTextareaHeight(inputRef.current as HTMLTextAreaElement)
-        }
-      }, 0)
-    } else if (e.key === 'Enter' && !e.shiftKey) {
-      // Enter: Submit form
-      e.preventDefault()
-      handleSubmit(e as any)
-    }
-  }, [inputValue, handleSubmit, adjustTextareaHeight])
+          // Manually trigger height adjustment for textarea after component switch
+          if (inputRef.current && inputRef.current.tagName === 'TEXTAREA') {
+            adjustTextareaHeight(inputRef.current as HTMLTextAreaElement)
+          }
+        }, 0)
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        // Enter: Submit form
+        e.preventDefault()
+        handleSubmit(e as any)
+      }
+    },
+    [inputValue, handleSubmit, adjustTextareaHeight]
+  )
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    // Get pasted text content
-    const pastedText = e.clipboardData.getData('text')
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      // Get pasted text content
+      const pastedText = e.clipboardData.getData('text')
 
-    // Check if it contains newlines
-    if (pastedText.includes('\n')) {
-      e.preventDefault() // Prevent default paste behavior
+      // Check if it contains newlines
+      if (pastedText.includes('\n')) {
+        e.preventDefault() // Prevent default paste behavior
 
-      // Get current cursor position
-      const target = e.target as HTMLInputElement | HTMLTextAreaElement
-      const start = target.selectionStart || 0
-      const end = target.selectionEnd || 0
+        // Get current cursor position
+        const target = e.target as HTMLInputElement | HTMLTextAreaElement
+        const start = target.selectionStart || 0
+        const end = target.selectionEnd || 0
 
-      // Build new value
-      const newValue = inputValue.slice(0, start) + pastedText + inputValue.slice(end)
+        // Build new value
+        const newValue = inputValue.slice(0, start) + pastedText + inputValue.slice(end)
 
-      // Update state (this will trigger component switch to Textarea)
-      setInputValue(newValue)
+        // Update state (this will trigger component switch to Textarea)
+        setInputValue(newValue)
 
-      // Set cursor position to end of pasted content
-      setTimeout(() => {
-        if (inputRef.current && inputRef.current.setSelectionRange) {
-          const newCursorPosition = start + pastedText.length
-          inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition)
-        }
-      }, 0)
-    }
-    // If no newlines, let default paste behavior continue
-  }, [inputValue])
+        // Set cursor position to end of pasted content
+        setTimeout(() => {
+          if (inputRef.current && inputRef.current.setSelectionRange) {
+            const newCursorPosition = start + pastedText.length
+            inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition)
+          }
+        }, 0)
+      }
+      // If no newlines, let default paste behavior continue
+    },
+    [inputValue]
+  )
 
   // Effect to handle component switching and maintain focus
   useEffect(() => {
@@ -561,78 +572,79 @@ export default function RetrievalTesting() {
     // Component cleanup - reset timer state to prevent memory leaks
     return () => {
       if (thinkingStartTime.current) {
-        thinkingStartTime.current = null;
+        thinkingStartTime.current = null
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Add event listeners to detect when user manually interacts with the container
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
+    const container = messagesContainerRef.current
+    if (!container) return
 
     // Handle significant mouse wheel events - only disable auto-scroll for deliberate scrolling
     const handleWheel = (e: WheelEvent) => {
       // Only consider significant wheel movements (more than 10px)
       if (Math.abs(e.deltaY) > 10 && !isFormInteractionRef.current) {
-        shouldFollowScrollRef.current = false;
+        shouldFollowScrollRef.current = false
       }
-    };
+    }
 
     // Handle scroll events - only disable auto-scroll if not programmatically triggered
     // and if it's a significant scroll
     const handleScroll = throttle(() => {
       // If this is a programmatic scroll, don't disable auto-scroll
       if (programmaticScrollRef.current) {
-        programmaticScrollRef.current = false;
-        return;
+        programmaticScrollRef.current = false
+        return
       }
 
       // Check if scrolled to bottom or very close to bottom
-      const container = messagesContainerRef.current;
+      const container = messagesContainerRef.current
       if (container) {
-        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+        const isAtBottom =
+          container.scrollHeight - container.scrollTop - container.clientHeight < 20
 
         // If at bottom, enable auto-scroll, otherwise disable it
         if (isAtBottom) {
-          shouldFollowScrollRef.current = true;
+          shouldFollowScrollRef.current = true
         } else if (!isFormInteractionRef.current && !isReceivingResponseRef.current) {
-          shouldFollowScrollRef.current = false;
+          shouldFollowScrollRef.current = false
         }
       }
-    }, 30);
+    }, 30)
 
     // Add event listeners - only listen for wheel and scroll events
-    container.addEventListener('wheel', handleWheel as EventListener);
-    container.addEventListener('scroll', handleScroll as EventListener);
+    container.addEventListener('wheel', handleWheel as EventListener)
+    container.addEventListener('scroll', handleScroll as EventListener)
 
     return () => {
-      container.removeEventListener('wheel', handleWheel as EventListener);
-      container.removeEventListener('scroll', handleScroll as EventListener);
-    };
-  }, []);
+      container.removeEventListener('wheel', handleWheel as EventListener)
+      container.removeEventListener('scroll', handleScroll as EventListener)
+    }
+  }, [])
 
   // Add event listeners to the form area to prevent disabling auto-scroll when interacting with form
   useEffect(() => {
-    const form = document.querySelector('form');
-    if (!form) return;
+    const form = document.querySelector('form')
+    if (!form) return
 
     const handleFormMouseDown = () => {
       // Set flag to indicate form interaction
-      isFormInteractionRef.current = true;
+      isFormInteractionRef.current = true
 
       // Reset the flag after a short delay
       setTimeout(() => {
-        isFormInteractionRef.current = false;
-      }, 500); // Give enough time for the form interaction to complete
-    };
+        isFormInteractionRef.current = false
+      }, 500) // Give enough time for the form interaction to complete
+    }
 
-    form.addEventListener('mousedown', handleFormMouseDown);
+    form.addEventListener('mousedown', handleFormMouseDown)
 
     return () => {
-      form.removeEventListener('mousedown', handleFormMouseDown);
-    };
-  }, []);
+      form.removeEventListener('mousedown', handleFormMouseDown)
+    }
+  }, [])
 
   // Use a longer debounce time for better performance with large message updates
   const debouncedMessages = useDebounce(messages, 150)
@@ -644,7 +656,6 @@ export default function RetrievalTesting() {
     }
   }, [debouncedMessages, scrollToBottom])
 
-
   const clearMessages = useCallback(() => {
     setMessages([])
     useSettingsStore.getState().setRetrievalHistory([])
@@ -652,69 +663,80 @@ export default function RetrievalTesting() {
   }, [setMessages])
 
   // Handle copying message content with robust clipboard support
-  const handleCopyMessage = useCallback(async (message: MessageWithError) => {
-    let contentToCopy = '';
+  const handleCopyMessage = useCallback(
+    async (message: MessageWithError) => {
+      let contentToCopy = ''
 
-    if (message.role === 'user') {
-      // User messages: copy original content
-      contentToCopy = message.content || '';
-    } else {
-      // Assistant messages: prefer processed display content, fallback to original content
-      const finalDisplayContent = message.displayContent !== undefined
-        ? message.displayContent
-        : (message.content || '');
-      contentToCopy = finalDisplayContent;
-    }
-
-    if (!contentToCopy.trim()) {
-      toast.error(t('retrievePanel.chatMessage.copyEmpty', 'No content to copy'));
-      return;
-    }
-
-    try {
-      const result = await copyToClipboard(contentToCopy);
-
-      if (result.success) {
-        // Show success message with method used
-        const methodMessages: Record<string, string> = {
-          'clipboard-api': t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard'),
-          'execCommand': t('retrievePanel.chatMessage.copySuccessLegacy', 'Content copied (legacy method)'),
-          'manual-select': t('retrievePanel.chatMessage.copySuccessManual', 'Content copied (manual method)'),
-          'fallback': t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard')
-        };
-
-        toast.success(methodMessages[result.method] || t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard'));
+      if (message.role === 'user') {
+        // User messages: copy original content
+        contentToCopy = message.content || ''
       } else {
-        // Show error with fallback instructions
-        if (result.method === 'fallback') {
-          toast.error(
-            result.error || t('retrievePanel.chatMessage.copyFailed', 'Failed to copy content'),
-            {
-              description: t('retrievePanel.chatMessage.copyManualInstruction', 'Please select and copy the text manually')
-            }
-          );
-        } else {
-          toast.error(
-            t('retrievePanel.chatMessage.copyFailed', 'Failed to copy content'),
-            {
-              description: result.error
-            }
-          );
-        }
+        // Assistant messages: prefer processed display content, fallback to original content
+        const finalDisplayContent =
+          message.displayContent !== undefined ? message.displayContent : message.content || ''
+        contentToCopy = finalDisplayContent
       }
-    } catch (err) {
-      console.error('Clipboard operation failed:', err);
-      toast.error(
-        t('retrievePanel.chatMessage.copyError', 'Copy operation failed'),
-        {
-          description: err instanceof Error ? err.message : 'Unknown error occurred'
+
+      if (!contentToCopy.trim()) {
+        toast.error(t('retrievePanel.chatMessage.copyEmpty', 'No content to copy'))
+        return
+      }
+
+      try {
+        const result = await copyToClipboard(contentToCopy)
+
+        if (result.success) {
+          // Show success message with method used
+          const methodMessages: Record<string, string> = {
+            'clipboard-api': t(
+              'retrievePanel.chatMessage.copySuccess',
+              'Content copied to clipboard'
+            ),
+            execCommand: t(
+              'retrievePanel.chatMessage.copySuccessLegacy',
+              'Content copied (legacy method)'
+            ),
+            'manual-select': t(
+              'retrievePanel.chatMessage.copySuccessManual',
+              'Content copied (manual method)'
+            ),
+            fallback: t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard')
+          }
+
+          toast.success(
+            methodMessages[result.method] ||
+              t('retrievePanel.chatMessage.copySuccess', 'Content copied to clipboard')
+          )
+        } else {
+          // Show error with fallback instructions
+          if (result.method === 'fallback') {
+            toast.error(
+              result.error || t('retrievePanel.chatMessage.copyFailed', 'Failed to copy content'),
+              {
+                description: t(
+                  'retrievePanel.chatMessage.copyManualInstruction',
+                  'Please select and copy the text manually'
+                )
+              }
+            )
+          } else {
+            toast.error(t('retrievePanel.chatMessage.copyFailed', 'Failed to copy content'), {
+              description: result.error
+            })
+          }
         }
-      );
-    }
-  }, [t])
+      } catch (err) {
+        console.error('Clipboard operation failed:', err)
+        toast.error(t('retrievePanel.chatMessage.copyError', 'Copy operation failed'), {
+          description: err instanceof Error ? err.message : 'Unknown error occurred'
+        })
+      }
+    },
+    [t]
+  )
 
   return (
-    <div className="flex size-full gap-2 px-2 pb-12 overflow-hidden">
+    <div className="flex size-full gap-2 overflow-hidden px-2 pb-12">
       <div className="flex grow flex-col gap-4">
         <div className="relative grow">
           <div
@@ -722,7 +744,7 @@ export default function RetrievalTesting() {
             className="bg-primary-foreground/60 absolute inset-0 flex flex-col overflow-auto rounded-lg border p-2"
             onClick={() => {
               if (shouldFollowScrollRef.current) {
-                shouldFollowScrollRef.current = false;
+                shouldFollowScrollRef.current = false
               }
             }}
           >
@@ -732,7 +754,8 @@ export default function RetrievalTesting() {
                   {t('retrievePanel.retrieval.startPrompt')}
                 </div>
               ) : (
-                messages.map((message) => { // Remove unused idx
+                messages.map((message) => {
+                  // Remove unused idx
                   // isComplete logic is now handled internally based on message.mermaidRendered
                   return (
                     <div
@@ -742,7 +765,7 @@ export default function RetrievalTesting() {
                       {message.role === 'user' && (
                         <Button
                           onClick={() => handleCopyMessage(message)}
-                          className="mb-2 size-6 rounded-md opacity-60 transition-opacity hover:opacity-100 shrink-0"
+                          className="mb-2 size-6 shrink-0 rounded-md opacity-60 transition-opacity hover:opacity-100"
                           tooltip={t('retrievePanel.chatMessage.copyTooltip')}
                           variant="ghost"
                           size="icon"
@@ -758,7 +781,7 @@ export default function RetrievalTesting() {
                       {message.role === 'assistant' && (
                         <Button
                           onClick={() => handleCopyMessage(message)}
-                          className="mb-2 size-6 rounded-md opacity-60 transition-opacity hover:opacity-100 shrink-0"
+                          className="mb-2 size-6 shrink-0 rounded-md opacity-60 transition-opacity hover:opacity-100"
                           tooltip={t('retrievePanel.chatMessage.copyTooltip')}
                           variant="ghost"
                           size="icon"
@@ -767,7 +790,7 @@ export default function RetrievalTesting() {
                         </Button>
                       )}
                     </div>
-                  );
+                  )
                 })
               )}
               <div ref={messagesEndRef} className="pb-1" />
@@ -795,7 +818,7 @@ export default function RetrievalTesting() {
             <EraserIcon />
             {t('retrievePanel.retrieval.clear')}
           </Button>
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <label htmlFor="query-input" className="sr-only">
               {t('retrievePanel.retrieval.placeholder')}
             </label>
@@ -804,7 +827,7 @@ export default function RetrievalTesting() {
                 ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                 id="query-input"
                 autoComplete="on"
-                className="w-full min-h-[40px] max-h-[120px] overflow-y-auto"
+                className="max-h-[120px] min-h-[40px] w-full overflow-y-auto"
                 value={inputValue}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
@@ -855,7 +878,7 @@ export default function RetrievalTesting() {
             )}
             {/* Error message below input */}
             {inputError && (
-              <div className="absolute left-0 top-full mt-1 text-xs text-red-500">{inputError}</div>
+              <div className="absolute top-full left-0 mt-1 text-xs text-red-500">{inputError}</div>
             )}
           </div>
           <Button type="submit" variant="default" disabled={isLoading} size="sm">

@@ -28,11 +28,7 @@ const Label = ({
   children,
   ...props
 }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label
-    htmlFor={htmlFor}
-    className={className}
-    {...props}
-  >
+  <label htmlFor={htmlFor} className={className} {...props}>
     {children}
   </label>
 )
@@ -108,7 +104,9 @@ export default function ClearDocumentsDialog({ onDocumentsCleared }: ClearDocume
           await clearCache()
           toast.success(t('documentPanel.clearDocuments.cacheCleared'))
         } catch (cacheErr) {
-          toast.error(t('documentPanel.clearDocuments.cacheClearFailed', { error: errorMessage(cacheErr) }))
+          toast.error(
+            t('documentPanel.clearDocuments.cacheClearFailed', { error: errorMessage(cacheErr) })
+          )
         }
       }
 
@@ -118,16 +116,16 @@ export default function ClearDocumentsDialog({ onDocumentsCleared }: ClearDocume
       }
 
       // Reset graph store to ensure the graph view is cleared
-      const graphStore = useGraphStore.getState();
-      graphStore.reset();
-      graphStore.setGraphDataFetchAttempted(false);
+      const graphStore = useGraphStore.getState()
+      graphStore.reset()
+      graphStore.setGraphDataFetchAttempted(false)
 
       // Reset query label to clear the search input
-      useSettingsStore.getState().setQueryLabel('');
+      useSettingsStore.getState().setQueryLabel('')
 
       // Clear search history and trigger dropdown refresh
-      SearchHistoryManager.clearHistory();
-      useSettingsStore.getState().triggerSearchLabelDropdownRefresh();
+      SearchHistoryManager.clearHistory()
+      useSettingsStore.getState().triggerSearchLabelDropdownRefresh()
 
       // Close dialog after all operations succeed
       setOpen(false)
@@ -142,18 +140,31 @@ export default function ClearDocumentsDialog({ onDocumentsCleared }: ClearDocume
       }
       setIsClearing(false)
     }
-  }, [isConfirmEnabled, isClearing, clearCacheOption, setOpen, t, onDocumentsCleared, CLEAR_TIMEOUT])
+  }, [
+    isConfirmEnabled,
+    isClearing,
+    clearCacheOption,
+    setOpen,
+    t,
+    onDocumentsCleared,
+    CLEAR_TIMEOUT
+  ])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" side="bottom" tooltip={t('documentPanel.clearDocuments.tooltip')} size="sm">
+        <Button
+          variant="outline"
+          side="bottom"
+          tooltip={t('documentPanel.clearDocuments.tooltip')}
+          size="sm"
+        >
           <EraserIcon /> {t('documentPanel.clearDocuments.button')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold">
+          <DialogTitle className="flex items-center gap-2 font-bold text-red-500 dark:text-red-400">
             <AlertTriangleIcon className="h-5 w-5" />
             {t('documentPanel.clearDocuments.title')}
           </DialogTitle>
@@ -162,12 +173,10 @@ export default function ClearDocumentsDialog({ onDocumentsCleared }: ClearDocume
           </DialogDescription>
         </DialogHeader>
 
-        <div className="text-red-500 dark:text-red-400 font-semibold mb-4">
+        <div className="mb-4 font-semibold text-red-500 dark:text-red-400">
           {t('documentPanel.clearDocuments.warning')}
         </div>
-        <div className="mb-4">
-          {t('documentPanel.clearDocuments.confirm')}
-        </div>
+        <div className="mb-4">{t('documentPanel.clearDocuments.confirm')}</div>
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -188,21 +197,19 @@ export default function ClearDocumentsDialog({ onDocumentsCleared }: ClearDocume
             <Checkbox
               id="clear-cache"
               checked={clearCacheOption}
-              onCheckedChange={(checked: boolean | 'indeterminate') => setClearCacheOption(checked === true)}
+              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                setClearCacheOption(checked === true)
+              }
               disabled={isClearing}
             />
-            <Label htmlFor="clear-cache" className="text-sm font-medium cursor-pointer">
+            <Label htmlFor="clear-cache" className="cursor-pointer text-sm font-medium">
               {t('documentPanel.clearDocuments.clearCache')}
             </Label>
           </div>
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            disabled={isClearing}
-          >
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isClearing}>
             {t('common.cancel')}
           </Button>
           <Button

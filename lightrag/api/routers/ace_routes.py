@@ -1,12 +1,12 @@
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, Body
-from pydantic import BaseModel
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException
 import traceback
 
 from lightrag.utils import logger
 from ..utils_api import get_combined_auth_dependency
 
 router = APIRouter(tags=["ace"])
+
 
 def create_ace_routes(rag, api_key: Optional[str] = None):
     combined_auth = get_combined_auth_dependency(api_key)
@@ -23,11 +23,15 @@ def create_ace_routes(rag, api_key: Optional[str] = None):
             logger.error(traceback.format_exc())
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/ace/repairs/{repair_id}/approve", dependencies=[Depends(combined_auth)])
+    @router.post(
+        "/ace/repairs/{repair_id}/approve", dependencies=[Depends(combined_auth)]
+    )
     async def approve_repair(repair_id: str):
         try:
             if not hasattr(rag, "ace_curator") or not rag.ace_curator:
-                raise HTTPException(status_code=400, detail="ACE Curator not initialized")
+                raise HTTPException(
+                    status_code=400, detail="ACE Curator not initialized"
+                )
             success = await rag.ace_curator.approve_repair(repair_id)
             if not success:
                 raise HTTPException(status_code=404, detail="Repair not found")
@@ -37,15 +41,19 @@ def create_ace_routes(rag, api_key: Optional[str] = None):
             logger.error(traceback.format_exc())
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/ace/repairs/{repair_id}/reject", dependencies=[Depends(combined_auth)])
+    @router.post(
+        "/ace/repairs/{repair_id}/reject", dependencies=[Depends(combined_auth)]
+    )
     async def reject_repair(repair_id: str):
         try:
-             if not hasattr(rag, "ace_curator") or not rag.ace_curator:
-                raise HTTPException(status_code=400, detail="ACE Curator not initialized")
-             success = await rag.ace_curator.reject_repair(repair_id)
-             if not success:
+            if not hasattr(rag, "ace_curator") or not rag.ace_curator:
+                raise HTTPException(
+                    status_code=400, detail="ACE Curator not initialized"
+                )
+            success = await rag.ace_curator.reject_repair(repair_id)
+            if not success:
                 raise HTTPException(status_code=404, detail="Repair not found")
-             return {"status": "success", "message": f"Repair {repair_id} rejected"}
+            return {"status": "success", "message": f"Repair {repair_id} rejected"}
         except Exception as e:
             logger.error(f"Error rejecting repair {repair_id}: {e}")
             logger.error(traceback.format_exc())

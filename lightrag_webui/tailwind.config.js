@@ -8,15 +8,15 @@ export default {
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}'
   ],
   theme: {
     container: {
       center: true,
       padding: '2rem',
       screens: {
-        '2xl': '1400px',
-      },
+        '2xl': '1400px'
+      }
     },
     extend: {
       colors: {
@@ -27,51 +27,51 @@ export default {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          foreground: 'hsl(var(--primary-foreground))'
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          foreground: 'hsl(var(--secondary-foreground))'
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          foreground: 'hsl(var(--destructive-foreground))'
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          foreground: 'hsl(var(--muted-foreground))'
         },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          foreground: 'hsl(var(--accent-foreground))'
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          foreground: 'hsl(var(--popover-foreground))'
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
+          foreground: 'hsl(var(--card-foreground))'
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 4px)'
       },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height, auto)' },
+          to: { height: 'var(--radix-accordion-content-height, auto)' }
         },
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height, auto)' },
-          to: { height: '0' },
-        },
+          to: { height: '0' }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out'
       },
       typography: {
         DEFAULT: {
@@ -79,58 +79,58 @@ export default {
             maxWidth: '100%',
             color: 'var(--tw-prose-body)',
             '[class~="lead"]': {
-              color: 'var(--tw-prose-lead)',
+              color: 'var(--tw-prose-lead)'
             },
             a: {
               color: 'var(--tw-prose-links)',
               textDecoration: 'underline',
-              fontWeight: '500',
+              fontWeight: '500'
             },
             strong: {
               color: 'var(--tw-prose-bold)',
-              fontWeight: '600',
+              fontWeight: '600'
             },
             'ol[type="A"]': {
-              listStyleType: 'upper-alpha',
+              listStyleType: 'upper-alpha'
             },
             'ol[type="a"]': {
-              listStyleType: 'lower-alpha',
+              listStyleType: 'lower-alpha'
             },
             'ol[type="A" s]': {
-              listStyleType: 'upper-alpha',
+              listStyleType: 'upper-alpha'
             },
             'ol[type="a" s]': {
-              listStyleType: 'lower-alpha',
+              listStyleType: 'lower-alpha'
             },
             'ol[type="I"]': {
-              listStyleType: 'upper-roman',
+              listStyleType: 'upper-roman'
             },
             'ol[type="i"]': {
-              listStyleType: 'lower-roman',
+              listStyleType: 'lower-roman'
             },
             'ol[type="I" s]': {
-              listStyleType: 'upper-roman',
+              listStyleType: 'upper-roman'
             },
             'ol[type="i" s]': {
-              listStyleType: 'lower-roman',
+              listStyleType: 'lower-roman'
             },
             'ol[type="1"]': {
-              listStyleType: 'decimal',
+              listStyleType: 'decimal'
             },
             'ol > li': {
               position: 'relative',
-              paddingLeft: '1.75em',
+              paddingLeft: '1.75em'
             },
             'ol > li::before': {
               content: 'counter(list-item, var(--list-counter-style, decimal)) "."',
               position: 'absolute',
               fontWeight: '400',
               color: 'var(--tw-prose-counters)',
-              left: '0',
+              left: '0'
             },
             'ul > li': {
               position: 'relative',
-              paddingLeft: '1.75em',
+              paddingLeft: '1.75em'
             },
             'ul > li::before': {
               content: '""',
@@ -140,13 +140,13 @@ export default {
               width: '0.375em',
               height: '0.375em',
               top: 'calc(0.875em - 0.1875em)',
-              left: '0.25em',
+              left: '0.25em'
             },
             hr: {
               borderColor: 'var(--tw-prose-hr)',
               borderTopWidth: 1,
               marginTop: '3em',
-              marginBottom: '3em',
+              marginBottom: '3em'
             },
             blockquote: {
               fontWeight: '500',
@@ -157,7 +157,7 @@ export default {
               quotes: '"\\201C""\\201D""\\2018""\\2019"',
               marginTop: '1.6em',
               marginBottom: '1.6em',
-              paddingLeft: '1em',
+              paddingLeft: '1em'
             },
             h1: {
               color: 'var(--tw-prose-headings)',
@@ -165,7 +165,7 @@ export default {
               fontSize: '2.25em',
               marginTop: '0',
               marginBottom: '0.8888889em',
-              lineHeight: '1.1111111',
+              lineHeight: '1.1111111'
             },
             h2: {
               color: 'var(--tw-prose-headings)',
@@ -173,7 +173,7 @@ export default {
               fontSize: '1.5em',
               marginTop: '2em',
               marginBottom: '1em',
-              lineHeight: '1.3333333',
+              lineHeight: '1.3333333'
             },
             h3: {
               color: 'var(--tw-prose-headings)',
@@ -181,89 +181,89 @@ export default {
               fontSize: '1.25em',
               marginTop: '1.6em',
               marginBottom: '0.6em',
-              lineHeight: '1.6',
+              lineHeight: '1.6'
             },
             h4: {
               color: 'var(--tw-prose-headings)',
               fontWeight: '600',
               marginTop: '1.5em',
               marginBottom: '0.5em',
-              lineHeight: '1.5',
+              lineHeight: '1.5'
             },
             'figure > *': {
-              margin: '0',
+              margin: '0'
             },
             figcaption: {
               color: 'var(--tw-prose-captions)',
               fontSize: '0.875em',
               lineHeight: '1.4285714',
-              marginTop: '0.8571429em',
+              marginTop: '0.8571429em'
             },
             code: {
               color: 'var(--tw-prose-code)',
               fontWeight: '600',
-              fontSize: '0.875em',
+              fontSize: '0.875em'
             },
             'code::before': {
-              content: '""',
+              content: '""'
             },
             'code::after': {
-              content: '""',
+              content: '""'
             },
             'a code': {
-              color: 'var(--tw-prose-links)',
+              color: 'var(--tw-prose-links)'
             },
             'h1 code': {
-              color: 'inherit',
+              color: 'inherit'
             },
             'h2 code': {
               color: 'inherit',
-              fontSize: '0.875em',
+              fontSize: '0.875em'
             },
             'h3 code': {
               color: 'inherit',
-              fontSize: '0.9em',
+              fontSize: '0.9em'
             },
             'h4 code': {
-              color: 'inherit',
+              color: 'inherit'
             },
             'blockquote code': {
-              color: 'inherit',
+              color: 'inherit'
             },
-            'thead': {
+            thead: {
               color: 'var(--tw-prose-headings)',
               fontWeight: '600',
               borderBottomWidth: '1px',
-              borderBottomColor: 'var(--tw-prose-th-borders)',
+              borderBottomColor: 'var(--tw-prose-th-borders)'
             },
             'thead th': {
               verticalAlign: 'bottom',
               paddingRight: '0.5714286em',
               paddingBottom: '0.5714286em',
-              paddingLeft: '0.5714286em',
+              paddingLeft: '0.5714286em'
             },
             'tbody tr': {
               borderBottomWidth: '1px',
-              borderBottomColor: 'var(--tw-prose-td-borders)',
+              borderBottomColor: 'var(--tw-prose-td-borders)'
             },
             'tbody tr:last-child': {
-              borderBottomWidth: '0',
+              borderBottomWidth: '0'
             },
             'tbody td': {
               verticalAlign: 'baseline',
               paddingTop: '0.5714286em',
               paddingRight: '0.5714286em',
               paddingBottom: '0.5714286em',
-              paddingLeft: '0.5714286em',
+              paddingLeft: '0.5714286em'
             },
             p: {
               marginTop: '1.25em',
-              marginBottom: '1.25em',
-            },
-          },
-        },
-      },
-    },
+              marginBottom: '1.25em'
+            }
+          }
+        }
+      }
+    }
   },
-  plugins: [tailwindcssAnimate, typography],
+  plugins: [tailwindcssAnimate, typography]
 }

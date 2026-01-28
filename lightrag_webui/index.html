@@ -9,43 +9,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lightrag</title>
     <script>
-      (function() {
+      ;(function () {
         try {
-          var storageKey = 'settings-storage';
-          var defaultTheme = 'system';
-          var classNameDark = 'dark';
-          var classNameLight = 'light';
+          var storageKey = 'settings-storage'
+          var defaultTheme = 'system'
+          var classNameDark = 'dark'
+          var classNameLight = 'light'
 
           function getTheme() {
             try {
-              var item = localStorage.getItem(storageKey);
+              var item = localStorage.getItem(storageKey)
               if (item) {
-                var parsed = JSON.parse(item);
+                var parsed = JSON.parse(item)
                 if (parsed && parsed.state && parsed.state.theme) {
-                  return parsed.state.theme;
+                  return parsed.state.theme
                 }
               }
             } catch (e) {
-              console.error('Error parsing theme settings:', e);
+              console.error('Error parsing theme settings:', e)
             }
-            return defaultTheme;
+            return defaultTheme
           }
 
-          var theme = getTheme();
-          var root = document.documentElement;
+          var theme = getTheme()
+          var root = document.documentElement
 
-          root.classList.remove(classNameLight, classNameDark);
+          root.classList.remove(classNameLight, classNameDark)
 
           if (theme === 'system') {
-            var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? classNameDark : classNameLight;
-            root.classList.add(systemTheme);
+            var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? classNameDark
+              : classNameLight
+            root.classList.add(systemTheme)
           } else {
-            root.classList.add(theme);
+            root.classList.add(theme)
           }
         } catch (e) {
-          console.error('Theme initialization failed:', e);
+          console.error('Theme initialization failed:', e)
         }
-      })();
+      })()
     </script>
   </head>
   <body>
@@ -59,7 +61,8 @@
           --initial-bg: hsl(240 10% 3.9%);
           --initial-fg: hsl(0 0% 98%);
         }
-        html, body {
+        html,
+        body {
           background-color: var(--initial-bg);
           color: var(--initial-fg);
           margin: 0;
@@ -76,9 +79,35 @@
           background-color: var(--initial-bg);
           color: var(--initial-fg);
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--initial-fg); border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; opacity: 0.5; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #startup-error { display: none; color: #dc2626; padding: 20px; max-width: 600px; margin: 0 auto; background: #fee2e2; border-radius: 8px; margin-top: 20px; font-family: monospace; }
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid var(--initial-fg);
+          border-top: 4px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 20px;
+          opacity: 0.5;
+        }
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        #startup-error {
+          display: none;
+          color: #dc2626;
+          padding: 20px;
+          max-width: 600px;
+          margin: 0 auto;
+          background: #fee2e2;
+          border-radius: 8px;
+          margin-top: 20px;
+          font-family: monospace;
+        }
       </style>
       <div class="initial-loader">
         <div class="spinner"></div>
@@ -87,13 +116,20 @@
       </div>
     </div>
     <script>
-      window.onerror = function(msg, url, line, col, error) {
-        const errorDiv = document.getElementById('startup-error');
+      window.onerror = function (msg, url, line, col, error) {
+        const errorDiv = document.getElementById('startup-error')
         if (errorDiv) {
-          errorDiv.style.display = 'block';
-          errorDiv.innerHTML = '<strong>Startup Error:</strong><br/>' + msg + '<br/><small>' + url + ':' + line + '</small>';
+          errorDiv.style.display = 'block'
+          errorDiv.innerHTML =
+            '<strong>Startup Error:</strong><br/>' +
+            msg +
+            '<br/><small>' +
+            url +
+            ':' +
+            line +
+            '</small>'
         }
-      };
+      }
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

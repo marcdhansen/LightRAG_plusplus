@@ -24,11 +24,7 @@ const Label = ({
   children,
   ...props
 }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label
-    htmlFor={htmlFor}
-    className={className}
-    {...props}
-  >
+  <label htmlFor={htmlFor} className={className} {...props}>
     {children}
   </label>
 )
@@ -38,7 +34,10 @@ interface DeleteDocumentsDialogProps {
   onDocumentsDeleted?: () => Promise<void>
 }
 
-export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDeleted }: DeleteDocumentsDialogProps) {
+export default function DeleteDocumentsDialog({
+  selectedDocIds,
+  onDocumentsDeleted
+}: DeleteDocumentsDialogProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -50,11 +49,15 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
   // Reset state when dialog closes
   useEffect(() => {
     if (open) {
-      console.log('[DeleteDocumentsDialog] Open with IDs:', selectedDocIds);
-      logToServer('info', `[DeleteDocumentsDialog] Open with IDs: ${JSON.stringify(selectedDocIds)}`);
+      console.log('[DeleteDocumentsDialog] Open with IDs:', selectedDocIds)
+      logToServer(
+        'info',
+        `[DeleteDocumentsDialog] Open with IDs: ${JSON.stringify(selectedDocIds)}`
+      )
       setConfirmText('')
       setIsDeleting(false)
-    } else { // This else block handles the original "reset on close" functionality
+    } else {
+      // This else block handles the original "reset on close" functionality
       setConfirmText('')
       setDeleteFile(false)
       setDeleteLLMCache(false)
@@ -89,59 +92,58 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
       }
 
       // Close dialog immediately to unblock UI
-      setOpen(false);
-      setIsDeleting(false);
+      setOpen(false)
+      setIsDeleting(false)
 
       // Run polling in background
-      (async () => {
+      ;(async () => {
         // Poll for up to 30 seconds (60 attempts * 500ms)
-        const maxAttempts = 60;
+        const maxAttempts = 60
 
         for (let i = 0; i < maxAttempts; i++) {
           try {
             // Fetch latest documents with cache busting
-            const response = await getDocuments(Date.now());
+            const response = await getDocuments(Date.now())
 
-            const allDocs = Object.values(response.statuses).flat();
-            const remainingIds = selectedDocIds.filter(id => allDocs.some(doc => doc.id === id));
+            const allDocs = Object.values(response.statuses).flat()
+            const remainingIds = selectedDocIds.filter((id) => allDocs.some((doc) => doc.id === id))
 
             if (remainingIds.length === 0) {
-              console.log(`[DeleteDocumentsDialog] Deletion confirmed after ${i + 1} checks`);
+              console.log(`[DeleteDocumentsDialog] Deletion confirmed after ${i + 1} checks`)
 
               // Trigger final update
               if (onDocumentsDeleted) {
-                await onDocumentsDeleted();
-                toast.success(t('documentPanel.deleteDocuments.complete'));
+                await onDocumentsDeleted()
+                toast.success(t('documentPanel.deleteDocuments.complete'))
               }
-              return;
+              return
             }
 
             if ((i + 1) % 5 === 0) {
-              const allDocs = Object.values(response.statuses).flat();
-              const remainingDocs = allDocs.filter(doc => selectedDocIds.includes(doc.id));
-              const statuses = remainingDocs.map(d => `${d.id}(${d.status})`).join(', ');
+              const allDocs = Object.values(response.statuses).flat()
+              const remainingDocs = allDocs.filter((doc) => selectedDocIds.includes(doc.id))
+              const statuses = remainingDocs.map((d) => `${d.id}(${d.status})`).join(', ')
 
-              const msg = `[DeleteDocumentsDialog] Documents still present: ${statuses}. Waiting... (Attempt ${i + 1}/${maxAttempts})`;
-              console.log(msg);
-              logToServer('info', msg);
+              const msg = `[DeleteDocumentsDialog] Documents still present: ${statuses}. Waiting... (Attempt ${i + 1}/${maxAttempts})`
+              console.log(msg)
+              logToServer('info', msg)
             }
 
             // Wait 500ms before next check
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500))
           } catch (e) {
-            console.error('Error polling document status:', e);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            console.error('Error polling document status:', e)
+            await new Promise((resolve) => setTimeout(resolve, 500))
           }
         }
 
         // Timeout fallback
-        console.warn('[DeleteDocumentsDialog] Deletion polling timed out');
+        console.warn('[DeleteDocumentsDialog] Deletion polling timed out')
         if (onDocumentsDeleted) {
-          await onDocumentsDeleted();
-          toast.warning(t('documentPanel.deleteDocuments.timeout'));
+          await onDocumentsDeleted()
+          toast.warning(t('documentPanel.deleteDocuments.timeout'))
         }
-      })();
-
+      })()
     } catch (err) {
       toast.error(t('documentPanel.deleteDocuments.error', { error: errorMessage(err) }))
       setConfirmText('')
@@ -163,7 +165,7 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold">
+          <DialogTitle className="flex items-center gap-2 font-bold text-red-500 dark:text-red-400">
             <AlertTriangleIcon className="h-5 w-5" />
             {t('documentPanel.deleteDocuments.title')}
           </DialogTitle>
@@ -172,7 +174,7 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
           </DialogDescription>
         </DialogHeader>
 
-        <div className="text-red-500 dark:text-red-400 font-semibold mb-4">
+        <div className="mb-4 font-semibold text-red-500 dark:text-red-400">
           {t('documentPanel.deleteDocuments.warning')}
         </div>
 
@@ -202,9 +204,9 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
               checked={deleteFile}
               onChange={(e) => setDeleteFile(e.target.checked)}
               disabled={isDeleting}
-              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
             />
-            <Label htmlFor="delete-file" className="text-sm font-medium cursor-pointer">
+            <Label htmlFor="delete-file" className="cursor-pointer text-sm font-medium">
               {t('documentPanel.deleteDocuments.deleteFileOption')}
             </Label>
           </div>
@@ -216,9 +218,9 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
               checked={deleteLLMCache}
               onChange={(e) => setDeleteLLMCache(e.target.checked)}
               disabled={isDeleting}
-              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
             />
-            <Label htmlFor="delete-llm-cache" className="text-sm font-medium cursor-pointer">
+            <Label htmlFor="delete-llm-cache" className="cursor-pointer text-sm font-medium">
               {t('documentPanel.deleteDocuments.deleteLLMCacheOption')}
             </Label>
           </div>
@@ -228,12 +230,10 @@ export default function DeleteDocumentsDialog({ selectedDocIds, onDocumentsDelet
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isDeleting}>
             {t('common.cancel')}
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={!isConfirmEnabled}
-          >
-            {isDeleting ? t('documentPanel.deleteDocuments.deleting') : t('documentPanel.deleteDocuments.confirmButton')}
+          <Button variant="destructive" onClick={handleDelete} disabled={!isConfirmEnabled}>
+            {isDeleting
+              ? t('documentPanel.deleteDocuments.deleting')
+              : t('documentPanel.deleteDocuments.confirmButton')}
           </Button>
         </DialogFooter>
       </DialogContent>

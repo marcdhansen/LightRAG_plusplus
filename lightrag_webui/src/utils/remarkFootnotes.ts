@@ -36,9 +36,7 @@ export const remarkFootnotes: Plugin<[], Root> = () => {
         const footnoteHtml = `<sup><a href="#footnote-${id}" class="footnote-ref">${id}</a></sup>`
 
         // Add spacing if there's a consecutive footnote
-        const htmlWithSpacing = hasConsecutiveFootnote
-          ? footnoteHtml + '&nbsp;'
-          : footnoteHtml
+        const htmlWithSpacing = hasConsecutiveFootnote ? footnoteHtml + '&nbsp;' : footnoteHtml
 
         replacements.push({
           type: 'html',

@@ -37,7 +37,7 @@ const NodeOption = ({ id }: { id: string }) => {
   return (
     <div className="flex items-center gap-2 p-2 text-sm">
       <div
-        className="rounded-full flex-shrink-0"
+        className="flex-shrink-0 rounded-full"
         style={{
           width: Math.max(8, Math.min(size * 2, 16)),
           height: Math.max(8, Math.min(size * 2, 16)),
@@ -58,7 +58,6 @@ function OptionComponent(item: OptionItem) {
     </div>
   )
 }
-
 
 /**
  * Component thats display the search input.
@@ -83,23 +82,23 @@ export const GraphSearchInput = ({
     if (graph) {
       useGraphStore.getState().resetSearchEngine()
     }
-  }, [graph]);
+  }, [graph])
 
   // Sync with global queryLabel: clear local selection if queryLabel changes to empty or matches global reset
   useEffect(() => {
     if (queryLabel === '' || queryLabel === undefined) {
       if (value) {
-        onChange(null);
+        onChange(null)
       }
     }
-  }, [queryLabel]);
+  }, [queryLabel])
 
   // Create search engine when needed
   useEffect(() => {
     // Skip if no graph, empty graph, or search engine already exists
     if (!graph || graph.nodes().length === 0) {
       if (searchEngine) {
-        useGraphStore.getState().setSearchEngine(null);
+        useGraphStore.getState().setSearchEngine(null)
       }
       return
     }
@@ -122,8 +121,9 @@ export const GraphSearchInput = ({
     })
 
     // Add nodes to search engine with safety checks
-    const documents = graph.nodes()
-      .filter(id => graph.hasNode(id)) // Ensure node exists before accessing attributes
+    const documents = graph
+      .nodes()
+      .filter((id) => graph.hasNode(id)) // Ensure node exists before accessing attributes
       .map((id: string) => ({
         id: id,
         label: graph.getNodeAttribute(id, 'label')
@@ -156,17 +156,19 @@ export const GraphSearchInput = ({
 
       // If no query, return some nodes for user to select
       if (!query) {
-        const nodeIds = graph.nodes()
-          .filter(id => graph.hasNode(id))
+        const nodeIds = graph
+          .nodes()
+          .filter((id) => graph.hasNode(id))
           .slice(0, searchResultLimit)
-        return nodeIds.map(id => ({
+        return nodeIds.map((id) => ({
           id,
           type: 'nodes'
         }))
       }
 
       // If has query, search nodes and verify they still exist
-      let result: OptionItem[] = searchEngine.search(query)
+      let result: OptionItem[] = searchEngine
+        .search(query)
         .filter((r: { id: string }) => graph.hasNode(r.id))
         .map((r: { id: string }) => ({
           id: r.id,
@@ -177,11 +179,12 @@ export const GraphSearchInput = ({
       // This enables matching content in the middle of text, not just from the beginning
       if (result.length < 5) {
         // Get already matched IDs to avoid duplicates
-        const matchedIds = new Set(result.map(item => item.id))
+        const matchedIds = new Set(result.map((item) => item.id))
 
         // Perform middle-content matching on all nodes with safety checks
-        const middleMatchResults = graph.nodes()
-          .filter(id => {
+        const middleMatchResults = graph
+          .nodes()
+          .filter((id) => {
             // Skip already matched nodes
             if (matchedIds.has(id)) return false
 
@@ -191,12 +194,14 @@ export const GraphSearchInput = ({
             // Get node label safely
             const label = graph.getNodeAttribute(id, 'label')
             // Match if label contains query string but doesn't start with it
-            return label &&
+            return (
+              label &&
               typeof label === 'string' &&
               !label.toLowerCase().startsWith(query.toLowerCase()) &&
               label.toLowerCase().includes(query.toLowerCase())
+            )
           })
-          .map(id => ({
+          .map((id) => ({
             id,
             type: 'nodes' as const
           }))
@@ -222,7 +227,7 @@ export const GraphSearchInput = ({
 
   return (
     <AsyncSearch
-      className="bg-background/60 w-24 rounded-xl border-1 opacity-60 backdrop-blur-lg transition-all hover:w-fit hover:opacity-100 w-full"
+      className="bg-background/60 w-24 w-full rounded-xl border-1 opacity-60 backdrop-blur-lg transition-all hover:w-fit hover:opacity-100"
       fetcher={loadOptions}
       renderOption={OptionComponent}
       getOptionValue={(item) => item.id}
@@ -243,7 +248,9 @@ export const GraphSearchInput = ({
 /**
  * Component that display the search.
  */
-const GraphSearch: FC<GraphSearchInputProps & GraphSearchContextProviderProps & { queryLabel?: string }> = ({ ...props }) => {
+const GraphSearch: FC<
+  GraphSearchInputProps & GraphSearchContextProviderProps & { queryLabel?: string }
+> = ({ ...props }) => {
   return <GraphSearchInput {...props} />
 }
 

@@ -117,14 +117,14 @@ def test_query_endpoint_references():
             # Check response structure
             assert "response" in data, "Missing 'response' field"
 
-            assert (
-                "references" in data
-            ), "Missing 'references' field when include_references=True"
+            assert "references" in data, (
+                "Missing 'references' field when include_references=True"
+            )
 
             references = data["references"]
-            assert (
-                references is not None
-            ), "References should not be None when include_references=True"
+            assert references is not None, (
+                "References should not be None when include_references=True"
+            )
 
             if not validate_references_format(references):
                 assert False, "References format validation failed"
@@ -168,9 +168,9 @@ def test_query_endpoint_references():
             assert "response" in data, "Missing 'response' field"
 
             references = data.get("references")
-            assert (
-                references is None
-            ), "References should be None when include_references=False"
+            assert references is None, (
+                "References should be None when include_references=False"
+            )
 
             print("✅ References disabled: No references field present")
             print(f"   Response length: {len(data['response'])} characters")
@@ -602,7 +602,7 @@ def print_query_results(data: Dict[str, Any]):
             file_path = entity.get("file_path", "Unknown source")
             reference_id = entity.get("reference_id", "No reference")
 
-            print(f"   {i+1}. {entity_name} ({entity_type})")
+            print(f"   {i + 1}. {entity_name} ({entity_type})")
             print(
                 f"      Description: {description[:100]}{'...' if len(description) > 100 else ''}"
             )
@@ -621,7 +621,7 @@ def print_query_results(data: Dict[str, Any]):
             file_path = rel.get("file_path", "Unknown source")
             reference_id = rel.get("reference_id", "No reference")
 
-            print(f"   {i+1}. {src} → {tgt}")
+            print(f"   {i + 1}. {src} → {tgt}")
             print(f"      Keywords: {keywords}")
             print(
                 f"      Description: {description[:100]}{'...' if len(description) > 100 else ''}"
@@ -639,7 +639,7 @@ def print_query_results(data: Dict[str, Any]):
             chunk_id = chunk.get("chunk_id", "Unknown ID")
             reference_id = chunk.get("reference_id", "No reference")
 
-            print(f"   {i+1}. Text chunk ID: {chunk_id}")
+            print(f"   {i + 1}. Text chunk ID: {chunk_id}")
             print(f"      Source: {file_path}")
             print(f"      Reference ID: {reference_id}")
             print(
@@ -653,7 +653,7 @@ def print_query_results(data: Dict[str, Any]):
         for i, ref in enumerate(references):
             reference_id = ref.get("reference_id", "Unknown ID")
             file_path = ref.get("file_path", "Unknown source")
-            print(f"   {i+1}. Reference ID: {reference_id}")
+            print(f"   {i + 1}. Reference ID: {reference_id}")
             print(f"      File Path: {file_path}")
             print()
 

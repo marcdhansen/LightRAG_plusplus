@@ -27,29 +27,41 @@ export default function QuerySettings() {
     useSettingsStore.getState().updateQuerySettings({ [key]: value })
   }, [])
 
-  const handleSelectFromHistory = useCallback((prompt: string) => {
-    handleChange('user_prompt', prompt)
-  }, [handleChange])
+  const handleSelectFromHistory = useCallback(
+    (prompt: string) => {
+      handleChange('user_prompt', prompt)
+    },
+    [handleChange]
+  )
 
-  const handleDeleteFromHistory = useCallback((index: number) => {
-    const newHistory = [...userPromptHistory]
-    newHistory.splice(index, 1)
-    useSettingsStore.getState().setUserPromptHistory(newHistory)
-  }, [userPromptHistory])
+  const handleDeleteFromHistory = useCallback(
+    (index: number) => {
+      const newHistory = [...userPromptHistory]
+      newHistory.splice(index, 1)
+      useSettingsStore.getState().setUserPromptHistory(newHistory)
+    },
+    [userPromptHistory]
+  )
 
   // Default values for reset functionality
-  const defaultValues = useMemo(() => ({
-    mode: 'mix' as QueryMode,
-    top_k: 40,
-    chunk_top_k: 20,
-    max_entity_tokens: 6000,
-    max_relation_tokens: 8000,
-    max_total_tokens: 30000
-  }), [])
+  const defaultValues = useMemo(
+    () => ({
+      mode: 'mix' as QueryMode,
+      top_k: 40,
+      chunk_top_k: 20,
+      max_entity_tokens: 6000,
+      max_relation_tokens: 8000,
+      max_total_tokens: 30000
+    }),
+    []
+  )
 
-  const handleReset = useCallback((key: keyof typeof defaultValues) => {
-    handleChange(key, defaultValues[key])
-  }, [handleChange, defaultValues])
+  const handleReset = useCallback(
+    (key: keyof typeof defaultValues) => {
+      handleChange(key, defaultValues[key])
+    },
+    [handleChange, defaultValues]
+  )
 
   // Reset button component
   const ResetButton = ({ onClick, title }: { onClick: () => void; title: string }) => (
@@ -59,7 +71,7 @@ export default function QuerySettings() {
           <button
             type="button"
             onClick={onClick}
-            className="mr-1 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="mr-1 rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
             title={title}
           >
             <RotateCcw className="h-3 w-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" />
@@ -73,10 +85,12 @@ export default function QuerySettings() {
   )
 
   return (
-    <Card className="flex shrink-0 flex-col w-[280px]">
+    <Card className="flex w-[280px] shrink-0 flex-col">
       <CardHeader className="px-4 pt-4 pb-2">
         <CardTitle>{t('retrievePanel.querySettings.parametersTitle')}</CardTitle>
-        <CardDescription className="sr-only">{t('retrievePanel.querySettings.parametersDescription')}</CardDescription>
+        <CardDescription className="sr-only">
+          {t('retrievePanel.querySettings.parametersDescription')}
+        </CardDescription>
       </CardHeader>
       <CardContent className="m-0 flex grow flex-col p-0 text-xs">
         <div className="relative size-full">
@@ -130,25 +144,34 @@ export default function QuerySettings() {
                 >
                   <SelectTrigger
                     id="query_mode_select"
-                    className="hover:bg-primary/5 h-9 cursor-pointer focus:ring-0 focus:ring-offset-0 focus:outline-0 active:right-0 flex-1 text-left [&>span]:break-all [&>span]:line-clamp-1"
+                    className="hover:bg-primary/5 h-9 flex-1 cursor-pointer text-left focus:ring-0 focus:ring-offset-0 focus:outline-0 active:right-0 [&>span]:line-clamp-1 [&>span]:break-all"
                   >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="naive">{t('retrievePanel.querySettings.queryModeOptions.naive')}</SelectItem>
-                      <SelectItem value="local">{t('retrievePanel.querySettings.queryModeOptions.local')}</SelectItem>
-                      <SelectItem value="global">{t('retrievePanel.querySettings.queryModeOptions.global')}</SelectItem>
-                      <SelectItem value="hybrid">{t('retrievePanel.querySettings.queryModeOptions.hybrid')}</SelectItem>
-                      <SelectItem value="mix">{t('retrievePanel.querySettings.queryModeOptions.mix')}</SelectItem>
-                      <SelectItem value="bypass">{t('retrievePanel.querySettings.queryModeOptions.bypass')}</SelectItem>
+                      <SelectItem value="naive">
+                        {t('retrievePanel.querySettings.queryModeOptions.naive')}
+                      </SelectItem>
+                      <SelectItem value="local">
+                        {t('retrievePanel.querySettings.queryModeOptions.local')}
+                      </SelectItem>
+                      <SelectItem value="global">
+                        {t('retrievePanel.querySettings.queryModeOptions.global')}
+                      </SelectItem>
+                      <SelectItem value="hybrid">
+                        {t('retrievePanel.querySettings.queryModeOptions.hybrid')}
+                      </SelectItem>
+                      <SelectItem value="mix">
+                        {t('retrievePanel.querySettings.queryModeOptions.mix')}
+                      </SelectItem>
+                      <SelectItem value="bypass">
+                        {t('retrievePanel.querySettings.queryModeOptions.bypass')}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <ResetButton
-                  onClick={() => handleReset('mode')}
-                  title="Reset to default (Mix)"
-                />
+                <ResetButton onClick={() => handleReset('mode')} title="Reset to default (Mix)" />
               </div>
             </>
 
@@ -183,12 +206,9 @@ export default function QuerySettings() {
                   }}
                   min={1}
                   placeholder={t('retrievePanel.querySettings.topKPlaceholder')}
-                  className="h-9 flex-1 pr-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="h-9 flex-1 pr-2 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
-                <ResetButton
-                  onClick={() => handleReset('top_k')}
-                  title="Reset to default"
-                />
+                <ResetButton onClick={() => handleReset('top_k')} title="Reset to default" />
               </div>
             </>
 
@@ -223,12 +243,9 @@ export default function QuerySettings() {
                   }}
                   min={1}
                   placeholder={t('retrievePanel.querySettings.chunkTopKPlaceholder')}
-                  className="h-9 flex-1 pr-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="h-9 flex-1 pr-2 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
-                <ResetButton
-                  onClick={() => handleReset('chunk_top_k')}
-                  title="Reset to default"
-                />
+                <ResetButton onClick={() => handleReset('chunk_top_k')} title="Reset to default" />
               </div>
             </>
 
@@ -263,7 +280,7 @@ export default function QuerySettings() {
                   }}
                   min={1}
                   placeholder={t('retrievePanel.querySettings.maxEntityTokensPlaceholder')}
-                  className="h-9 flex-1 pr-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="h-9 flex-1 pr-2 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <ResetButton
                   onClick={() => handleReset('max_entity_tokens')}
@@ -303,7 +320,7 @@ export default function QuerySettings() {
                   }}
                   min={1}
                   placeholder={t('retrievePanel.querySettings.maxRelationTokensPlaceholder')}
-                  className="h-9 flex-1 pr-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="h-9 flex-1 pr-2 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <ResetButton
                   onClick={() => handleReset('max_relation_tokens')}
@@ -343,7 +360,7 @@ export default function QuerySettings() {
                   }}
                   min={1}
                   placeholder={t('retrievePanel.querySettings.maxTotalTokensPlaceholder')}
-                  className="h-9 flex-1 pr-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="h-9 flex-1 pr-2 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <ResetButton
                   onClick={() => handleReset('max_total_tokens')}
@@ -358,7 +375,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="enable_rerank" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="enable_rerank" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.enableRerank')}
                       </label>
                     </TooltipTrigger>
@@ -381,12 +398,20 @@ export default function QuerySettings() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <label htmlFor="rerank_entities" className="flex-1 ml-1 cursor-help opacity-80">
+                          <label
+                            htmlFor="rerank_entities"
+                            className="ml-1 flex-1 cursor-help opacity-80"
+                          >
                             {t('retrievePanel.querySettings.rerankEntities', 'Rerank Entities')}
                           </label>
                         </TooltipTrigger>
                         <TooltipContent side="left">
-                          <p>{t('retrievePanel.querySettings.rerankEntitiesTooltip', 'Priority reranking for Knowledge Graph entities')}</p>
+                          <p>
+                            {t(
+                              'retrievePanel.querySettings.rerankEntitiesTooltip',
+                              'Priority reranking for Knowledge Graph entities'
+                            )}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -402,12 +427,20 @@ export default function QuerySettings() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <label htmlFor="rerank_relations" className="flex-1 ml-1 cursor-help opacity-80">
+                          <label
+                            htmlFor="rerank_relations"
+                            className="ml-1 flex-1 cursor-help opacity-80"
+                          >
                             {t('retrievePanel.querySettings.rerankRelations', 'Rerank Relations')}
                           </label>
                         </TooltipTrigger>
                         <TooltipContent side="left">
-                          <p>{t('retrievePanel.querySettings.rerankRelationsTooltip', 'Priority reranking for Knowledge Graph relationships')}</p>
+                          <p>
+                            {t(
+                              'retrievePanel.querySettings.rerankRelationsTooltip',
+                              'Priority reranking for Knowledge Graph relationships'
+                            )}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -425,7 +458,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="only_need_context" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="only_need_context" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.onlyNeedContext')}
                       </label>
                     </TooltipTrigger>
@@ -451,7 +484,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="only_need_prompt" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="only_need_prompt" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.onlyNeedPrompt')}
                       </label>
                     </TooltipTrigger>
@@ -477,7 +510,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="stream" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="stream" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.streamResponse')}
                       </label>
                     </TooltipTrigger>
@@ -498,7 +531,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="include_references" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="include_references" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.includeReferences')}
                       </label>
                     </TooltipTrigger>
@@ -519,7 +552,7 @@ export default function QuerySettings() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="include_chunk_content" className="flex-1 ml-1 cursor-help">
+                      <label htmlFor="include_chunk_content" className="ml-1 flex-1 cursor-help">
                         {t('retrievePanel.querySettings.includeChunkContent')}
                       </label>
                     </TooltipTrigger>
@@ -536,16 +569,24 @@ export default function QuerySettings() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 border-t border-gray-100 pt-2 dark:border-gray-800">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label htmlFor="enable_ace" className="flex-1 ml-1 cursor-help font-semibold text-primary">
+                      <label
+                        htmlFor="enable_ace"
+                        className="text-primary ml-1 flex-1 cursor-help font-semibold"
+                      >
                         {t('retrievePanel.querySettings.enableACE', 'Enable ACE Mode')}
                       </label>
                     </TooltipTrigger>
                     <TooltipContent side="left">
-                      <p>{t('retrievePanel.querySettings.enableACETooltip', 'Enable Agentic Context Evolution for self-improving retrieval')}</p>
+                      <p>
+                        {t(
+                          'retrievePanel.querySettings.enableACETooltip',
+                          'Enable Agentic Context Evolution for self-improving retrieval'
+                        )}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -562,12 +603,20 @@ export default function QuerySettings() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <label htmlFor="auto_reflect" className="flex-1 ml-1 cursor-help opacity-80">
+                        <label
+                          htmlFor="auto_reflect"
+                          className="ml-1 flex-1 cursor-help opacity-80"
+                        >
                           {t('retrievePanel.querySettings.autoReflect', 'Auto-Reflect')}
                         </label>
                       </TooltipTrigger>
                       <TooltipContent side="left">
-                        <p>{t('retrievePanel.querySettings.autoReflectTooltip', 'Automatically perform reflection and update playbook after query')}</p>
+                        <p>
+                          {t(
+                            'retrievePanel.querySettings.autoReflectTooltip',
+                            'Automatically perform reflection and update playbook after query'
+                          )}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -580,7 +629,6 @@ export default function QuerySettings() {
                 </div>
               )}
             </>
-
           </div>
         </div>
       </CardContent>

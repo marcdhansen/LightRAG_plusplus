@@ -27,21 +27,28 @@ interface BackendState {
 }
 
 interface AuthState {
-  isAuthenticated: boolean;
-  isGuestMode: boolean;  // Add guest mode flag
-  coreVersion: string | null;
-  apiVersion: string | null;
-  username: string | null; // login username
-  webuiTitle: string | null; // Custom title
-  webuiDescription: string | null; // Title description
-  lastTokenRenewal: string | null; // Human-readable local time of last token renewal (for debugging and monitoring)
-  tokenExpiresAt: number | null; // Token expiration timestamp (extracted from JWT)
+  isAuthenticated: boolean
+  isGuestMode: boolean // Add guest mode flag
+  coreVersion: string | null
+  apiVersion: string | null
+  username: string | null // login username
+  webuiTitle: string | null // Custom title
+  webuiDescription: string | null // Title description
+  lastTokenRenewal: string | null // Human-readable local time of last token renewal (for debugging and monitoring)
+  tokenExpiresAt: number | null // Token expiration timestamp (extracted from JWT)
 
-  login: (token: string, isGuest?: boolean, coreVersion?: string | null, apiVersion?: string | null, webuiTitle?: string | null, webuiDescription?: string | null) => void;
-  logout: () => void;
-  setVersion: (coreVersion: string | null, apiVersion: string | null) => void;
-  setCustomTitle: (webuiTitle: string | null, webuiDescription: string | null) => void;
-  setTokenRenewal: (renewalTime: number, expiresAt: number) => void; // Track token renewal
+  login: (
+    token: string,
+    isGuest?: boolean,
+    coreVersion?: string | null,
+    apiVersion?: string | null,
+    webuiTitle?: string | null,
+    webuiDescription?: string | null
+  ) => void
+  logout: () => void
+  setVersion: (coreVersion: string | null, apiVersion: string | null) => void
+  setCustomTitle: (webuiTitle: string | null, webuiDescription: string | null) => void
+  setTokenRenewal: (renewalTime: number, expiresAt: number) => void // Track token renewal
 }
 
 const useBackendStateStoreBase = create<BackendState>()((set, get) => ({
@@ -60,18 +67,17 @@ const useBackendStateStoreBase = create<BackendState>()((set, get) => ({
     if (health.status === 'healthy') {
       // Update version information if health check returns it
       if (health.core_version || health.api_version) {
-        useAuthStore.getState().setVersion(
-          health.core_version || null,
-          health.api_version || null
-        );
+        useAuthStore.getState().setVersion(health.core_version || null, health.api_version || null)
       }
 
       // Update custom title information if health check returns it
       if ('webui_title' in health || 'webui_description' in health) {
-        useAuthStore.getState().setCustomTitle(
-          'webui_title' in health ? (health.webui_title ?? null) : null,
-          'webui_description' in health ? (health.webui_description ?? null) : null
-        );
+        useAuthStore
+          .getState()
+          .setCustomTitle(
+            'webui_title' in health ? (health.webui_title ?? null) : null,
+            'webui_description' in health ? (health.webui_description ?? null) : null
+          )
       }
 
       // Extract and store backend max graph nodes limit
@@ -162,53 +168,63 @@ export { useBackendState }
 
 // Format timestamp to human-readable local time with timezone
 const formatTimestampToLocalString = (timestamp: number): string => {
-  const date = new Date(timestamp);
+  const date = new Date(timestamp)
   // Use Swedish locale 'sv-SE' to get YYYY-MM-DD HH:mm:ss format
-  const localTime = date.toLocaleString('sv-SE', { hour12: false });
+  const localTime = date.toLocaleString('sv-SE', { hour12: false })
   // Get timezone offset
-  const offsetMinutes = -date.getTimezoneOffset();
-  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
-  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-  return `${localTime} (UTC${offsetSign}${offsetHours})`;
-};
+  const offsetMinutes = -date.getTimezoneOffset()
+  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60)
+  const offsetSign = offsetMinutes >= 0 ? '+' : '-'
+  return `${localTime} (UTC${offsetSign}${offsetHours})`
+}
 
 const parseTokenPayload = (token: string): { sub?: string; role?: string; exp?: number } => {
   try {
     // JWT tokens are in the format: header.payload.signature
-    const parts = token.split('.');
-    if (parts.length !== 3) return {};
-    const payload = JSON.parse(atob(parts[1]));
-    return payload;
+    const parts = token.split('.')
+    if (parts.length !== 3) return {}
+    const payload = JSON.parse(atob(parts[1]))
+    return payload
   } catch (e) {
-    console.error('Error parsing token payload:', e);
-    return {};
+    console.error('Error parsing token payload:', e)
+    return {}
   }
-};
+}
 
 const getUsernameFromToken = (token: string): string | null => {
-  const payload = parseTokenPayload(token);
-  return payload.sub || null;
-};
+  const payload = parseTokenPayload(token)
+  return payload.sub || null
+}
 
 const isGuestToken = (token: string): boolean => {
-  const payload = parseTokenPayload(token);
-  return payload.role === 'guest';
-};
+  const payload = parseTokenPayload(token)
+  return payload.role === 'guest'
+}
 
 const getTokenExpiresAt = (token: string): number | null => {
-  const payload = parseTokenPayload(token);
-  return payload.exp ? payload.exp * 1000 : null; // Convert to milliseconds
-};
+  const payload = parseTokenPayload(token)
+  return payload.exp ? payload.exp * 1000 : null // Convert to milliseconds
+}
 
-const initAuthState = (): { isAuthenticated: boolean; isGuestMode: boolean; coreVersion: string | null; apiVersion: string | null; username: string | null; webuiTitle: string | null; webuiDescription: string | null; lastTokenRenewal: string | null; tokenExpiresAt: number | null } => {
-  const token = localStorage.getItem('LIGHTRAG-API-TOKEN');
-  const coreVersion = localStorage.getItem('LIGHTRAG-CORE-VERSION');
-  const apiVersion = localStorage.getItem('LIGHTRAG-API-VERSION');
-  const webuiTitle = localStorage.getItem('LIGHTRAG-WEBUI-TITLE');
-  const webuiDescription = localStorage.getItem('LIGHTRAG-WEBUI-DESCRIPTION');
-  const lastTokenRenewal = localStorage.getItem('LIGHTRAG-LAST-TOKEN-RENEWAL');
-  const username = token ? getUsernameFromToken(token) : null;
-  const tokenExpiresAt = token ? getTokenExpiresAt(token) : null;
+const initAuthState = (): {
+  isAuthenticated: boolean
+  isGuestMode: boolean
+  coreVersion: string | null
+  apiVersion: string | null
+  username: string | null
+  webuiTitle: string | null
+  webuiDescription: string | null
+  lastTokenRenewal: string | null
+  tokenExpiresAt: number | null
+} => {
+  const token = localStorage.getItem('LIGHTRAG-API-TOKEN')
+  const coreVersion = localStorage.getItem('LIGHTRAG-CORE-VERSION')
+  const apiVersion = localStorage.getItem('LIGHTRAG-API-VERSION')
+  const webuiTitle = localStorage.getItem('LIGHTRAG-WEBUI-TITLE')
+  const webuiDescription = localStorage.getItem('LIGHTRAG-WEBUI-DESCRIPTION')
+  const lastTokenRenewal = localStorage.getItem('LIGHTRAG-LAST-TOKEN-RENEWAL')
+  const username = token ? getUsernameFromToken(token) : null
+  const tokenExpiresAt = token ? getTokenExpiresAt(token) : null
 
   if (!token) {
     return {
@@ -220,8 +236,8 @@ const initAuthState = (): { isAuthenticated: boolean; isGuestMode: boolean; core
       webuiTitle: webuiTitle,
       webuiDescription: webuiDescription,
       lastTokenRenewal: null,
-      tokenExpiresAt: null,
-    };
+      tokenExpiresAt: null
+    }
   }
 
   return {
@@ -233,13 +249,13 @@ const initAuthState = (): { isAuthenticated: boolean; isGuestMode: boolean; core
     webuiTitle: webuiTitle,
     webuiDescription: webuiDescription,
     lastTokenRenewal: lastTokenRenewal,
-    tokenExpiresAt: tokenExpiresAt,
-  };
-};
+    tokenExpiresAt: tokenExpiresAt
+  }
+}
 
-export const useAuthStore = create<AuthState>(set => {
+export const useAuthStore = create<AuthState>((set) => {
   // Get initial state from localStorage
-  const initialState = initAuthState();
+  const initialState = initAuthState()
 
   return {
     isAuthenticated: initialState.isAuthenticated,
@@ -252,35 +268,42 @@ export const useAuthStore = create<AuthState>(set => {
     lastTokenRenewal: initialState.lastTokenRenewal,
     tokenExpiresAt: initialState.tokenExpiresAt,
 
-    login: (token, isGuest = false, coreVersion = null, apiVersion = null, webuiTitle = null, webuiDescription = null) => {
-      localStorage.setItem('LIGHTRAG-API-TOKEN', token);
+    login: (
+      token,
+      isGuest = false,
+      coreVersion = null,
+      apiVersion = null,
+      webuiTitle = null,
+      webuiDescription = null
+    ) => {
+      localStorage.setItem('LIGHTRAG-API-TOKEN', token)
 
       if (coreVersion) {
-        localStorage.setItem('LIGHTRAG-CORE-VERSION', coreVersion);
+        localStorage.setItem('LIGHTRAG-CORE-VERSION', coreVersion)
       }
       if (apiVersion) {
-        localStorage.setItem('LIGHTRAG-API-VERSION', apiVersion);
+        localStorage.setItem('LIGHTRAG-API-VERSION', apiVersion)
       }
 
       if (webuiTitle) {
-        localStorage.setItem('LIGHTRAG-WEBUI-TITLE', webuiTitle);
+        localStorage.setItem('LIGHTRAG-WEBUI-TITLE', webuiTitle)
       } else {
-        localStorage.removeItem('LIGHTRAG-WEBUI-TITLE');
+        localStorage.removeItem('LIGHTRAG-WEBUI-TITLE')
       }
 
       if (webuiDescription) {
-        localStorage.setItem('LIGHTRAG-WEBUI-DESCRIPTION', webuiDescription);
+        localStorage.setItem('LIGHTRAG-WEBUI-DESCRIPTION', webuiDescription)
       } else {
-        localStorage.removeItem('LIGHTRAG-WEBUI-DESCRIPTION');
+        localStorage.removeItem('LIGHTRAG-WEBUI-DESCRIPTION')
       }
 
-      const username = getUsernameFromToken(token);
-      const tokenExpiresAt = getTokenExpiresAt(token);
-      const now = Date.now();
-      const formattedTime = formatTimestampToLocalString(now);
+      const username = getUsernameFromToken(token)
+      const tokenExpiresAt = getTokenExpiresAt(token)
+      const now = Date.now()
+      const formattedTime = formatTimestampToLocalString(now)
 
       // Initialize token issuance time with human-readable format
-      localStorage.setItem('LIGHTRAG-LAST-TOKEN-RENEWAL', formattedTime);
+      localStorage.setItem('LIGHTRAG-LAST-TOKEN-RENEWAL', formattedTime)
 
       set({
         isAuthenticated: true,
@@ -291,18 +314,18 @@ export const useAuthStore = create<AuthState>(set => {
         webuiTitle: webuiTitle,
         webuiDescription: webuiDescription,
         tokenExpiresAt: tokenExpiresAt,
-        lastTokenRenewal: formattedTime,
-      });
+        lastTokenRenewal: formattedTime
+      })
     },
 
     logout: () => {
-      localStorage.removeItem('LIGHTRAG-API-TOKEN');
-      localStorage.removeItem('LIGHTRAG-LAST-TOKEN-RENEWAL');
+      localStorage.removeItem('LIGHTRAG-API-TOKEN')
+      localStorage.removeItem('LIGHTRAG-LAST-TOKEN-RENEWAL')
 
-      const coreVersion = localStorage.getItem('LIGHTRAG-CORE-VERSION');
-      const apiVersion = localStorage.getItem('LIGHTRAG-API-VERSION');
-      const webuiTitle = localStorage.getItem('LIGHTRAG-WEBUI-TITLE');
-      const webuiDescription = localStorage.getItem('LIGHTRAG-WEBUI-DESCRIPTION');
+      const coreVersion = localStorage.getItem('LIGHTRAG-CORE-VERSION')
+      const apiVersion = localStorage.getItem('LIGHTRAG-API-VERSION')
+      const webuiTitle = localStorage.getItem('LIGHTRAG-WEBUI-TITLE')
+      const webuiDescription = localStorage.getItem('LIGHTRAG-WEBUI-DESCRIPTION')
 
       set({
         isAuthenticated: false,
@@ -313,58 +336,58 @@ export const useAuthStore = create<AuthState>(set => {
         webuiTitle: webuiTitle,
         webuiDescription: webuiDescription,
         lastTokenRenewal: null,
-        tokenExpiresAt: null,
-      });
+        tokenExpiresAt: null
+      })
     },
 
     setVersion: (coreVersion, apiVersion) => {
       // Update localStorage
       if (coreVersion) {
-        localStorage.setItem('LIGHTRAG-CORE-VERSION', coreVersion);
+        localStorage.setItem('LIGHTRAG-CORE-VERSION', coreVersion)
       }
       if (apiVersion) {
-        localStorage.setItem('LIGHTRAG-API-VERSION', apiVersion);
+        localStorage.setItem('LIGHTRAG-API-VERSION', apiVersion)
       }
 
       // Update state
       set({
         coreVersion: coreVersion,
         apiVersion: apiVersion
-      });
+      })
     },
 
     setCustomTitle: (webuiTitle, webuiDescription) => {
       // Update localStorage
       if (webuiTitle) {
-        localStorage.setItem('LIGHTRAG-WEBUI-TITLE', webuiTitle);
+        localStorage.setItem('LIGHTRAG-WEBUI-TITLE', webuiTitle)
       } else {
-        localStorage.removeItem('LIGHTRAG-WEBUI-TITLE');
+        localStorage.removeItem('LIGHTRAG-WEBUI-TITLE')
       }
 
       if (webuiDescription) {
-        localStorage.setItem('LIGHTRAG-WEBUI-DESCRIPTION', webuiDescription);
+        localStorage.setItem('LIGHTRAG-WEBUI-DESCRIPTION', webuiDescription)
       } else {
-        localStorage.removeItem('LIGHTRAG-WEBUI-DESCRIPTION');
+        localStorage.removeItem('LIGHTRAG-WEBUI-DESCRIPTION')
       }
 
       // Update state
       set({
         webuiTitle: webuiTitle,
         webuiDescription: webuiDescription
-      });
+      })
     },
 
     setTokenRenewal: (renewalTime, expiresAt) => {
-      const formattedTime = formatTimestampToLocalString(renewalTime);
+      const formattedTime = formatTimestampToLocalString(renewalTime)
 
       // Update localStorage with human-readable format
-      localStorage.setItem('LIGHTRAG-LAST-TOKEN-RENEWAL', formattedTime);
+      localStorage.setItem('LIGHTRAG-LAST-TOKEN-RENEWAL', formattedTime)
 
       // Update state
       set({
         lastTokenRenewal: formattedTime,
         tokenExpiresAt: expiresAt
-      });
+      })
     }
-  };
-});
+  }
+})

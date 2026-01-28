@@ -508,7 +508,6 @@ class LightRAG:
                         "due to 'ace_allow_small_reflector=True'. Graph quality may degrade."
                     )
 
-
         # Auto-detect best extraction format for Ollama
         # If extraction_format is "standard" (default) and we detect Ollama use, switch to "key_value" (YAML)
         is_ollama = False
@@ -520,11 +519,13 @@ class LightRAG:
                 inner_name = getattr(self.llm_model_func.func, "__name__", "")
                 if "ollama" in inner_name:
                     is_ollama = True
-        
+
         if is_ollama and self.extraction_format == "standard":
-             logger.info("Ollama detected: switching 'extraction_format' from 'standard' to 'key_value' for better reliability.")
-             self.extraction_format = "key_value"
-             
+            logger.info(
+                "Ollama detected: switching 'extraction_format' from 'standard' to 'key_value' for better reliability."
+            )
+            self.extraction_format = "key_value"
+
         # Handle deprecated parameters
         if self.log_level is not None:
             warnings.warn(

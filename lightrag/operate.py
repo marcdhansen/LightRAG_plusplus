@@ -618,7 +618,9 @@ async def rebuild_knowledge_from_chunks(
                     chunk_id=chunk_id,
                     extraction_result=result[0],
                     timestamp=result[1],
-                    extraction_format=global_config.get("extraction_format", "standard"),
+                    extraction_format=global_config.get(
+                        "extraction_format", "standard"
+                    ),
                 )
 
                 # Merge entities and relationships from this extraction result

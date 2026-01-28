@@ -230,7 +230,13 @@ export function AsyncSelect<T>({
           tooltip={triggerTooltip}
           side="bottom"
         >
-          {value === '*' ? <div>*</div> : (selectedOption ? getDisplayValue(selectedOption) : (initialValueDisplay || placeholder))}
+          {value === '*' ? (
+            <div>*</div>
+          ) : selectedOption ? (
+            getDisplayValue(selectedOption)
+          ) : (
+            initialValueDisplay || placeholder
+          )}
           <ChevronsUpDown className="opacity-50" size={10} />
         </Button>
       </PopoverTrigger>
@@ -263,24 +269,20 @@ export function AsyncSelect<T>({
             {!loading &&
               !error &&
               options.length === 0 &&
-              (notFound || (
-                <CommandEmpty>
-                  {noResultsMessage || 'No results found.'}
-                </CommandEmpty>
-              ))}
+              (notFound || <CommandEmpty>{noResultsMessage || 'No results found.'}</CommandEmpty>)}
             <CommandGroup>
               {options.map((option) => {
-                const optionValue = getOptionValue(option);
+                const optionValue = getOptionValue(option)
                 // Fix cmdk filtering issue: use empty string when search is empty
                 // This ensures all items are shown when searchTerm is empty
-                const itemValue = searchTerm.trim() === '' ? '' : optionValue;
+                const itemValue = searchTerm.trim() === '' ? '' : optionValue
 
                 return (
                   <CommandItem
                     key={optionValue}
                     value={itemValue}
                     onSelect={() => {
-                      handleSelect(optionValue);
+                      handleSelect(optionValue)
                     }}
                     className="truncate"
                   >
@@ -292,7 +294,7 @@ export function AsyncSelect<T>({
                       )}
                     />
                   </CommandItem>
-                );
+                )
               })}
             </CommandGroup>
           </CommandList>

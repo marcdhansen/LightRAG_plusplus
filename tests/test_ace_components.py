@@ -36,7 +36,9 @@ class TestACEReflector(unittest.IsolatedAsyncioTestCase):
             }
         ]
         # Use reflection_llm_model_func as ACEReflector now uses asymmetric routing
-        rag_mock.reflection_llm_model_func = AsyncMock(return_value=json.dumps(expected_repair))
+        rag_mock.reflection_llm_model_func = AsyncMock(
+            return_value=json.dumps(expected_repair)
+        )
         rag_mock.reflection_llm_model_name = "test-reflection-model"
 
         reflector = ACEReflector(rag_mock)

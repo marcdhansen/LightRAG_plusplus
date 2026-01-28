@@ -5,8 +5,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useTranslation } from 'react-i18next'
 
 interface ReferenceListProps {
-    references?: ReferenceItem[]
-    onReferenceClick?: (reference: ReferenceItem) => void
+  references?: ReferenceItem[]
+  onReferenceClick?: (reference: ReferenceItem) => void
 }
 
 export const ReferenceList = ({ references, onReferenceClick }: ReferenceListProps) => {
@@ -14,18 +14,20 @@ export const ReferenceList = ({ references, onReferenceClick }: ReferenceListPro
   if (!references || references.length === 0) return null
 
   return (
-    <div className="mt-2 flex flex-wrap gap-2 pt-2 border-t border-border/50">
-      <div className="text-xs text-muted-foreground w-full mb-1">{t('retrievePanel.chatMessage.references.sources')}</div>
+    <div className="border-border/50 mt-2 flex flex-wrap gap-2 border-t pt-2">
+      <div className="text-muted-foreground mb-1 w-full text-xs">
+        {t('retrievePanel.chatMessage.references.sources')}
+      </div>
       {references.map((ref) => (
         <TooltipProvider key={ref.reference_id}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge
                 variant="outline"
-                className="flex items-center gap-1 cursor-pointer hover:bg-accent transition-colors py-1 px-2"
+                className="hover:bg-accent flex cursor-pointer items-center gap-1 px-2 py-1 transition-colors"
                 onClick={() => onReferenceClick?.(ref)}
               >
-                <FileTextIcon className="size-3 text-muted-foreground" />
+                <FileTextIcon className="text-muted-foreground size-3" />
                 <span className="max-w-[150px] truncate">{ref.file_path.split('/').pop()}</span>
               </Badge>
             </TooltipTrigger>

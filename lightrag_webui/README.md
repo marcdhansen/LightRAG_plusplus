@@ -6,25 +6,25 @@ LightRAG WebUI is a React-based web interface for interacting with the LightRAG 
 
 1. **Install Bun:**
 
-    If you haven't already installed Bun, follow the official documentation: [https://bun.sh/docs/installation](https://bun.sh/docs/installation)
+   If you haven't already installed Bun, follow the official documentation: [https://bun.sh/docs/installation](https://bun.sh/docs/installation)
 
 2. **Install Dependencies:**
 
-    In the `lightrag_webui` directory, run the following command to install project dependencies:
+   In the `lightrag_webui` directory, run the following command to install project dependencies:
 
-    ```bash
-    bun install --frozen-lockfile
-    ```
+   ```bash
+   bun install --frozen-lockfile
+   ```
 
 3. **Build the Project:**
 
-    Run the following command to build the project:
+   Run the following command to build the project:
 
-    ```bash
-    bun run build
-    ```
+   ```bash
+   bun run build
+   ```
 
-    This command will bundle the project and output the built files to the `lightrag/api/webui` directory.
+   This command will bundle the project and output the built files to the `lightrag/api/webui` directory.
 
 ## Development
 
