@@ -5,7 +5,7 @@
 
 ## Todo List
 
-- [ ] Create `ACETestKit` utility class in `tests/ace_test_utils.py`
-- [ ] Refactor `test_ace_reflector_repair.py` to use `ACETestKit`
-- [ ] Verify `test_ace_reflector_repair.py` passes
-- [ ] Check if other tests can use `ACETestKit` and refactor if trivial
+- [x] Create `ACETestKit` utility class in `tests/ace_test_utils.py`
+- [x] Refactor `test_ace_reflector_repair.py` to use `ACETestKit`
+- [x] Verify `test_ace_reflector_repair.py` passes
+- [x] Check if other tests can use `ACETestKit` and refactor if trivial (None found)

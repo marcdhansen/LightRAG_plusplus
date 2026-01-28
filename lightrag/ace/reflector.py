@@ -18,6 +18,31 @@ class ACEReflector:
     def __init__(self, lightrag_instance: LightRAG):
         self.rag = lightrag_instance
 
+    def _parse_json_list(self, llm_output: str) -> List[Any]:
+        """
+        Robustly extracts and parses a JSON list from LLM output.
+        """
+        cleaned = llm_output.strip()
+        if cleaned.startswith("```json"):
+            cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+        elif cleaned.startswith("```"):
+            cleaned = cleaned.replace("```", "").strip()
+
+        # Find the first [ and last ]
+        start = cleaned.find("[")
+        end = cleaned.rfind("]")
+        if start != -1 and end != -1:
+            cleaned = cleaned[start : end + 1]
+
+        try:
+            data = json.loads(cleaned)
+            return data if isinstance(data, list) else []
+        except Exception as e:
+            logger.error(
+                f"ACE Reflector: Failed to parse JSON list: {e}. Output: {llm_output[:100]}..."
+            )
+            return []
+
     async def reflect(self, query: str, generation_result: Dict[str, Any]) -> List[str]:
         """
         Analyzes the interaction and returns a list of insights/lessons.
@@ -37,24 +62,20 @@ class ACEReflector:
         )
 
         try:
-            # Use the dedicated reflection LLM if available, passing the model name explicitly
-            llm_output = await self.rag.reflection_llm_model_func(
-                prompt, model=self.rag.reflection_llm_model_name
+            # Use the dedicated reflection LLM if available, falling back to default if not configured
+            llm_func = self.rag.reflection_llm_model_func or self.rag.llm_model_func
+            model_name = self.rag.reflection_llm_model_name or self.rag.llm_model_name
+
+            if not llm_func:
+                return ["Error: No LLM function configured for reflection."]
+
+            llm_output = await llm_func(prompt, model=model_name)
+            insights = self._parse_json_list(llm_output)
+            return (
+                [str(i) for i in insights]
+                if insights
+                else [f"Reflection failed to parse insights from: {llm_output[:50]}"]
             )
-
-            # Simple parsing of the list (robustness improvements needed for prod)
-            # Assuming the LLM returns a valid JSON string or close to it
-            cleaned_output = llm_output.strip()
-            if cleaned_output.startswith("```json"):
-                cleaned_output = cleaned_output.replace("```json", "").replace(
-                    "```", ""
-                )
-
-            insights = json.loads(cleaned_output)
-            if isinstance(insights, list):
-                return [str(i) for i in insights]
-            else:
-                return [str(cleaned_output)]
 
         except Exception as e:
             logger.error(f"ACE Reflector: Failed to reflect: {e}")
@@ -99,39 +120,37 @@ class ACEReflector:
         prompt += (
             "\n### Verification Logic\n"
             "1. **Relation Verification:** Compare each relationship against the source chunks. If the relationship is not supported by "
-            "the text, or if it is logically impossible, you MUST delete it.\n"
-            "2. **Entity Verification:** Look at the entities. If an entity is a hallucination (not in text), delete it.\n"
+            "the text (explicitly or logically inferred), you MUST delete it.\n"
+            "2. **Entity Verification:** Look at the entities. If an entity is a hallucination (not mentioned in the source text), you MUST delete it.\n"
             "3. **De-duplication:** If you see multiple entities that refer to the SAME real-world object (e.g., 'AI' and 'Artificial Intelligence'), "
             "recommend a MERGE. Use the full name as the target.\n\n"
+            "### Instructions\n"
+            "- For `delete_relation`, use the EXACT 'src_id' and 'tgt_id' from the list above.\n"
+            "- For `delete_entity`, use the EXACT 'entity_name' from the list above.\n"
+            "- If an entity is deleted, and it was a hallucination, also delete any relations it was involved in.\n\n"
             "### Repair Actions JSON Format\n"
             "Actions: \n"
             '  - `{"action": "delete_relation", "source": "Node A", "target": "Node B", "reason": "..."}`\n'
             '  - `{"action": "delete_entity", "name": "Node X", "reason": "..."}`\n'
             '  - `{"action": "merge_entities", "sources": ["AI", "A.I."], "target": "Artificial Intelligence", "reason": "..."}`\n\n'
             "### Example\n"
-            'Result: [{"action": "delete_relation", "source": "Einstein", "target": "Mars", "reason": "Text says he died on Earth."}]\n\n'
+            'Result: [{"action": "delete_relation", "source": "Einstein", "target": "Mars", "reason": "Text says he died on Earth."}, {"action": "delete_entity", "name": "Mars", "reason": "Mars is not mentioned in source text."}]\n\n'
             "Return ONLY the JSON list. If everything is correct, return []."
         )
 
         try:
-            llm_output = await self.rag.reflection_llm_model_func(
-                prompt, model=self.rag.reflection_llm_model_name
-            )
-            cleaned_output = llm_output.strip()
-            if cleaned_output.startswith("```json"):
-                cleaned_output = cleaned_output.replace("```json", "").replace(
-                    "```", ""
+            llm_func = self.rag.reflection_llm_model_func or self.rag.llm_model_func
+            model_name = self.rag.reflection_llm_model_name or self.rag.llm_model_name
+
+            if not llm_func:
+                logger.error(
+                    "ACE Reflector: No LLM function configured for graph repair reflection."
                 )
+                return []
 
-            # Find the first [ and last ] to extract JSON if LLM added text
-            start = cleaned_output.find("[")
-            end = cleaned_output.rfind("]")
-            if start != -1 and end != -1:
-                cleaned_output = cleaned_output[start : end + 1]
-
-            # Basic parsing
-            repairs = json.loads(cleaned_output)
-            if isinstance(repairs, list):
+            llm_output = await llm_func(prompt, model=model_name)
+            repairs = self._parse_json_list(llm_output)
+            if repairs:
                 # Filter to only supported actions for safety
                 valid_actions = ["delete_relation", "delete_entity", "merge_entities"]
                 valid_repairs = [r for r in repairs if r.get("action") in valid_actions]

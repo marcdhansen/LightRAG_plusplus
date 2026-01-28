@@ -2573,21 +2573,6 @@ class LightRAG:
         # 1. Generate response using ACE Generator
         result = await self.ace_generator.generate(query, param)
 
-        if auto_reflect and "error" not in result:
-            # 2. Reflect on the result (General Insights)
-            insights = await self.ace_reflector.reflect(query, result)
-
-            # 3. Curate insights into the playbook
-            await self.ace_curator.curate(insights)
-
-            # 4. Graph Integrity Reflection
-            repairs = await self.ace_reflector.reflect_graph_issues(query, result)
-            if repairs:
-                await self.ace_curator.apply_repairs(repairs)
-                result["repairs_applied"] = repairs
-
-            result["insights"] = insights
-
         return result
 
     def query_data(
