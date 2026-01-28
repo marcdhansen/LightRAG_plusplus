@@ -6,6 +6,7 @@ from lightrag import LightRAG, QueryParam
 from lightrag.llm.ollama import ollama_model_complete, ollama_embed
 from lightrag.utils import EmbeddingFunc
 from functools import partial
+from tests.ace_test_utils import ACETestKit
 
 WORKING_DIR = "./rag_storage_ace_test"
 
@@ -34,25 +35,25 @@ async def ace_rag():
 @pytest.mark.asyncio
 async def test_ace_reflector_repair_hallucination(ace_rag):
     rag = ace_rag
+    kit = ACETestKit(rag)
 
     # 1. Ingest valid data
     text = "Albert Einstein was a theoretical physicist born in Ulm, Germany."
     await rag.ainsert(text)
 
     # 2. Manually inject a hallucination into the graph
-    await rag.chunk_entity_relation_graph.upsert_node(
-        "Mars", {"entity_type": "Location", "description": "Planet"}
-    )
     custom_rel = {
-        "src_id": "Albert Einstein",
-        "tgt_id": "Mars",
         "weight": 1.0,
         "description": "Albert Einstein was the first person to walk on Mars.",
         "keywords": "space travel, first person",
         "source_id": "manual_injection",
     }
-    await rag.chunk_entity_relation_graph.upsert_edge(
-        "Albert Einstein", "Mars", custom_rel
+
+    await kit.inject_hallucination(
+        src_id="Albert Einstein",
+        tgt_id="Mars",
+        relation_data=custom_rel,
+        tgt_node_data={"entity_type": "Location", "description": "Planet"},
     )
 
     # 3. Run ACE Query
@@ -66,21 +67,16 @@ async def test_ace_reflector_repair_hallucination(ace_rag):
     print(f"[V] ACE Trajectory: {trajectory}")
 
     # 4. Verify graph after ACE repair
-    rel_exists = await rag.chunk_entity_relation_graph.has_edge(
-        "Albert Einstein", "Mars"
-    )
-    entity_exists = await rag.chunk_entity_relation_graph.has_node("Mars")
-
-    # Check if a repair was applied
-    repair_step = next((s for s in trajectory if s["step"] == "graph_repair"), None)
+    repair_step = kit.find_repair_step(trajectory)
     assert repair_step is not None, "ACE Reflector failed to identify graph repairs."
-    assert not rel_exists, "Hallucination relation should have been deleted."
-
     print(
         f"✅ ACE Reflector identified and repaired the hallucination! Status: {repair_step['status']}"
     )
-    if not entity_exists:
-        print("✅ ACE Reflector also deleted the hallucinated entity 'Mars'.")
+
+    await kit.verify_relation_existence("Albert Einstein", "Mars", should_exist=False)
+    await kit.verify_entity_existence("Mars", should_exist=False)
+
+    print("✅ ACE Reflector verification complete.")
 
 
 if __name__ == "__main__":
