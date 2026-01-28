@@ -9,11 +9,12 @@ Updated to handle the new data format where:
 - Includes backward compatibility with legacy format
 """
 
+import json
+import time
+from typing import Any
+
 import pytest
 import requests
-import time
-import json
-from typing import Dict, Any, List, Optional
 
 pytestmark = pytest.mark.heavy
 
@@ -25,7 +26,7 @@ BASE_URL = "http://localhost:9621"
 AUTH_HEADERS = {"Content-Type": "application/json", "X-API-Key": API_KEY}
 
 
-def validate_references_format(references: List[Dict[str, Any]]) -> bool:
+def validate_references_format(references: list[dict[str, Any]]) -> bool:
     """Validate the format of references list"""
     if not isinstance(references, list):
         print(f"❌ References should be a list, got {type(references)}")
@@ -53,7 +54,7 @@ def validate_references_format(references: List[Dict[str, Any]]) -> bool:
 
 def parse_streaming_response(
     response_text: str,
-) -> tuple[Optional[List[Dict]], List[str], List[str]]:
+) -> tuple[list[dict] | None, list[str], list[str]]:
     """Parse streaming response and extract references, response chunks, and errors"""
     references = None
     response_chunks = []
@@ -127,7 +128,7 @@ def test_query_endpoint_references():
             ), "References should not be None when include_references=True"
 
             if not validate_references_format(references):
-                assert False, "References format validation failed"
+                raise AssertionError("References format validation failed")
 
             print(f"✅ References enabled: Found {len(references)} references")
             print(f"   Response length: {len(data['response'])} characters")
@@ -143,11 +144,11 @@ def test_query_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            assert False, f"Request failed with status {response.status_code}"
+            raise AssertionError(f"Request failed with status {response.status_code}")
 
     except Exception as e:
         print(f"❌ Test 1 failed: {str(e)}")
-        assert False, f"Test 1 failed: {str(e)}"
+        raise AssertionError(f"Test 1 failed: {str(e)}")
 
     # Test 2: References disabled
     print("\n🧪 Test 2: References disabled")
@@ -178,11 +179,11 @@ def test_query_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            assert False, f"Request failed with status {response.status_code}"
+            raise AssertionError(f"Request failed with status {response.status_code}")
 
     except Exception as e:
         print(f"❌ Test 2 failed: {str(e)}")
-        assert False, f"Test 2 failed: {str(e)}"
+        raise AssertionError(f"Test 2 failed: {str(e)}")
 
     print("\n✅ /query endpoint references tests passed!")
 
@@ -229,18 +230,18 @@ def test_query_stream_endpoint_references():
 
             if errors:
                 print(f"❌ Errors in streaming response: {errors}")
-                assert False, f"Errors in streaming response: {errors}"
+                raise AssertionError(f"Errors in streaming response: {errors}")
 
             if references is None:
                 print("❌ No references found in streaming response")
-                assert False, "No references found in streaming response"
+                raise AssertionError("No references found in streaming response")
 
             if not validate_references_format(references):
-                assert False, "References format validation failed"
+                raise AssertionError("References format validation failed")
 
             if not response_chunks:
                 print("❌ No response chunks found in streaming response")
-                assert False, "No response chunks found in streaming response"
+                raise AssertionError("No response chunks found in streaming response")
 
             print(f"✅ Streaming with references: Found {len(references)} references")
             print(f"   Response chunks: {len(response_chunks)}")
@@ -259,11 +260,11 @@ def test_query_stream_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            assert False, f"Request failed with status {response.status_code}"
+            raise AssertionError(f"Request failed with status {response.status_code}")
 
     except Exception as e:
         print(f"❌ Test 1 failed: {str(e)}")
-        assert False, f"Test 1 failed: {str(e)}"
+        raise AssertionError(f"Test 1 failed: {str(e)}")
 
     # Test 2: Streaming with references disabled
     print("\n🧪 Test 2: Streaming with references disabled")
@@ -295,15 +296,17 @@ def test_query_stream_endpoint_references():
 
             if errors:
                 print(f"❌ Errors in streaming response: {errors}")
-                assert False, f"Errors in streaming response: {errors}"
+                raise AssertionError(f"Errors in streaming response: {errors}")
 
             if references is not None:
                 print("❌ References should be None when include_references=False")
-                assert False, "References should be None when include_references=False"
+                raise AssertionError(
+                    "References should be None when include_references=False"
+                )
 
             if not response_chunks:
                 print("❌ No response chunks found in streaming response")
-                assert False, "No response chunks found in streaming response"
+                raise AssertionError("No response chunks found in streaming response")
 
             print("✅ Streaming without references: No references present")
             print(f"   Response chunks: {len(response_chunks)}")
@@ -314,11 +317,11 @@ def test_query_stream_endpoint_references():
         else:
             print(f"❌ Request failed: {response.status_code}")
             print(f"   Error: {response.text}")
-            assert False, f"Request failed with status {response.status_code}"
+            raise AssertionError(f"Request failed with status {response.status_code}")
 
     except Exception as e:
         print(f"❌ Test 2 failed: {str(e)}")
-        assert False, f"Test 2 failed: {str(e)}"
+        raise AssertionError(f"Test 2 failed: {str(e)}")
 
     print("\n✅ /query/stream endpoint references tests passed!")
 
@@ -359,11 +362,11 @@ def test_references_consistency():
             print(f"✅ /query: {len(references_data['query'])} references")
         else:
             print(f"❌ /query failed: {response.status_code}")
-            assert False, f"/query failed: {response.status_code}"
+            raise AssertionError(f"/query failed: {response.status_code}")
 
     except Exception as e:
         print(f"❌ /query test failed: {str(e)}")
-        assert False, f"/query test failed: {str(e)}"
+        raise AssertionError(f"/query test failed: {str(e)}")
 
     # Test /query/stream endpoint
     print("\n🧪 Testing /query/stream endpoint")
@@ -397,11 +400,11 @@ def test_references_consistency():
             print(f"✅ /query/stream: {len(references_data['stream'])} references")
         else:
             print(f"❌ /query/stream failed: {response.status_code}")
-            assert False, f"/query/stream failed: {response.status_code}"
+            raise AssertionError(f"/query/stream failed: {response.status_code}")
 
     except Exception as e:
         print(f"❌ /query/stream test failed: {str(e)}")
-        assert False, f"/query/stream test failed: {str(e)}"
+        raise AssertionError(f"/query/stream test failed: {str(e)}")
 
     # Test /query/data endpoint
     print("\n🧪 Testing /query/data endpoint")
@@ -422,11 +425,11 @@ def test_references_consistency():
             print(f"✅ /query/data: {len(references_data['data'])} references")
         else:
             print(f"❌ /query/data failed: {response.status_code}")
-            assert False, f"/query/data failed: {response.status_code}"
+            raise AssertionError(f"/query/data failed: {response.status_code}")
 
     except Exception as e:
         print(f"❌ /query/data test failed: {str(e)}")
-        assert False, f"/query/data test failed: {str(e)}"
+        raise AssertionError(f"/query/data test failed: {str(e)}")
 
     # Compare references consistency
     print("\n🔍 Comparing references consistency")
@@ -434,9 +437,7 @@ def test_references_consistency():
 
     # Convert to sets of (reference_id, file_path) tuples for comparison
     def refs_to_set(refs):
-        return set(
-            (ref.get("reference_id", ""), ref.get("file_path", "")) for ref in refs
-        )
+        return {(ref.get("reference_id", ""), ref.get("file_path", "")) for ref in refs}
 
     query_refs = refs_to_set(references_data["query"])
     stream_refs = refs_to_set(references_data["stream"])
@@ -464,7 +465,7 @@ def test_references_consistency():
         consistency_passed = False
 
     if not consistency_passed:
-        assert False, "References consistency check failed"
+        raise AssertionError("References consistency check failed")
 
     print("✅ All endpoints return consistent references")
     print(f"   Common references count: {len(query_refs)}")
@@ -539,7 +540,7 @@ def test_aquery_data_endpoint():
         print(f"❌ Error occurred: {str(e)}")
 
 
-def print_query_results(data: Dict[str, Any]):
+def print_query_results(data: dict[str, Any]):
     """Format and print query results"""
 
     # Check for new data format with status and message

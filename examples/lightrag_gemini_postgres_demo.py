@@ -33,14 +33,14 @@ Usage:
     python examples/lightrag_postgres_demo.py
 """
 
-import os
 import asyncio
+import os
+
 import numpy as np
 
 from lightrag import LightRAG, QueryParam
-from lightrag.llm.gemini import gemini_model_complete, gemini_embed
+from lightrag.llm.gemini import gemini_embed, gemini_model_complete
 from lightrag.utils import setup_logger, wrap_embedding_func_with_attrs
-
 
 # --------------------------------------------------
 # Logger
@@ -68,10 +68,12 @@ if not GEMINI_API_KEY:
 async def llm_model_func(
     prompt,
     system_prompt=None,
-    history_messages=[],
+    history_messages=None,
     keyword_extraction=False,
     **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     return await gemini_model_complete(
         prompt,
         system_prompt=system_prompt,
@@ -141,7 +143,7 @@ async def main():
             )
 
         print(f"\nReading document: {BOOK_FILE}")
-        with open(BOOK_FILE, "r", encoding="utf-8") as f:
+        with open(BOOK_FILE, encoding="utf-8") as f:
             content = f.read()
 
         print(f"Loaded document ({len(content)} characters)")

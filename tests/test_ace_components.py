@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock
 # Add project root to path
 sys.path.append(".")
 
-from lightrag.ace.reflector import ACEReflector
 from lightrag.ace.curator import ACECurator
+from lightrag.ace.reflector import ACEReflector
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

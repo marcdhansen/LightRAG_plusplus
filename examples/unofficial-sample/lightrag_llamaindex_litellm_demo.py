@@ -1,14 +1,16 @@
+import asyncio
 import os
+
+import nest_asyncio
+from llama_index.embeddings.litellm import LiteLLMEmbedding
+from llama_index.llms.litellm import LiteLLM
+
 from lightrag import LightRAG, QueryParam
 from lightrag.llm.llama_index_impl import (
     llama_index_complete_if_cache,
     llama_index_embed,
 )
 from lightrag.utils import EmbeddingFunc
-from llama_index.llms.litellm import LiteLLM
-from llama_index.embeddings.litellm import LiteLLMEmbedding
-import asyncio
-import nest_asyncio
 
 nest_asyncio.apply()
 
@@ -35,7 +37,9 @@ if not os.path.exists(WORKING_DIR):
 
 
 # Initialize LLM function
-async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs):
+async def llm_model_func(prompt, system_prompt=None, history_messages=None, **kwargs):
+    if history_messages is None:
+        history_messages = []
     try:
         # Initialize LiteLLM if not in kwargs
         if "llm_instance" not in kwargs:
@@ -104,7 +108,7 @@ def main():
     rag = asyncio.run(initialize_rag())
 
     # Insert example text
-    with open("./book.txt", "r", encoding="utf-8") as f:
+    with open("./book.txt", encoding="utf-8") as f:
         rag.insert(f.read())
 
     # Test different query modes

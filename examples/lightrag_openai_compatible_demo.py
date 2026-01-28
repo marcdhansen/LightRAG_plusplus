@@ -1,15 +1,16 @@
-import os
 import asyncio
 import inspect
 import logging
 import logging.config
+import os
 from functools import partial
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.openai import openai_complete_if_cache
-from lightrag.llm.ollama import ollama_embed
-from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
 
 from dotenv import load_dotenv
+
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.ollama import ollama_embed
+from lightrag.llm.openai import openai_complete_if_cache
+from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
 
 load_dotenv(dotenv_path=".env", override=False)
 
@@ -86,8 +87,14 @@ if not os.path.exists(WORKING_DIR):
 
 
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
+    prompt,
+    system_prompt=None,
+    history_messages=None,
+    keyword_extraction=False,
+    **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     return await openai_complete_if_cache(
         os.getenv("LLM_MODEL", "deepseek-chat"),
         prompt,
@@ -160,7 +167,7 @@ async def main():
         print(f"Test dict: {test_text}")
         print(f"Detected embedding dimension: {embedding_dim}\n\n")
 
-        with open("./book.txt", "r", encoding="utf-8") as f:
+        with open("./book.txt", encoding="utf-8") as f:
             await rag.ainsert(f.read())
 
         # Perform naive search

@@ -7,12 +7,13 @@ legacy collections/tables to new ones with different embedding models.
 """
 
 import json
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
-from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
-from lightrag.kg.postgres_impl import PGVectorStorage
 from lightrag.exceptions import DataMigrationError
-from unittest.mock import MagicMock, AsyncMock, patch
+from lightrag.kg.postgres_impl import PGVectorStorage
+from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
 
 pytestmark = pytest.mark.heavy
 

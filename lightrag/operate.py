@@ -1,76 +1,77 @@
 from __future__ import annotations
-from functools import partial
-from pathlib import Path
 
 import asyncio
 import json
+import time
+from collections import Counter, defaultdict
+from functools import partial
+from pathlib import Path
+from typing import Any
+
 import json_repair
 import yaml
-from typing import Any, AsyncIterator, overload, Literal
-from collections import Counter, defaultdict
+from dotenv import load_dotenv
 
-from lightrag.exceptions import (
-    PipelineCancelledException,
-    ChunkTokenLimitExceededError,
-)
-from lightrag.utils import (
-    logger,
-    compute_mdhash_id,
-    Tokenizer,
-    is_float_regex,
-    sanitize_and_normalize_extracted_text,
-    pack_user_ass_to_openai_messages,
-    split_string_by_multi_markers,
-    truncate_list_by_token_size,
-    compute_args_hash,
-    handle_cache,
-    save_to_cache,
-    CacheData,
-    use_llm_func_with_cache,
-    update_chunk_cache_list,
-    remove_think_tags,
-    pick_by_weighted_polling,
-    pick_by_vector_similarity,
-    process_chunks_unified,
-    safe_vdb_operation_with_exception,
-    create_prefixed_exception,
-    fix_tuple_delimiter_corruption,
-    convert_to_user_format,
-    generate_reference_list_from_chunks,
-    apply_source_ids_limit,
-    merge_source_ids,
-    make_relation_chunk_key,
-    apply_rerank_if_enabled,
-)
 from lightrag.base import (
     BaseGraphStorage,
     BaseKVStorage,
     BaseVectorStorage,
-    TextChunkSchema,
+    QueryContextResult,
     QueryParam,
     QueryResult,
-    QueryContextResult,
+    TextChunkSchema,
 )
-from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
-from lightrag.prompt import PROMPTS
 from lightrag.constants import (
-    GRAPH_FIELD_SEP,
+    DEFAULT_ENTITY_NAME_MAX_LENGTH,
+    DEFAULT_ENTITY_TYPES,
+    DEFAULT_FILE_PATH_MORE_PLACEHOLDER,
+    DEFAULT_KG_CHUNK_PICK_METHOD,
     DEFAULT_MAX_ENTITY_TOKENS,
+    DEFAULT_MAX_FILE_PATHS,
     DEFAULT_MAX_RELATION_TOKENS,
     DEFAULT_MAX_TOTAL_TOKENS,
     DEFAULT_RELATED_CHUNK_NUMBER,
-    DEFAULT_KG_CHUNK_PICK_METHOD,
-    DEFAULT_ENTITY_TYPES,
     DEFAULT_SUMMARY_LANGUAGE,
-    SOURCE_IDS_LIMIT_METHOD_KEEP,
+    GRAPH_FIELD_SEP,
     SOURCE_IDS_LIMIT_METHOD_FIFO,
-    DEFAULT_FILE_PATH_MORE_PLACEHOLDER,
-    DEFAULT_MAX_FILE_PATHS,
-    DEFAULT_ENTITY_NAME_MAX_LENGTH,
+    SOURCE_IDS_LIMIT_METHOD_KEEP,
 )
+from lightrag.exceptions import (
+    ChunkTokenLimitExceededError,
+    PipelineCancelledException,
+)
+from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
-import time
-from dotenv import load_dotenv
+from lightrag.prompt import PROMPTS
+from lightrag.utils import (
+    CacheData,
+    Tokenizer,
+    apply_rerank_if_enabled,
+    apply_source_ids_limit,
+    compute_args_hash,
+    compute_mdhash_id,
+    convert_to_user_format,
+    create_prefixed_exception,
+    fix_tuple_delimiter_corruption,
+    generate_reference_list_from_chunks,
+    handle_cache,
+    is_float_regex,
+    logger,
+    make_relation_chunk_key,
+    merge_source_ids,
+    pack_user_ass_to_openai_messages,
+    pick_by_vector_similarity,
+    pick_by_weighted_polling,
+    process_chunks_unified,
+    remove_think_tags,
+    safe_vdb_operation_with_exception,
+    sanitize_and_normalize_extracted_text,
+    save_to_cache,
+    split_string_by_multi_markers,
+    truncate_list_by_token_size,
+    update_chunk_cache_list,
+    use_llm_func_with_cache,
+)
 
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
@@ -244,7 +245,7 @@ async def _handle_entity_relation_summary(
         current_tokens = 0
 
         # Currently least 3 descriptions in current_list
-        for i, desc in enumerate(current_list):
+        for _i, desc in enumerate(current_list):
             desc_tokens = len(tokenizer.encode(desc))
 
             # If adding current description would exceed limit, finalize current chunk
@@ -2864,9 +2865,9 @@ async def merge_nodes_and_edges(
 
 async def extract_entities(
     chunks: dict[str, TextChunkSchema],
-    global_config: dict[str, str],
-    pipeline_status: dict = None,
-    pipeline_status_lock=None,
+    global_config: dict[str, Any],
+    pipeline_status: dict[str, Any] | None = None,
+    pipeline_status_lock: Any | None = None,
     llm_response_cache: BaseKVStorage | None = None,
     text_chunks_storage: BaseKVStorage | None = None,
 ) -> list:
@@ -3493,7 +3494,7 @@ async def _get_vector_context(
     query: str,
     chunks_vdb: BaseVectorStorage,
     query_param: QueryParam,
-    query_embedding: list[float] = None,
+    query_embedding: list[float] | None = None,
 ) -> list[dict]:
     """
     Retrieve text chunks from the vector database without reranking or truncation.
@@ -3808,7 +3809,7 @@ async def _apply_token_truncation(
 
     # Generate entities context for truncation
     entities_context = []
-    for i, entity in enumerate(final_entities):
+    for _i, entity in enumerate(final_entities):
         entity_name = entity["entity_name"]
         created_at = entity.get("created_at", "UNKNOWN")
         if isinstance(created_at, (int, float)):
@@ -3829,7 +3830,7 @@ async def _apply_token_truncation(
 
     # Generate relations context for truncation
     relations_context = []
-    for i, relation in enumerate(final_relations):
+    for _i, relation in enumerate(final_relations):
         created_at = relation.get("created_at", "UNKNOWN")
         if isinstance(created_at, (int, float)):
             created_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(created_at))
@@ -4149,7 +4150,7 @@ async def _build_context_str(
     # Rebuild chunks_context with truncated chunks
     # The actual tokens may be slightly less than available_chunk_tokens due to deduplication logic
     chunks_context = []
-    for i, chunk in enumerate(truncated_chunks):
+    for _i, chunk in enumerate(truncated_chunks):
         chunks_context.append(
             {
                 "reference_id": chunk["reference_id"],
@@ -4442,7 +4443,7 @@ async def _get_node_data(
     node_datas = [nodes_dict.get(nid) for nid in node_ids]
     node_degrees = [degrees_dict.get(nid, 0) for nid in node_ids]
 
-    if not all([n is not None for n in node_datas]):
+    if not all(n is not None for n in node_datas):
         logger.warning("Some nodes are missing, maybe the storage is damaged")
 
     node_datas = [
@@ -4452,7 +4453,7 @@ async def _get_node_data(
             "rank": d,
             "created_at": k.get("created_at"),
         }
-        for k, n, d in zip(results, node_datas, node_degrees)
+        for k, n, d in zip(results, node_datas, node_degrees, strict=False)
         if n is not None
     ]
 
@@ -4473,7 +4474,7 @@ async def _get_node_data(
 
 async def _find_most_related_edges_from_entities(
     node_datas: list[dict],
-    query_param: QueryParam,
+    _query_param: QueryParam,
     knowledge_graph_inst: BaseGraphStorage,
 ):
     node_names = [dp["entity_name"] for dp in node_datas]
@@ -4529,9 +4530,9 @@ async def _find_most_related_edges_from_entities(
 
 async def _find_related_text_unit_from_entities(
     node_datas: list[dict],
-    query_param: QueryParam,
+    _query_param: QueryParam,
     text_chunks_db: BaseKVStorage,
-    knowledge_graph_inst: BaseGraphStorage,
+    _knowledge_graph_inst: BaseGraphStorage,
     query: str = None,
     chunks_vdb: BaseVectorStorage = None,
     chunk_tracking: dict = None,
@@ -4668,7 +4669,9 @@ async def _find_related_text_unit_from_entities(
 
     # Step 6: Build result chunks with valid data and update chunk tracking
     result_chunks = []
-    for i, (chunk_id, chunk_data) in enumerate(zip(unique_chunk_ids, chunk_data_list)):
+    for i, (chunk_id, chunk_data) in enumerate(
+        zip(unique_chunk_ids, chunk_data_list, strict=False)
+    ):
         if chunk_data is not None and "content" in chunk_data:
             chunk_data_copy = chunk_data.copy()
             chunk_data_copy["source_type"] = "entity"
@@ -4776,7 +4779,7 @@ async def _get_edge_data(
 
 async def _find_most_related_entities_from_relationships(
     edge_datas: list[dict],
-    query_param: QueryParam,
+    _query_param: QueryParam,
     knowledge_graph_inst: BaseGraphStorage,
 ):
     entity_names = []
@@ -4809,7 +4812,7 @@ async def _find_most_related_entities_from_relationships(
 
 async def _find_related_text_unit_from_relations(
     edge_datas: list[dict],
-    query_param: QueryParam,
+    _query_param: QueryParam,
     text_chunks_db: BaseKVStorage,
     entity_chunks: list[dict] = None,
     query: str = None,
@@ -4992,7 +4995,9 @@ async def _find_related_text_unit_from_relations(
 
     # Step 6: Build result chunks with valid data and update chunk tracking
     result_chunks = []
-    for i, (chunk_id, chunk_data) in enumerate(zip(unique_chunk_ids, chunk_data_list)):
+    for i, (chunk_id, chunk_data) in enumerate(
+        zip(unique_chunk_ids, chunk_data_list, strict=False)
+    ):
         if chunk_data is not None and "content" in chunk_data:
             chunk_data_copy = chunk_data.copy()
             chunk_data_copy["source_type"] = "relationship"
@@ -5008,30 +5013,6 @@ async def _find_related_text_unit_from_relations(
                 }
 
     return result_chunks
-
-
-@overload
-async def naive_query(
-    query: str,
-    chunks_vdb: BaseVectorStorage,
-    query_param: QueryParam,
-    global_config: dict[str, str],
-    hashing_kv: BaseKVStorage | None = None,
-    system_prompt: str | None = None,
-    return_raw_data: Literal[True] = True,
-) -> dict[str, Any]: ...
-
-
-@overload
-async def naive_query(
-    query: str,
-    chunks_vdb: BaseVectorStorage,
-    query_param: QueryParam,
-    global_config: dict[str, str],
-    hashing_kv: BaseKVStorage | None = None,
-    system_prompt: str | None = None,
-    return_raw_data: Literal[False] = False,
-) -> str | AsyncIterator[str]: ...
 
 
 async def naive_query(
@@ -5165,7 +5146,7 @@ async def naive_query(
 
     # Build chunks_context from processed chunks with reference IDs
     chunks_context = []
-    for i, chunk in enumerate(processed_chunks_with_ref_ids):
+    for _i, chunk in enumerate(processed_chunks_with_ref_ids):
         chunks_context.append(
             {
                 "reference_id": chunk["reference_id"],

@@ -1,8 +1,9 @@
-import os
 import json
+import os
 import random
-from pypdf import PdfReader
+
 from openai import OpenAI
+from pypdf import PdfReader
 from tqdm import tqdm
 
 # Configuration
@@ -97,7 +98,7 @@ def main():
     test_cases = []
 
     print("Generating Questions...")
-    for i, chunk in enumerate(tqdm(selected_chunks)):
+    for _i, chunk in enumerate(tqdm(selected_chunks)):
         qa = generate_qa_pair(client, chunk)
         if qa and "question" in qa and "ground_truth" in qa:
             test_cases.append(

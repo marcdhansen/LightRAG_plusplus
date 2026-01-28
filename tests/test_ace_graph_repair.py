@@ -1,6 +1,7 @@
 import asyncio
-import os
 import logging
+import os
+
 from lightrag import LightRAG, QueryParam
 
 # Setup logging
@@ -15,9 +16,10 @@ async def test_ace_graph_repair():
         print(f"Directory {WORKING_DIR} does not exist. Please run ingestion first.")
         return
 
-    from lightrag.llm.ollama import ollama_model_complete, ollama_embed
-    from lightrag.utils import EmbeddingFunc
     from functools import partial
+
+    from lightrag.llm.ollama import ollama_embed, ollama_model_complete
+    from lightrag.utils import EmbeddingFunc
 
     # Initialize LightRAG with ACE enabled
     rag = LightRAG(

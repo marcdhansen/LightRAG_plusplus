@@ -1,4 +1,5 @@
 import pytest
+
 from lightrag.rerank import chunk_documents_for_rerank
 
 pytestmark = pytest.mark.light

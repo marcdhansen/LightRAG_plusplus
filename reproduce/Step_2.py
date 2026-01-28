@@ -1,11 +1,14 @@
 import json
+
 from openai import OpenAI
 from transformers import GPT2Tokenizer
 
 
 def openai_complete_if_cache(
-    model="gpt-4o", prompt=None, system_prompt=None, history_messages=[], **kwargs
+    model="gpt-4o", prompt=None, system_prompt=None, history_messages=None, **kwargs
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     openai_client = OpenAI()
 
     messages = []
@@ -38,7 +41,7 @@ def get_summary(context, tot_tokens=2000):
 
 clses = ["agriculture"]
 for cls in clses:
-    with open(f"../datasets/unique_contexts/{cls}_unique_contexts.json", mode="r") as f:
+    with open(f"../datasets/unique_contexts/{cls}_unique_contexts.json") as f:
         unique_contexts = json.load(f)
 
     summaries = [get_summary(context) for context in unique_contexts]

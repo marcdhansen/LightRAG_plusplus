@@ -1,8 +1,9 @@
 import asyncio
-import httpx
 import os
 import sys
 import time
+
+import httpx
 import pytest
 
 pytestmark = pytest.mark.heavy
@@ -52,7 +53,7 @@ async def upload_and_process_file(client, file_path):
     print("Waiting for processing...")
     start_time = time.time()
 
-    for i in range(MAX_RETRIES):
+    for _i in range(MAX_RETRIES):
         try:
             status_resp = await client.get(
                 f"{BASE_URL}/documents/track_status/{track_id}"
@@ -123,7 +124,7 @@ async def test_fail_fast_integration():
     if not os.path.exists(TEST_DOCS_DIR):
         print(f"Error: Directory '{TEST_DOCS_DIR}' not found.")
         # Skip checking for exit code, just assert
-        assert False, f"Directory '{TEST_DOCS_DIR}' not found."
+        raise AssertionError(f"Directory '{TEST_DOCS_DIR}' not found.")
 
     # 1. Collect and Sort Files
     files = []
@@ -149,9 +150,9 @@ async def test_fail_fast_integration():
         try:
             resp = await client.get(f"{BASE_URL}/auth-status")
             if resp.status_code != 200:
-                assert False, "Server is not healthy or accessible."
+                raise AssertionError("Server is not healthy or accessible.")
         except Exception:
-            assert False, "Cannot connect to server. Is it running?"
+            raise AssertionError("Cannot connect to server. Is it running?")
 
         for path, size in files:
             success = await upload_and_process_file(client, path)

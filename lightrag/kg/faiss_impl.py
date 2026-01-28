@@ -1,22 +1,22 @@
+import asyncio
+import json
 import os
 import time
-import asyncio
-from typing import Any, final
-import json
-import numpy as np
 from dataclasses import dataclass
+from typing import Any, final
 
-from lightrag.utils import logger, compute_mdhash_id
+# You must manually install faiss-cpu or faiss-gpu before using FAISS vector db
+import faiss  # type: ignore
+import numpy as np
+
 from lightrag.base import BaseVectorStorage
+from lightrag.utils import compute_mdhash_id, logger
 
 from .shared_storage import (
     get_namespace_lock,
     get_update_flag,
     set_all_update_flags,
 )
-
-# You must manually install faiss-cpu or faiss-gpu before using FAISS vector db
-import faiss  # type: ignore
 
 
 @final
@@ -157,7 +157,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
         # 2. Remove them
         # 3. Add the new vectors
         existing_ids_to_remove = []
-        for meta, emb in zip(list_data, embeddings):
+        for meta, _emb in zip(list_data, embeddings, strict=False):
             faiss_internal_id = self._find_faiss_id_by_custom_id(meta["__id__"])
             if faiss_internal_id is not None:
                 existing_ids_to_remove.append(faiss_internal_id)
@@ -207,7 +207,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
         indices = indices[0]
 
         results = []
-        for dist, idx in zip(distances, indices):
+        for dist, idx in zip(distances, indices, strict=False):
             if idx == -1:
                 # Faiss returns -1 if no neighbor
                 continue
@@ -376,7 +376,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
                 raise ValueError(error_msg)
 
             # Load metadata
-            with open(self._meta_file, "r", encoding="utf-8") as f:
+            with open(self._meta_file, encoding="utf-8") as f:
                 stored_dict = json.load(f)
 
             # Convert string keys back to int

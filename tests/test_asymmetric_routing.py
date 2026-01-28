@@ -1,6 +1,8 @@
 import asyncio
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from lightrag import LightRAG
 from lightrag.llm.ollama import ollama_model_complete
 

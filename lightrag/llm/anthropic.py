@@ -1,15 +1,12 @@
-from ..utils import verbose_debug, VERBOSE_DEBUG
-import sys
-import os
 import logging
+import os
+from collections.abc import AsyncIterator
+from typing import Any
+
 import numpy as np
-from typing import Any, Union, AsyncIterator
 import pipmaster as pm  # Pipmaster for dynamic library install
 
-if sys.version_info < (3, 9):
-    from typing import AsyncIterator
-else:
-    from collections.abc import AsyncIterator
+from ..utils import VERBOSE_DEBUG, verbose_debug
 
 # Install Anthropic SDK if not present
 if not pm.is_installed("anthropic"):
@@ -19,24 +16,24 @@ if not pm.is_installed("anthropic"):
 if not pm.is_installed("voyageai"):
     pm.install("voyageai")
 import voyageai
-
 from anthropic import (
-    AsyncAnthropic,
     APIConnectionError,
-    RateLimitError,
     APITimeoutError,
+    AsyncAnthropic,
+    RateLimitError,
 )
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
-from lightrag.utils import (
-    safe_unicode_decode,
-    logger,
-)
+
 from lightrag.api import __api_version__
+from lightrag.utils import (
+    logger,
+    safe_unicode_decode,
+)
 
 
 # Custom exception for retry mechanism
@@ -63,7 +60,7 @@ async def anthropic_complete_if_cache(
     base_url: str | None = None,
     api_key: str | None = None,
     **kwargs: Any,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
     if history_messages is None:
         history_messages = []
     if enable_cot:
@@ -157,7 +154,7 @@ async def anthropic_complete(
     history_messages: list[dict[str, Any]] | None = None,
     enable_cot: bool = False,
     **kwargs: Any,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
     if history_messages is None:
         history_messages = []
     model_name = kwargs["hashing_kv"].global_config["llm_model_name"]
@@ -178,7 +175,7 @@ async def claude_3_opus_complete(
     history_messages: list[dict[str, Any]] | None = None,
     enable_cot: bool = False,
     **kwargs: Any,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
     if history_messages is None:
         history_messages = []
     return await anthropic_complete_if_cache(
@@ -198,7 +195,7 @@ async def claude_3_sonnet_complete(
     history_messages: list[dict[str, Any]] | None = None,
     enable_cot: bool = False,
     **kwargs: Any,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
     if history_messages is None:
         history_messages = []
     return await anthropic_complete_if_cache(
@@ -218,7 +215,7 @@ async def claude_3_haiku_complete(
     history_messages: list[dict[str, Any]] | None = None,
     enable_cot: bool = False,
     **kwargs: Any,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
     if history_messages is None:
         history_messages = []
     return await anthropic_complete_if_cache(
@@ -242,8 +239,8 @@ async def claude_3_haiku_complete(
 async def anthropic_embed(
     texts: list[str],
     model: str = "voyage-3",  # Default to voyage-3 as a good general-purpose model
-    base_url: str = None,
-    api_key: str = None,
+    _base_url: str | None = None,
+    api_key: str | None = None,
 ) -> np.ndarray:
     """
     Generate embeddings using Voyage AI since Anthropic doesn't provide native embedding support.

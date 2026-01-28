@@ -8,21 +8,22 @@ This example shows how to:
 3. Handle different types of content (text, images, tables)
 """
 
-import os
 import argparse
 import asyncio
 import logging
 import logging.config
-from pathlib import Path
+import os
 
 # Add project root directory to Python path
 import sys
+from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
+from raganything import RAGAnything, RAGAnythingConfig
+
 from lightrag.llm.openai import openai_complete_if_cache, openai_embed
 from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
-from raganything import RAGAnything, RAGAnythingConfig
 
 
 def configure_logging():
@@ -109,7 +110,9 @@ async def process_with_rag(
         )
 
         # Define LLM model function
-        def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs):
+        def llm_model_func(prompt, system_prompt=None, history_messages=None, **kwargs):
+            if history_messages is None:
+                history_messages = []
             return openai_complete_if_cache(
                 "gpt-4o-mini",
                 prompt,
@@ -122,8 +125,10 @@ async def process_with_rag(
 
         # Define vision model function for image processing
         def vision_model_func(
-            prompt, system_prompt=None, history_messages=[], image_data=None, **kwargs
+            prompt, system_prompt=None, history_messages=None, image_data=None, **kwargs
         ):
+            if history_messages is None:
+                history_messages = []
             if image_data:
                 return openai_complete_if_cache(
                     "gpt-4o",

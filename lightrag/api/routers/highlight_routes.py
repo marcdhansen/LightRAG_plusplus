@@ -1,12 +1,12 @@
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+
+from lightrag.api.utils_api import get_combined_auth_dependency
 from lightrag.highlight import get_highlights
 from lightrag.utils import logger
-from lightrag.api.utils_api import get_combined_auth_dependency
 
 
-def create_highlight_routes(api_key: Optional[str] = None):
+def create_highlight_routes(api_key: str | None = None):
     router = APIRouter(prefix="/highlight", tags=["highlight"])
 
     class HighlightRequest(BaseModel):
@@ -17,11 +17,11 @@ def create_highlight_routes(api_key: Optional[str] = None):
         )
 
     class HighlightResponse(BaseModel):
-        highlighted_sentences: List[str] = Field(
+        highlighted_sentences: list[str] = Field(
             ...,
             description="List of sentences that match the query above the threshold",
         )
-        sentence_probabilities: List[float] = Field(
+        sentence_probabilities: list[float] = Field(
             ..., description="Confidence scores for each highlighted sentence"
         )
 

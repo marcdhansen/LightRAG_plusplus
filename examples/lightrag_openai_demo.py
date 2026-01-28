@@ -1,7 +1,8 @@
-import os
 import asyncio
 import logging
 import logging.config
+import os
+
 from lightrag import LightRAG, QueryParam
 from lightrag.llm.openai import gpt_4o_mini_complete, openai_embed
 from lightrag.utils import logger, set_verbose_debug
@@ -129,7 +130,7 @@ async def main():
         print(f"Test dict: {test_text}")
         print(f"Detected embedding dimension: {embedding_dim}\n\n")
 
-        with open("./book.txt", "r", encoding="utf-8") as f:
+        with open("./book.txt", encoding="utf-8") as f:
             await rag.ainsert(f.read())
 
         # Perform naive search

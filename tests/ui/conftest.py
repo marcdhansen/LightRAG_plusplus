@@ -1,8 +1,9 @@
-import pytest
-import subprocess
-import time
 import os
+import subprocess
 import sys
+import time
+
+import pytest
 
 
 @pytest.fixture(scope="session")

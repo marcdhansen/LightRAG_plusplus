@@ -1,12 +1,12 @@
+import asyncio
 import os
 
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.hf import hf_model_complete, hf_embed
-from lightrag.utils import EmbeddingFunc
+import nest_asyncio
 from transformers import AutoModel, AutoTokenizer
 
-import asyncio
-import nest_asyncio
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.hf import hf_embed, hf_model_complete
+from lightrag.utils import EmbeddingFunc
 
 nest_asyncio.apply()
 
@@ -43,7 +43,7 @@ async def initialize_rag():
 def main():
     rag = asyncio.run(initialize_rag())
 
-    with open("./book.txt", "r", encoding="utf-8") as f:
+    with open("./book.txt", encoding="utf-8") as f:
         rag.insert(f.read())
 
     # Perform naive search

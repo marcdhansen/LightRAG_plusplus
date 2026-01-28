@@ -1,19 +1,22 @@
-import os
-import json
-import time
 import asyncio
+import json
+import os
+import time
+
 import numpy as np
 
 from lightrag import LightRAG
-from lightrag.utils import EmbeddingFunc
 from lightrag.llm.openai import openai_complete_if_cache, openai_embed
+from lightrag.utils import EmbeddingFunc
 
 
 ## For Upstage API
 # please check if embedding_dim=4096 in lightrag.py and llm.py in lightrag direcotry
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], **kwargs
+    prompt, system_prompt=None, history_messages=None, **kwargs
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     return await openai_complete_if_cache(
         "solar-mini",
         prompt,
@@ -38,7 +41,7 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
 
 
 def insert_text(rag, file_path):
-    with open(file_path, mode="r") as f:
+    with open(file_path) as f:
         unique_contexts = json.load(f)
 
     retries = 0

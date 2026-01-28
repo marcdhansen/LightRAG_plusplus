@@ -14,29 +14,29 @@ Supported graph storage types include:
 """
 
 import asyncio
-import pytest
+import importlib
 import os
 import sys
-import importlib
-import numpy as np
 
-from dotenv import load_dotenv
+import numpy as np
+import pytest
 from ascii_colors import ASCIIColors
+from dotenv import load_dotenv
 
 pytestmark = pytest.mark.heavy
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from lightrag.constants import GRAPH_FIELD_SEP  # noqa: E402
 from lightrag.core_types import KnowledgeGraph  # noqa: E402
 from lightrag.kg import (  # noqa: E402
-    STORAGE_IMPLEMENTATIONS,
     STORAGE_ENV_REQUIREMENTS,
+    STORAGE_IMPLEMENTATIONS,
     STORAGES,
     verify_storage_implementation,
 )
 from lightrag.kg.shared_storage import initialize_share_data  # noqa: E402
-from lightrag.constants import GRAPH_FIELD_SEP  # noqa: E402
 
 
 # Mock embedding function that returns random vectors
@@ -197,7 +197,7 @@ async def test_graph_basic(storage):
             ), "Node type mismatch"
         else:
             print(f"Failed to read node properties: {node1_id}")
-            assert False, f"Failed to read node properties: {node1_id}"
+            raise AssertionError(f"Failed to read node properties: {node1_id}")
 
         # 5. Read edge properties
         print(f"Reading edge properties: {node1_id} -> {node2_id}")
@@ -223,7 +223,9 @@ async def test_graph_basic(storage):
             ), "Edge weight mismatch"
         else:
             print(f"Failed to read edge properties: {node1_id} -> {node2_id}")
-            assert False, f"Failed to read edge properties: {node1_id} -> {node2_id}"
+            raise AssertionError(
+                f"Failed to read edge properties: {node1_id} -> {node2_id}"
+            )
 
         # 5.1 Verify undirected graph property - read reverse edge properties
         print(f"Reading reverse edge properties: {node2_id} -> {node1_id}")
@@ -250,7 +252,9 @@ async def test_graph_basic(storage):
             )
         else:
             print(f"Failed to read reverse edge properties: {node2_id} -> {node1_id}")
-            assert False, f"Failed to read reverse edge properties: {node2_id} -> {node1_id}, undirected graph property verification failed"
+            raise AssertionError(
+                f"Failed to read reverse edge properties: {node2_id} -> {node1_id}, undirected graph property verification failed"
+            )
 
         print("Basic tests completed, data is preserved in the database.")
         return True
@@ -927,7 +931,7 @@ async def test_graph_special_characters(storage):
                 print(f"Node {node_id} special character verification successful")
             else:
                 print(f"Failed to read node properties: {node_id}")
-                assert False, f"Failed to read node properties: {node_id}"
+                raise AssertionError(f"Failed to read node properties: {node_id}")
 
         # 7. Verify that edge special characters are saved correctly
         print("\n== Verifying edge special characters")
@@ -956,7 +960,9 @@ async def test_graph_special_characters(storage):
             )
         else:
             print(f"Failed to read edge properties: {node1_id} -> {node2_id}")
-            assert False, f"Failed to read edge properties: {node1_id} -> {node2_id}"
+            raise AssertionError(
+                f"Failed to read edge properties: {node1_id} -> {node2_id}"
+            )
 
         edge2_props = await storage.get_edge(node2_id, node3_id)
         if edge2_props:
@@ -983,7 +989,9 @@ async def test_graph_special_characters(storage):
             )
         else:
             print(f"Failed to read edge properties: {node2_id} -> {node3_id}")
-            assert False, f"Failed to read edge properties: {node2_id} -> {node3_id}"
+            raise AssertionError(
+                f"Failed to read edge properties: {node2_id} -> {node3_id}"
+            )
 
         print("\nSpecial character tests completed, data is preserved in the database.")
         return True

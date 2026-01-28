@@ -36,6 +36,8 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 📈 Recent Accomplishments
 
+- ✓ **Type Safety Refactoring** (2026-01-28): Resolved critical Pyright errors across
+  core modules and relaxed graph data types for better compatibility (lightrag-3mc).
 - ✓ **ACE Phase 5: Curator** (2026-01-27): Implemented automated graph repair
   (deletion, merging) and integrated into ACE query loop.
 - ✓ **ACE Asymmetric Routing** (2026-01-27): Implemented model-specific routing
@@ -63,4 +65,4 @@ This is the central directory for all project-specific planning, tracking, and i
 - ✓ **Baseline RAGAS Evaluation** (2026-01-22): Preliminary pass successful.
 
 ---
-Last Updated: 2026-01-27
+Last Updated: 2026-01-28

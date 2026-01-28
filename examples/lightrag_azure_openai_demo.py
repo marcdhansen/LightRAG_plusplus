@@ -1,11 +1,13 @@
-import os
 import asyncio
-from lightrag import LightRAG, QueryParam
-from lightrag.utils import EmbeddingFunc
+import logging
+import os
+
 import numpy as np
 from dotenv import load_dotenv
-import logging
 from openai import AzureOpenAI
+
+from lightrag import LightRAG, QueryParam
+from lightrag.utils import EmbeddingFunc
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,8 +32,14 @@ os.mkdir(WORKING_DIR)
 
 
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
+    prompt,
+    system_prompt=None,
+    history_messages=None,
+    keyword_extraction=False,
+    **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     client = AzureOpenAI(
         api_key=AZURE_OPENAI_API_KEY,
         api_version=AZURE_OPENAI_API_VERSION,

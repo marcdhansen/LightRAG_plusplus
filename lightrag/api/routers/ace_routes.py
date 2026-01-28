@@ -1,14 +1,15 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
 import traceback
 
+from fastapi import APIRouter, Depends, HTTPException
+
 from lightrag.utils import logger
+
 from ..utils_api import get_combined_auth_dependency
 
 router = APIRouter(tags=["ace"])
 
 
-def create_ace_routes(rag, api_key: Optional[str] = None):
+def create_ace_routes(rag, api_key: str | None = None):
     combined_auth = get_combined_auth_dependency(api_key)
 
     @router.get("/ace/repairs/pending", dependencies=[Depends(combined_auth)])

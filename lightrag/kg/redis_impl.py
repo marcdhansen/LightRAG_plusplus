@@ -1,37 +1,40 @@
-import os
-import logging
-from typing import Any, final, Union
-from dataclasses import dataclass
-import pipmaster as pm
 import configparser
-from contextlib import asynccontextmanager
+import logging
+import os
 import threading
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from typing import Any, final
+
+import pipmaster as pm
 
 if not pm.is_installed("redis"):
     pm.install("redis")
 
 # aioredis is a depricated library, replaced with redis
-from redis.asyncio import Redis, ConnectionPool  # type: ignore
-from redis.exceptions import RedisError, ConnectionError, TimeoutError  # type: ignore
-from lightrag.utils import logger, get_pinyin_sort_key
-
-from lightrag.base import (
-    BaseKVStorage,
-    DocStatusStorage,
-    DocStatus,
-    DocProcessingStatus,
-)
-from ..kg.shared_storage import get_data_init_lock
 import json
+
+from redis.asyncio import ConnectionPool, Redis  # type: ignore
+from redis.exceptions import ConnectionError, RedisError, TimeoutError  # type: ignore
 
 # Import tenacity for retry logic
 from tenacity import (
+    before_sleep_log,
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
-    before_sleep_log,
 )
+
+from lightrag.base import (
+    BaseKVStorage,
+    DocProcessingStatus,
+    DocStatus,
+    DocStatusStorage,
+)
+from lightrag.utils import get_pinyin_sort_key, logger
+
+from ..kg.shared_storage import get_data_init_lock
 
 config = configparser.ConfigParser()
 config.read("config.ini", "utf-8")
@@ -372,7 +375,7 @@ class RedisKVStorage(BaseKVStorage):
         try:
             async with self._get_redis_connection() as redis:
                 # Use scan to check if any keys exist
-                async for key in redis.scan_iter(match=pattern, count=1):
+                async for _key in redis.scan_iter(match=pattern, count=1):
                     return False  # Found at least one key
                 return True  # No keys found
         except Exception as e:
@@ -742,7 +745,7 @@ class RedisDocStatusStorage(DocStatusStorage):
                         values = await pipe.execute()
 
                         # Filter by status and create DocProcessingStatus objects
-                        for key, value in zip(keys, values):
+                        for key, value in zip(keys, values, strict=False):
                             if value:
                                 try:
                                     doc_data = json.loads(value)
@@ -798,7 +801,7 @@ class RedisDocStatusStorage(DocStatusStorage):
                         values = await pipe.execute()
 
                         # Filter by track_id and create DocProcessingStatus objects
-                        for key, value in zip(keys, values):
+                        for key, value in zip(keys, values, strict=False):
                             if value:
                                 try:
                                     doc_data = json.loads(value)
@@ -847,7 +850,7 @@ class RedisDocStatusStorage(DocStatusStorage):
         try:
             async with self._get_redis_connection() as redis:
                 # Use scan to check if any keys exist
-                async for key in redis.scan_iter(match=pattern, count=1):
+                async for _key in redis.scan_iter(match=pattern, count=1):
                     return False  # Found at least one key
                 return True  # No keys found
         except Exception as e:
@@ -866,7 +869,7 @@ class RedisDocStatusStorage(DocStatusStorage):
         async with self._get_redis_connection() as redis:
             try:
                 # Ensure chunks_list field exists for new documents
-                for doc_id, doc_data in data.items():
+                for _doc_id, doc_data in data.items():
                     if "chunks_list" not in doc_data:
                         doc_data["chunks_list"] = []
 
@@ -879,7 +882,7 @@ class RedisDocStatusStorage(DocStatusStorage):
                 raise
 
     @redis_retry
-    async def get_by_id(self, id: str) -> Union[dict[str, Any], None]:
+    async def get_by_id(self, id: str) -> dict[str, Any] | None:
         async with self._get_redis_connection() as redis:
             try:
                 data = await redis.get(f"{self.final_namespace}:{id}")
@@ -958,7 +961,7 @@ class RedisDocStatusStorage(DocStatusStorage):
                         values = await pipe.execute()
 
                         # Process documents
-                        for key, value in zip(keys, values):
+                        for key, value in zip(keys, values, strict=False):
                             if value:
                                 try:
                                     doc_data = json.loads(value)
@@ -1040,7 +1043,7 @@ class RedisDocStatusStorage(DocStatusStorage):
 
         return counts
 
-    async def get_doc_by_file_path(self, file_path: str) -> Union[dict[str, Any], None]:
+    async def get_doc_by_file_path(self, file_path: str) -> dict[str, Any] | None:
         """Get document by file path
 
         Args:

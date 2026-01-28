@@ -1,11 +1,13 @@
 import asyncio
-import os
 import logging
+import os
 from functools import partial
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.ollama import ollama_model_complete, ollama_embed
-from lightrag.utils import EmbeddingFunc
+
 from dotenv import load_dotenv
+
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.ollama import ollama_embed, ollama_model_complete
+from lightrag.utils import EmbeddingFunc
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -48,7 +50,7 @@ async def test_beekeeping():
         print(f"Error: {beekeeping_text_path} not found.")
         return
 
-    with open(beekeeping_text_path, "r") as f:
+    with open(beekeeping_text_path) as f:
         content = f.read()
 
     print("Ingesting beekeeping data...")

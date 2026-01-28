@@ -1,9 +1,10 @@
+import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import httpx
 import pytest
 
-from unittest.mock import AsyncMock, patch, MagicMock
-import asyncio
 from lightrag.llm.ollama import ollama_model_complete
-import httpx
 
 pytestmark = pytest.mark.heavy
 

@@ -2,15 +2,15 @@
 LightRAG meets Amazon Bedrock ⛰️
 """
 
-import os
+import asyncio
 import logging
+import os
+
+import nest_asyncio
 
 from lightrag import LightRAG, QueryParam
 from lightrag.llm.bedrock import bedrock_complete, bedrock_embed
 from lightrag.utils import EmbeddingFunc
-
-import asyncio
-import nest_asyncio
 
 nest_asyncio.apply()
 
@@ -38,7 +38,7 @@ async def initialize_rag():
 def main():
     rag = asyncio.run(initialize_rag())
 
-    with open("./book.txt", "r", encoding="utf-8") as f:
+    with open("./book.txt", encoding="utf-8") as f:
         rag.insert(f.read())
 
     for mode in ["naive", "local", "global", "hybrid"]:

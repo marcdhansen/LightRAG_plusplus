@@ -27,14 +27,14 @@ Note: Rerank is controlled per query via the 'enable_rerank' parameter (default:
 
 import asyncio
 import os
+from functools import partial
+
 import numpy as np
 
 from lightrag import LightRAG, QueryParam
 from lightrag.llm.openai import openai_complete_if_cache, openai_embed
-from lightrag.utils import EmbeddingFunc, setup_logger
-
-from functools import partial
 from lightrag.rerank import cohere_rerank
+from lightrag.utils import EmbeddingFunc, setup_logger
 
 # Set up your working directory
 WORKING_DIR = "./test_rerank"
@@ -45,8 +45,10 @@ if not os.path.exists(WORKING_DIR):
 
 
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], **kwargs
+    prompt, system_prompt=None, history_messages=None, **kwargs
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     return await openai_complete_if_cache(
         os.getenv("LLM_MODEL"),
         prompt,

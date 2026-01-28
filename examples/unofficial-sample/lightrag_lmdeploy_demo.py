@@ -1,13 +1,13 @@
+import asyncio
 import os
 
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.lmdeploy import lmdeploy_model_if_cache
-from lightrag.llm.hf import hf_embed
-from lightrag.utils import EmbeddingFunc
+import nest_asyncio
 from transformers import AutoModel, AutoTokenizer
 
-import asyncio
-import nest_asyncio
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.hf import hf_embed
+from lightrag.llm.lmdeploy import lmdeploy_model_if_cache
+from lightrag.utils import EmbeddingFunc
 
 nest_asyncio.apply()
 
@@ -20,10 +20,12 @@ if not os.path.exists(WORKING_DIR):
 async def lmdeploy_model_complete(
     prompt=None,
     system_prompt=None,
-    history_messages=[],
+    history_messages=None,
     keyword_extraction=False,
     **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     model_name = kwargs["hashing_kv"].global_config["llm_model_name"]
     return await lmdeploy_model_if_cache(
         model_name,
@@ -70,7 +72,7 @@ def main():
     rag = asyncio.run(initialize_rag())
 
     # Insert example text
-    with open("./book.txt", "r", encoding="utf-8") as f:
+    with open("./book.txt", encoding="utf-8") as f:
         rag.insert(f.read())
 
     # Test different query modes

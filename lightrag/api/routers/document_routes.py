@@ -3,15 +3,15 @@ This module contains all document-related routes for the LightRAG API.
 """
 
 import asyncio
-from functools import lru_cache
-from lightrag.utils import logger, get_pinyin_sort_key
-import aiofiles
 import shutil
 import traceback
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Literal
+from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
+from typing import Any, Literal
+
+import aiofiles
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -20,18 +20,21 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from lightrag import LightRAG
+from lightrag.api.utils_api import get_combined_auth_dependency
 from lightrag.base import DeletionResult, DocProcessingStatus, DocStatus
+from lightrag.kg.shared_storage import append_pipeline_log
 from lightrag.utils import (
-    generate_track_id,
     compute_mdhash_id,
+    generate_track_id,
+    get_pinyin_sort_key,
+    logger,
     sanitize_text_for_encoding,
 )
-from lightrag.api.utils_api import get_combined_auth_dependency
+
 from ..config import global_args
-from lightrag.kg.shared_storage import append_pipeline_log
 
 
 @lru_cache(maxsize=1)
@@ -53,7 +56,7 @@ def _is_docling_available() -> bool:
 
 
 # Function to format datetime to ISO format string with timezone information
-def format_datetime(dt: Any) -> Optional[str]:
+def format_datetime(dt: Any) -> str | None:
     """Format datetime to ISO format string with timezone information
 
     Args:
@@ -165,7 +168,7 @@ class ScanResponse(BaseModel):
     status: Literal["scanning_started"] = Field(
         description="Status of the scanning operation"
     )
-    message: Optional[str] = Field(
+    message: str | None = Field(
         default=None, description="Additional details about the scanning operation"
     )
     track_id: str = Field(description="Tracking ID for monitoring scanning progress")
@@ -407,7 +410,7 @@ Attributes:
 
 
 class DeleteDocRequest(BaseModel):
-    doc_ids: List[str] = Field(..., description="The IDs of the documents to delete.")
+    doc_ids: list[str] = Field(..., description="The IDs of the documents to delete.")
     delete_file: bool = Field(
         default=False,
         description="Whether to delete the corresponding file in the upload directory.",
@@ -419,7 +422,7 @@ class DeleteDocRequest(BaseModel):
 
     @field_validator("doc_ids", mode="after")
     @classmethod
-    def validate_doc_ids(cls, doc_ids: List[str]) -> List[str]:
+    def validate_doc_ids(cls, doc_ids: list[str]) -> list[str]:
         if not doc_ids:
             raise ValueError("Document IDs list cannot be empty")
 
@@ -466,21 +469,19 @@ class DocStatusResponse(BaseModel):
     status: DocStatus = Field(description="Current processing status")
     created_at: str = Field(description="Creation timestamp (ISO format string)")
     updated_at: str = Field(description="Last update timestamp (ISO format string)")
-    track_id: Optional[str] = Field(
+    track_id: str | None = Field(
         default=None, description="Tracking ID for monitoring progress"
     )
-    chunks_count: Optional[int] = Field(
+    chunks_count: int | None = Field(
         default=None, description="Number of chunks the document was split into"
     )
-    error_msg: Optional[str] = Field(
+    error_msg: str | None = Field(
         default=None, description="Error message if processing failed"
     )
-    metadata: Optional[dict[str, Any]] = Field(
+    metadata: dict[str, Any] | None = Field(
         default=None, description="Additional metadata about the document"
     )
-    file_path: Optional[str] = Field(
-        default=None, description="Path to the document file"
-    )
+    file_path: str | None = Field(default=None, description="Path to the document file")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -508,7 +509,7 @@ class DocsStatusesResponse(BaseModel):
         statuses: Dictionary mapping document status to lists of document status responses
     """
 
-    statuses: Dict[DocStatus, List[DocStatusResponse]] = Field(
+    statuses: dict[DocStatus, list[DocStatusResponse]] = Field(
         default_factory=dict,
         description="Dictionary mapping document status to lists of document status responses",
     )
@@ -579,11 +580,11 @@ class TrackStatusResponse(BaseModel):
     """
 
     track_id: str = Field(description="The tracking ID")
-    documents: List[DocStatusResponse] = Field(
+    documents: list[DocStatusResponse] = Field(
         description="List of documents associated with this track_id"
     )
     total_count: int = Field(description="Total number of documents for this track_id")
-    status_summary: Dict[str, int] = Field(description="Count of documents by status")
+    status_summary: dict[str, int] = Field(description="Count of documents by status")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -622,7 +623,7 @@ class DocumentsRequest(BaseModel):
         sort_direction: Sort direction ('asc' or 'desc')
     """
 
-    status_filter: Optional[DocStatus] = Field(
+    status_filter: DocStatus | None = Field(
         default=None, description="Filter by document status, None for all statuses"
     )
     page: int = Field(default=1, ge=1, description="Page number (1-based)")
@@ -691,11 +692,11 @@ class PaginatedDocsResponse(BaseModel):
         status_counts: Count of documents by status for all documents
     """
 
-    documents: List[DocStatusResponse] = Field(
+    documents: list[DocStatusResponse] = Field(
         description="List of documents for the current page"
     )
     pagination: PaginationInfo = Field(description="Pagination information")
-    status_counts: Dict[str, int] = Field(
+    status_counts: dict[str, int] = Field(
         description="Count of documents by status for all documents"
     )
 
@@ -744,7 +745,7 @@ class StatusCountsResponse(BaseModel):
         status_counts: Count of documents by status
     """
 
-    status_counts: Dict[str, int] = Field(description="Count of documents by status")
+    status_counts: dict[str, int] = Field(description="Count of documents by status")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -782,14 +783,14 @@ class PipelineStatusResponse(BaseModel):
     autoscanned: bool = False
     busy: bool = False
     job_name: str = "Default Job"
-    job_start: Optional[str] = None
+    job_start: str | None = None
     docs: int = 0
     batchs: int = 0
     cur_batch: int = 0
     request_pending: bool = False
     latest_message: str = ""
-    history_messages: Optional[List[str]] = None
-    update_status: Optional[dict] = None
+    history_messages: list[str] | None = None
+    update_status: dict | None = None
     log_level: int = 30  # Default to WARNING
 
     @field_validator("job_start", mode="before")
@@ -886,7 +887,7 @@ class DocumentManager:
         # Create input directory if it doesn't exist
         self.input_dir.mkdir(parents=True, exist_ok=True)
 
-    def scan_directory_for_new_files(self) -> List[Path]:
+    def scan_directory_for_new_files(self) -> list[Path]:
         """Scan input directory for new files"""
         new_files = []
         for ext in self.supported_extensions:
@@ -903,7 +904,7 @@ class DocumentManager:
         return any(filename.lower().endswith(ext) for ext in self.supported_extensions)
 
 
-def validate_file_path_security(file_path_str: str, base_dir: Path) -> Optional[Path]:
+def validate_file_path_security(file_path_str: str, base_dir: Path) -> Path | None:
     """
     Validate file path security to prevent Path Traversal attacks.
 
@@ -1728,7 +1729,7 @@ async def pipeline_index_file(rag: LightRAG, file_path: Path, track_id: str = No
 
 
 async def pipeline_index_files(
-    rag: LightRAG, file_paths: List[Path], track_id: str = None
+    rag: LightRAG, file_paths: list[Path], track_id: str = None
 ):
     """Index multiple files sequentially to avoid high CPU load
 
@@ -1763,8 +1764,8 @@ async def pipeline_index_files(
 
 async def pipeline_index_texts(
     rag: LightRAG,
-    texts: List[str],
-    file_sources: List[str] = None,
+    texts: list[str],
+    file_sources: list[str] = None,
     track_id: str = None,
 ):
     """Index a list of texts with track_id
@@ -1851,7 +1852,7 @@ async def run_scanning_process(
 async def background_delete_documents(
     rag: LightRAG,
     doc_manager: DocumentManager,
-    doc_ids: List[str],
+    doc_ids: list[str],
     delete_file: bool = False,
     delete_llm_cache: bool = False,
 ):
@@ -2099,7 +2100,7 @@ async def background_delete_documents(
 
 
 def create_document_routes(
-    rag: LightRAG, doc_manager: DocumentManager, api_key: Optional[str] = None
+    rag: LightRAG, doc_manager: DocumentManager, api_key: str | None = None
 ):
     # Create combined auth dependency for document routes
     combined_auth = get_combined_auth_dependency(api_key)
@@ -2583,8 +2584,8 @@ def create_document_routes(
         """
         try:
             from lightrag.kg.shared_storage import (
-                get_namespace_data,
                 get_internal_lock,
+                get_namespace_data,
             )
 
             pipeline_status = await get_namespace_data(
@@ -2633,9 +2634,9 @@ def create_document_routes(
         """
         try:
             from lightrag.kg.shared_storage import (
+                get_all_update_flags_status,
                 get_namespace_data,
                 get_namespace_lock,
-                get_all_update_flags_status,
             )
 
             pipeline_status = await get_namespace_data(
@@ -2739,7 +2740,7 @@ def create_document_routes(
             )
 
             tasks = [rag.get_docs_by_status(status) for status in statuses]
-            results: List[Dict[str, DocProcessingStatus]] = await asyncio.gather(*tasks)
+            results: list[dict[str, DocProcessingStatus]] = await asyncio.gather(*tasks)
 
             response = DocsStatusesResponse()
             total_documents = 0

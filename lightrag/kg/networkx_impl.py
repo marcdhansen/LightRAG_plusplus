@@ -1,18 +1,19 @@
 import os
 from dataclasses import dataclass
-from typing import final
+from typing import Any, final
 
-from lightrag.core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
-from lightrag.utils import logger
-from lightrag.base import BaseGraphStorage
 import networkx as nx
+from dotenv import load_dotenv
+
+from lightrag.base import BaseGraphStorage
+from lightrag.core_types import KnowledgeGraph, KnowledgeGraphEdge, KnowledgeGraphNode
+from lightrag.utils import logger
+
 from .shared_storage import (
     get_namespace_lock,
     get_update_flag,
     set_all_update_flags,
 )
-
-from dotenv import load_dotenv
 
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
@@ -24,7 +25,7 @@ load_dotenv(dotenv_path=".env", override=False)
 @dataclass
 class NetworkXStorage(BaseGraphStorage):
     @staticmethod
-    def load_nx_graph(file_name) -> nx.Graph:
+    def load_nx_graph(file_name) -> nx.Graph | None:
         if os.path.exists(file_name):
             return nx.read_graphml(file_name)
         return None
@@ -52,7 +53,7 @@ class NetworkXStorage(BaseGraphStorage):
         )
         self._storage_lock = None
         self.storage_updated = None
-        self._graph = None
+        self._graph: nx.Graph = nx.Graph()
 
         # Load initial graph
         preloaded_graph = NetworkXStorage.load_nx_graph(self._graphml_xml_file)
@@ -77,8 +78,11 @@ class NetworkXStorage(BaseGraphStorage):
             self.namespace, workspace=self.workspace
         )
 
-    async def _get_graph(self):
+    async def _get_graph(self) -> nx.Graph:
         """Check if the storage should be reloaded"""
+        if self._storage_lock is None or self.storage_updated is None:
+            return self._graph
+
         # Acquire lock to prevent concurrent read and write
         async with self._storage_lock:
             # Check if data needs to be reloaded
@@ -129,7 +133,7 @@ class NetworkXStorage(BaseGraphStorage):
             return list(graph.edges(source_node_id))
         return None
 
-    async def upsert_node(self, node_id: str, node_data: dict[str, str]) -> None:
+    async def upsert_node(self, node_id: str, node_data: dict[str, Any]) -> None:
         """
         Importance notes:
         1. Changes will be persisted to disk during the next index_done_callback
@@ -140,7 +144,7 @@ class NetworkXStorage(BaseGraphStorage):
         graph.add_node(node_id, **node_data)
 
     async def upsert_edge(
-        self, source_node_id: str, target_node_id: str, edge_data: dict[str, str]
+        self, source_node_id: str, target_node_id: str, edge_data: dict[str, Any]
     ) -> None:
         """
         Importance notes:
@@ -211,7 +215,7 @@ class NetworkXStorage(BaseGraphStorage):
             labels.add(str(node))  # Add node id as a label
 
         # Return sorted list
-        return sorted(list(labels))
+        return sorted(labels)
 
     async def get_popular_labels(self, limit: int = 300) -> list[str]:
         """
@@ -371,7 +375,7 @@ class NetworkXStorage(BaseGraphStorage):
                 current_level_nodes.sort(key=lambda x: x[2], reverse=True)
 
                 # Process all nodes at current depth in order of degree
-                for current_node, depth, degree in current_level_nodes:
+                for current_node, depth, _degree in current_level_nodes:
                     if current_node not in visited:
                         visited.add(current_node)
                         bfs_nodes.append(current_node)
@@ -433,7 +437,7 @@ class NetworkXStorage(BaseGraphStorage):
                     labels.append(node_data["entity_type"])
 
             # Create node with properties
-            node_properties = {k: v for k, v in node_data.items()}
+            node_properties = dict(node_data.items())
 
             result.nodes.append(
                 KnowledgeGraphNode(
@@ -500,7 +504,7 @@ class NetworkXStorage(BaseGraphStorage):
             all_edges.append(edge_data_with_nodes)
         return all_edges
 
-    async def index_done_callback(self) -> bool:
+    async def index_done_callback(self) -> None:
         """Save data to disk"""
         async with self._storage_lock:
             # Check if storage was updated by another process
@@ -527,12 +531,12 @@ class NetworkXStorage(BaseGraphStorage):
                 await set_all_update_flags(self.namespace, workspace=self.workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
-                return True  # Return success
+                return  # Return success
             except Exception as e:
                 logger.error(f"[{self.workspace}] Error saving graph: {e}")
-                return False  # Return error
+                return  # Return error
 
-        return True
+        return
 
     async def drop(self) -> dict[str, str]:
         """Drop all graph data from storage and clean up resources

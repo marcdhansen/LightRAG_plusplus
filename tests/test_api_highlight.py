@@ -1,7 +1,8 @@
-import pytest
 import httpx
-from lightrag.api.lightrag_server import create_app
+import pytest
+
 from lightrag.api.config import global_args
+from lightrag.api.lightrag_server import create_app
 
 
 @pytest.fixture

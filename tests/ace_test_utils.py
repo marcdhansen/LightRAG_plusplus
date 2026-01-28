@@ -1,4 +1,5 @@
-from typing import Dict, Optional, Any
+from typing import Any
+
 from lightrag import LightRAG
 
 
@@ -14,8 +15,8 @@ class ACETestKit:
         self,
         src_id: str,
         tgt_id: str,
-        relation_data: Dict[str, Any],
-        tgt_node_data: Optional[Dict[str, Any]] = None,
+        relation_data: dict[str, Any],
+        tgt_node_data: dict[str, Any] | None = None,
     ):
         """
         Manually injects a node and/or edge into the graph to simulate a hallucination
@@ -62,7 +63,7 @@ class ACETestKit:
 
     def find_repair_step(
         self, trajectory: list, step_name: str = "graph_repair"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Helper to find a specific step in the ACE trajectory.
         """

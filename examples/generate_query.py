@@ -4,8 +4,14 @@ from openai import OpenAI
 
 
 def openai_complete_if_cache(
-    model="gpt-4o-mini", prompt=None, system_prompt=None, history_messages=[], **kwargs
+    model="gpt-4o-mini",
+    prompt=None,
+    system_prompt=None,
+    history_messages=None,
+    **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     openai_client = OpenAI()
 
     messages = []

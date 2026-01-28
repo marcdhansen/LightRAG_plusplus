@@ -1,8 +1,8 @@
 import json
-import os
 import logging
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, field, asdict
+import os
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 from .config import ACEConfig
 
@@ -11,15 +11,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PlaybookContent:
-    core_directives: List[str] = field(default_factory=list)
-    strategies: Dict[str, str] = field(default_factory=dict)
-    lessons_learned: List[str] = field(default_factory=list)
+    core_directives: list[str] = field(default_factory=list)
+    strategies: dict[str, str] = field(default_factory=dict)
+    lessons_learned: list[str] = field(default_factory=list)
 
     # Metadata for tracking evolution
     version: int = 1
     last_updated: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converts the PlaybookContent instance into a dictionary."""
         return asdict(self)
 
@@ -30,7 +30,7 @@ class ContextPlaybook:
     This includes directives, strategies, and lessons learned.
     """
 
-    def __init__(self, config: Optional[ACEConfig] = None):
+    def __init__(self, config: ACEConfig | None = None):
         self.config = config or ACEConfig()
         self.content = PlaybookContent()
         self.config.ensure_base_dir()
@@ -41,7 +41,7 @@ class ContextPlaybook:
         path = self.config.get_playbook_full_path()
         if os.path.exists(path):
             try:
-                with open(path, "r") as f:
+                with open(path) as f:
                     data = json.load(f)
                     # Convert dict back to PlaybookContent dataclass
                     self.content = PlaybookContent(**data)

@@ -19,27 +19,27 @@ Total: 11 test scenarios
 """
 
 import asyncio
-import time
 import os
 import shutil
+import time
+from pathlib import Path
+
 import numpy as np
 import pytest
 
-from pathlib import Path
-from typing import List, Tuple, Dict
 from lightrag.kg.shared_storage import (
-    get_final_namespace,
-    get_namespace_lock,
-    get_default_workspace,
-    set_default_workspace,
-    initialize_share_data,
-    finalize_share_data,
-    initialize_pipeline_status,
-    get_namespace_data,
-    set_all_update_flags,
     clear_all_update_flags,
+    finalize_share_data,
     get_all_update_flags_status,
+    get_default_workspace,
+    get_final_namespace,
+    get_namespace_data,
+    get_namespace_lock,
     get_update_flag,
+    initialize_pipeline_status,
+    initialize_share_data,
+    set_all_update_flags,
+    set_default_workspace,
 )
 
 pytestmark = pytest.mark.heavy
@@ -69,8 +69,8 @@ def setup_shared_data():
 
 
 async def _measure_lock_parallelism(
-    workload: List[Tuple[str, str, str]], hold_time: float = 0.05
-) -> Tuple[int, List[Tuple[str, str]], Dict[str, float]]:
+    workload: list[tuple[str, str, str]], hold_time: float = 0.05
+) -> tuple[int, list[tuple[str, str]], dict[str, float]]:
     """Run lock acquisition workload and capture peak concurrency and timeline.
 
     Args:
@@ -86,7 +86,7 @@ async def _measure_lock_parallelism(
 
     running = 0
     max_parallel = 0
-    timeline: List[Tuple[str, str]] = []
+    timeline: list[tuple[str, str]] = []
     start_time = time.time()
 
     async def worker(name: str, workspace: str, namespace: str) -> None:
@@ -112,7 +112,7 @@ async def _measure_lock_parallelism(
     return max_parallel, timeline, metrics
 
 
-def _assert_no_timeline_overlap(timeline: List[Tuple[str, str]]) -> None:
+def _assert_no_timeline_overlap(timeline: list[tuple[str, str]]) -> None:
     """Ensure that timeline events never overlap for sequential execution.
 
     This function implements a finite state machine that validates:
@@ -983,9 +983,11 @@ async def test_lightrag_end_to_end_workspace_isolation(keep_test_artifacts):
             """Create a mock LLM function that returns different content based on workspace"""
 
             async def mock_llm_func(
-                prompt, system_prompt=None, history_messages=[], **kwargs
+                prompt, system_prompt=None, history_messages=None, **kwargs
             ) -> str:
                 # Add coroutine switching to simulate async I/O and allow concurrent execution
+                if history_messages is None:
+                    history_messages = []
                 await asyncio.sleep(0)
 
                 # Return different responses based on workspace
@@ -1121,10 +1123,10 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
         if docs_a_file.exists() and docs_b_file.exists():
             import json
 
-            with open(docs_a_file, "r") as f:
+            with open(docs_a_file) as f:
                 docs_a_content = json.load(f)
 
-            with open(docs_b_file, "r") as f:
+            with open(docs_b_file) as f:
                 docs_b_content = json.load(f)
 
             print(f"   project_a doc count: {len(docs_a_content)}")

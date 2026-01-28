@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import logging
-from typing import Dict, Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from lightrag.core import LightRAG, QueryParam
@@ -21,8 +22,8 @@ class ACEGenerator:
         self.playbook = playbook
 
     async def generate(
-        self, query: str, param: Optional[QueryParam] = None
-    ) -> Dict[str, Any]:
+        self, query: str, param: QueryParam | None = None
+    ) -> dict[str, Any]:
         """
         Generates a response to the query using ACE context.
         """
@@ -120,7 +121,7 @@ class ACEGenerator:
             "trajectory": trajectory,
         }
 
-    def _format_context_data(self, data: Dict[str, Any]) -> str:
+    def _format_context_data(self, data: dict[str, Any]) -> str:
         """Formats structured context data into a readable string."""
         sections = []
 

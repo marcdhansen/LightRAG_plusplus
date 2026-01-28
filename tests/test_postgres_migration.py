@@ -1,11 +1,13 @@
-import pytest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
+
 import numpy as np
-from lightrag.utils import EmbeddingFunc
+import pytest
+
 from lightrag.kg.postgres_impl import (
     PGVectorStorage,
 )
 from lightrag.namespace import NameSpace
+from lightrag.utils import EmbeddingFunc
 
 pytestmark = pytest.mark.heavy
 

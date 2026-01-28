@@ -10,13 +10,14 @@ Prerequisites:
 3. asyncpg installed: pip install asyncpg
 """
 
-import pytest
-
 import asyncio
 import os
 import time
-from dotenv import load_dotenv
 from unittest.mock import patch
+
+import pytest
+from dotenv import load_dotenv
+
 from lightrag.kg.postgres_impl import PostgreSQLDB
 
 pytestmark = pytest.mark.heavy

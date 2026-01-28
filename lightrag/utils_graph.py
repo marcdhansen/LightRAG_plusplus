@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import time
 import asyncio
+import time
 from typing import Any, cast
 
-from .base import DeletionResult
-from .kg.shared_storage import get_storage_keyed_lock
+from .base import DeletionResult, StorageNameSpace
 from .constants import GRAPH_FIELD_SEP
+from .kg.shared_storage import get_storage_keyed_lock
 from .utils import compute_mdhash_id, logger
-from .base import StorageNameSpace
 
 
 async def _persist_graph_updates(
@@ -302,7 +301,10 @@ async def _edit_entity_impl(
             "entity_name"
         ]  # Node data should not contain entity_name field
 
-    if is_renaming:
+    is_renaming = False
+    new_entity_name = entity_name
+    relations_to_update = []
+    if "entity_name" in updated_data and updated_data["entity_name"] != entity_name:
         logger.info(f"Entity Edit: renaming `{entity_name}` to `{new_entity_name}`")
 
         await chunk_entity_relation_graph.upsert_node(new_entity_name, new_node_data)
@@ -344,7 +346,8 @@ async def _edit_entity_impl(
             description = edge_data.get("description", "")
             keywords = edge_data.get("keywords", "")
             source_id = edge_data.get("source_id", "")
-            weight = float(edge_data.get("weight", 1.0))
+            weight_val = edge_data.get("weight", 1.0)
+            weight = float(weight_val) if weight_val is not None else 1.0
 
             content = f"{normalized_src}\t{normalized_tgt}\n{keywords}\n{description}"
 
@@ -390,7 +393,7 @@ async def _edit_entity_impl(
     await entities_vdb.upsert(entity_data)
 
     if entity_chunks_storage is not None or relation_chunks_storage is not None:
-        from .utils import make_relation_chunk_key, compute_incremental_chunk_ids
+        from .utils import compute_incremental_chunk_ids, make_relation_chunk_key
 
         if entity_chunks_storage is not None:
             storage_key = original_entity_name if is_renaming else entity_name
@@ -713,7 +716,7 @@ async def aedit_entity(
 
 async def aedit_relation(
     chunk_entity_relation_graph,
-    entities_vdb,
+    _entities_vdb,
     relationships_vdb,
     source_entity: str,
     target_entity: str,
@@ -812,8 +815,8 @@ async def aedit_relation(
             #    - relation_chunks_storage has no existing data (migration/initialization scenario)
             if relation_chunks_storage is not None:
                 from .utils import (
-                    make_relation_chunk_key,
                     compute_incremental_chunk_ids,
+                    make_relation_chunk_key,
                 )
 
                 storage_key = make_relation_chunk_key(source_entity, target_entity)
@@ -1011,7 +1014,7 @@ async def acreate_entity(
 
 async def acreate_relation(
     chunk_entity_relation_graph,
-    entities_vdb,
+    _entities_vdb,
     relationships_vdb,
     source_entity: str,
     target_entity: str,
@@ -1166,8 +1169,8 @@ async def _merge_entities_impl(
     source_entities: list[str],
     target_entity: str,
     *,
-    merge_strategy: dict[str, str] = None,
-    target_entity_data: dict[str, Any] = None,
+    merge_strategy: dict[str, str] | None = None,
+    target_entity_data: dict[str, Any] | None = None,
     entity_chunks_storage=None,
     relation_chunks_storage=None,
 ) -> dict[str, Any]:
@@ -1277,11 +1280,14 @@ async def _merge_entities_impl(
     relation_chunk_tracking = {}  # key: storage_key, value: list of chunk_ids
     old_relation_keys_to_delete = []
 
+    from .utils import make_relation_chunk_key
+
     for src, tgt, edge_data in all_relations:
         relations_to_delete.append(compute_mdhash_id(src + tgt, prefix="rel-"))
         relations_to_delete.append(compute_mdhash_id(tgt + src, prefix="rel-"))
 
         # Collect old chunk tracking key for deletion
+        old_storage_key = None
         if relation_chunks_storage is not None:
             from .utils import make_relation_chunk_key
 
@@ -1531,8 +1537,8 @@ async def amerge_entities(
     relationships_vdb,
     source_entities: list[str],
     target_entity: str,
-    merge_strategy: dict[str, str] = None,
-    target_entity_data: dict[str, Any] = None,
+    merge_strategy: dict[str, str] | None = None,
+    target_entity_data: dict[str, Any] | None = None,
     entity_chunks_storage=None,
     relation_chunks_storage=None,
 ) -> dict[str, Any]:
@@ -1655,7 +1661,7 @@ def _merge_attributes(
         elif strategy == "max":
             # For numeric fields like weight
             try:
-                merged_data[key] = max(float(v) for v in values)
+                merged_data[key] = max(float(v) for v in values if v is not None)
             except (ValueError, TypeError):
                 # Fallback to first value if conversion fails
                 merged_data[key] = values[0]

@@ -1,7 +1,8 @@
 from __future__ import annotations
-import logging
+
 import json
-from typing import Dict, Any, List, TYPE_CHECKING
+import logging
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from lightrag.core import LightRAG
@@ -18,7 +19,7 @@ class ACEReflector:
     def __init__(self, lightrag_instance: LightRAG):
         self.rag = lightrag_instance
 
-    def _parse_json_list(self, llm_output: str) -> List[Any]:
+    def _parse_json_list(self, llm_output: str) -> list[Any]:
         """
         Robustly extracts and parses a JSON list from LLM output.
         """
@@ -43,7 +44,7 @@ class ACEReflector:
             )
             return []
 
-    async def reflect(self, query: str, generation_result: Dict[str, Any]) -> List[str]:
+    async def reflect(self, query: str, generation_result: dict[str, Any]) -> list[str]:
         """
         Analyzes the interaction and returns a list of insights/lessons.
         """
@@ -82,8 +83,8 @@ class ACEReflector:
             return [f"Reflection failed: {e}"]
 
     async def reflect_graph_issues(
-        self, query: str, generation_result: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, query: str, generation_result: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         Analyzes retrieved context for hallucinations, illogical relationships, or duplicate entities.
         Returns a list of repair actions.

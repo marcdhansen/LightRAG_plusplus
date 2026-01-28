@@ -1,13 +1,13 @@
-import os
-import json
-import time
 import asyncio
+import json
+import os
+import time
 
 from lightrag import LightRAG
 
 
 def insert_text(rag, file_path):
-    with open(file_path, mode="r") as f:
+    with open(file_path) as f:
         unique_contexts = json.load(f)
 
     retries = 0

@@ -1,10 +1,12 @@
-import pytest
-import shutil
 import os
+import shutil
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from lightrag.ace.config import ACEConfig
 from lightrag.ace.curator import ACECurator
 from lightrag.ace.playbook import ContextPlaybook
-from lightrag.ace.config import ACEConfig
 
 
 @pytest.fixture

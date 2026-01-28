@@ -1,9 +1,10 @@
 from __future__ import annotations
-import logging
+
 import json
+import logging
 import os
 import uuid
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from lightrag.core import LightRAG
@@ -26,13 +27,13 @@ class ACECurator:
         self.repairs_file = os.path.join(
             self.playbook.config.base_dir, "ace_repairs.json"
         )
-        self.pending_repairs: Dict[str, Dict[str, Any]] = {}
+        self.pending_repairs: dict[str, dict[str, Any]] = {}
         self._load_repairs()
 
     def _load_repairs(self):
         if os.path.exists(self.repairs_file):
             try:
-                with open(self.repairs_file, "r") as f:
+                with open(self.repairs_file) as f:
                     self.pending_repairs = json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load pending repairs: {e}")
@@ -47,7 +48,7 @@ class ACECurator:
         except Exception as e:
             logger.error(f"Failed to save pending repairs: {e}")
 
-    async def curate(self, insights: List[str]):
+    async def curate(self, insights: list[str]):
         """
         Incorporates insights into the playbook.
         """
@@ -62,7 +63,7 @@ class ACECurator:
             self.playbook.add_lesson(insight)
             logger.info(f"ACE Curator: Added lesson: {insight}")
 
-    async def apply_repairs(self, repairs: List[Dict[str, Any]]):
+    async def apply_repairs(self, repairs: list[dict[str, Any]]):
         """
         Applies graph repairs (deletions, updates) to the LightRAG instance.
         """
@@ -102,7 +103,7 @@ class ACECurator:
         for repair in repairs:
             await self._execute_repair(repair)
 
-    async def _execute_repair(self, repair: Dict[str, Any]):
+    async def _execute_repair(self, repair: dict[str, Any]):
         action = repair.get("action")
         try:
             if action == "delete_relation":
@@ -134,7 +135,7 @@ class ACECurator:
         except Exception as e:
             logger.error(f"ACE Curator: Failed to apply repair {repair}: {e}")
 
-    def get_pending_repairs(self) -> List[Dict[str, Any]]:
+    def get_pending_repairs(self) -> list[dict[str, Any]]:
         return list(self.pending_repairs.values())
 
     async def approve_repair(self, repair_id: str):

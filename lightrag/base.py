@@ -1,36 +1,34 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from enum import Enum
 import os
-from dotenv import load_dotenv
+from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import (
     Any,
     Literal,
     TypedDict,
     TypeVar,
-    Callable,
-    Optional,
-    Dict,
-    List,
-    AsyncIterator,
 )
-from .utils import EmbeddingFunc
-from .core_types import KnowledgeGraph
+
+from dotenv import load_dotenv
+
 from .constants import (
-    DEFAULT_TOP_K,
     DEFAULT_CHUNK_TOP_K,
+    DEFAULT_HISTORY_TURNS,
     DEFAULT_MAX_ENTITY_TOKENS,
     DEFAULT_MAX_RELATION_TOKENS,
     DEFAULT_MAX_TOTAL_TOKENS,
-    DEFAULT_HISTORY_TURNS,
-    DEFAULT_OLLAMA_MODEL_NAME,
-    DEFAULT_OLLAMA_MODEL_TAG,
-    DEFAULT_OLLAMA_MODEL_SIZE,
     DEFAULT_OLLAMA_CREATED_AT,
     DEFAULT_OLLAMA_DIGEST,
+    DEFAULT_OLLAMA_MODEL_NAME,
+    DEFAULT_OLLAMA_MODEL_SIZE,
+    DEFAULT_OLLAMA_MODEL_TAG,
+    DEFAULT_TOP_K,
 )
+from .core_types import KnowledgeGraph
+from .utils import EmbeddingFunc
 
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
@@ -267,7 +265,7 @@ class BaseVectorStorage(StorageNameSpace, ABC):
 
     @abstractmethod
     async def query(
-        self, query: str, top_k: int, query_embedding: list[float] = None
+        self, query: str, top_k: int, query_embedding: list[float] | None = None
     ) -> list[dict[str, Any]]:
         """Query the vector storage and retrieve top_k results.
 
@@ -573,7 +571,7 @@ class BaseGraphStorage(StorageNameSpace, ABC):
         return result
 
     @abstractmethod
-    async def upsert_node(self, node_id: str, node_data: dict[str, str]) -> None:
+    async def upsert_node(self, node_id: str, node_data: dict[str, Any]) -> None:
         """Insert a new node or update an existing node in the graph.
 
         Importance notes for in-memory storage:
@@ -588,7 +586,7 @@ class BaseGraphStorage(StorageNameSpace, ABC):
 
     @abstractmethod
     async def upsert_edge(
-        self, source_node_id: str, target_node_id: str, edge_data: dict[str, str]
+        self, source_node_id: str, target_node_id: str, edge_data: dict[str, Any]
     ) -> None:
         """Insert a new edge or update an existing edge in the graph.
 
@@ -842,7 +840,7 @@ class StoragesStatus(str, Enum):
 class DeletionResult:
     """Represents the result of a deletion operation."""
 
-    status: Literal["success", "not_found", "fail"]
+    status: Literal["success", "not_found", "fail", "not_allowed"]
     doc_id: str
     message: str
     status_code: int = 200
@@ -864,13 +862,13 @@ class QueryResult:
         is_streaming: Whether this is a streaming result
     """
 
-    content: Optional[str] = None
-    response_iterator: Optional[AsyncIterator[str]] = None
-    raw_data: Optional[Dict[str, Any]] = None
+    content: str | None = None
+    response_iterator: AsyncIterator[str] | None = None
+    raw_data: dict[str, Any] | None = None
     is_streaming: bool = False
 
     @property
-    def reference_list(self) -> List[Dict[str, str]]:
+    def reference_list(self) -> list[dict[str, str]]:
         """
         Convenient property to extract reference list from raw_data.
 
@@ -883,7 +881,7 @@ class QueryResult:
         return []
 
     @property
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         """
         Convenient property to extract metadata from raw_data.
 
@@ -906,9 +904,9 @@ class QueryContextResult:
     """
 
     context: str
-    raw_data: Dict[str, Any]
+    raw_data: dict[str, Any]
 
     @property
-    def reference_list(self) -> List[Dict[str, str]]:
+    def reference_list(self) -> list[dict[str, str]]:
         """Convenient property to extract reference list from raw_data."""
         return self.raw_data.get("data", {}).get("references", [])

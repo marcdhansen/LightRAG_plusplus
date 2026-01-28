@@ -1,6 +1,8 @@
 import asyncio
-import pytest
+
 import numpy as np
+import pytest
+
 from lightrag.kg.memgraph_impl import MemgraphVectorStorage
 
 pytestmark = [pytest.mark.heavy, pytest.mark.integration]

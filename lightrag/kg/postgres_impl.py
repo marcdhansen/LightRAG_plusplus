@@ -1,19 +1,19 @@
 import asyncio
+import configparser
+import datetime
 import hashlib
+import itertools
 import json
 import os
 import re
-import datetime
-from datetime import timezone
-from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable, TypeVar, Union, final
-import numpy as np
-import configparser
 import ssl
-import itertools
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass, field
+from datetime import timezone
+from typing import Any, TypeVar, final
 
-from lightrag.core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
-
+import numpy as np
+import pipmaster as pm
 from tenacity import (
     AsyncRetrying,
     RetryCallState,
@@ -24,6 +24,8 @@ from tenacity import (
     wait_fixed,
 )
 
+from lightrag.core_types import KnowledgeGraph, KnowledgeGraphEdge, KnowledgeGraphNode
+
 from ..base import (
     BaseGraphStorage,
     BaseKVStorage,
@@ -33,11 +35,9 @@ from ..base import (
     DocStatusStorage,
 )
 from ..exceptions import DataMigrationError
+from ..kg.shared_storage import get_data_init_lock
 from ..namespace import NameSpace, is_namespace
 from ..utils import logger
-from ..kg.shared_storage import get_data_init_lock
-
-import pipmaster as pm
 
 if not pm.is_installed("asyncpg"):
     pm.install("asyncpg")
@@ -46,9 +46,8 @@ if not pm.is_installed("pgvector"):
 
 import asyncpg  # type: ignore
 from asyncpg import Pool  # type: ignore
-from pgvector.asyncpg import register_vector  # type: ignore
-
 from dotenv import load_dotenv
+from pgvector.asyncpg import register_vector  # type: ignore
 
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
@@ -126,7 +125,7 @@ def _dollar_quote(s: str, tag_prefix: str = "AGE") -> str:
 
 
 class PostgreSQLDB:
-    def __init__(self, config: dict[str, Any], **kwargs: Any):
+    def __init__(self, config: dict[str, Any], **_kwargs: Any):
         self.host = config["host"]
         self.port = config["port"]
         self.user = config["user"]
@@ -258,7 +257,7 @@ class PostgreSQLDB:
 
             except Exception as e:
                 logger.error(f"PostgreSQL, Failed to create SSL context: {e}")
-                raise ValueError(f"SSL configuration error: {e}")
+                raise ValueError(f"SSL configuration error: {e}") from e
 
         # Unknown SSL mode
         logger.warning(f"PostgreSQL, Unknown SSL mode: {ssl_mode}, SSL disabled")
@@ -684,7 +683,7 @@ class PostgreSQLDB:
             # Optimization: Batch check all columns in one query instead of 8 separate queries
             table_names_lower = [t.lower() for t in tables_to_migrate.keys()]
             all_column_names = list(
-                set(col for cols in tables_to_migrate.values() for col in cols)
+                {col for cols in tables_to_migrate.values() for col in cols}
             )
 
             check_all_columns_sql = """
@@ -1160,8 +1159,8 @@ class PostgreSQLDB:
             field_migrations = existing_migrations
 
             # Optimization: Batch check all columns in one query instead of 5 separate queries
-            unique_tables = list(set(m["table"].lower() for m in field_migrations))
-            unique_columns = list(set(m["column"] for m in field_migrations))
+            unique_tables = list({m["table"].lower() for m in field_migrations})
+            unique_columns = list({m["column"] for m in field_migrations})
 
             check_all_columns_sql = """
             SELECT table_name, column_name, data_type, character_maximum_length, is_nullable
@@ -1617,13 +1616,13 @@ class PostgreSQLDB:
 
             if multirows:
                 if rows:
-                    columns = [col for col in rows[0].keys()]
-                    return [dict(zip(columns, row)) for row in rows]
+                    columns = list(rows[0].keys())
+                    return [dict(zip(columns, row, strict=False)) for row in rows]
                 return []
 
             if rows:
                 columns = rows[0].keys()
-                return dict(zip(columns, rows[0]))
+                return dict(zip(columns, rows[0], strict=False))
             return None
 
         try:
@@ -2163,7 +2162,7 @@ class PGKVStorage(BaseKVStorage):
                 exist_keys = [key["id"] for key in res]
             else:
                 exist_keys = []
-            new_keys = set([s for s in keys if s not in exist_keys])
+            new_keys = {s for s in keys if s not in exist_keys}
             return new_keys
         except Exception as e:
             logger.error(
@@ -2465,7 +2464,7 @@ class PGVectorStorage(BaseVectorStorage):
         new_table_name: str,
         workspace: str,
         expected_count: int,
-        embedding_dim: int,
+        _embedding_dim: int,
     ) -> int:
         """Migrate workspace data from legacy table to new table using batch insert.
 
@@ -2689,7 +2688,7 @@ class PGVectorStorage(BaseVectorStorage):
                         raise DataMigrationError(
                             f"Could not verify legacy table vector dimension: {e}. "
                             f"Proceeding with caution..."
-                        )
+                        ) from e
 
             await PGVectorStorage._pg_create_table(
                 db, table_name, base_table, embedding_dim
@@ -2947,7 +2946,7 @@ class PGVectorStorage(BaseVectorStorage):
         list_data = [
             {
                 "__id__": k,
-                **{k1: v1 for k1, v1 in v.items()},
+                **dict(v.items()),
             }
             for k, v in data.items()
         ]
@@ -3266,7 +3265,7 @@ class PGDocStatusStorage(DocStatusStorage):
                 exist_keys = [key["id"] for key in res]
             else:
                 exist_keys = []
-            new_keys = set([s for s in keys if s not in exist_keys])
+            new_keys = {s for s in keys if s not in exist_keys}
             # print(f"keys: {keys}")
             # print(f"new_keys: {new_keys}")
             return new_keys
@@ -3276,7 +3275,7 @@ class PGDocStatusStorage(DocStatusStorage):
             )
             raise
 
-    async def get_by_id(self, id: str) -> Union[dict[str, Any], None]:
+    async def get_by_id(self, id: str) -> dict[str, Any] | None:
         sql = "select * from LIGHTRAG_DOC_STATUS where workspace=$1 and id=$2"
         params = {"workspace": self.workspace, "id": id}
         result = await self.db.query(sql, list(params.values()), True)
@@ -3372,7 +3371,7 @@ class PGDocStatusStorage(DocStatusStorage):
 
         return ordered_results
 
-    async def get_doc_by_file_path(self, file_path: str) -> Union[dict[str, Any], None]:
+    async def get_doc_by_file_path(self, file_path: str) -> dict[str, Any] | None:
         """Get document by file path
 
         Args:
@@ -3845,7 +3844,7 @@ class PGDocStatusStorage(DocStatusStorage):
 class PGGraphQueryException(Exception):
     """Exception for the AGE queries."""
 
-    def __init__(self, exception: Union[str, dict[str, Any]]) -> None:
+    def __init__(self, exception: str | dict[str, Any]) -> None:
         if isinstance(exception, dict):
             self.message = exception["message"] if "message" in exception else "unknown"
             self.details = exception["details"] if "details" in exception else "unknown"
@@ -4096,9 +4095,7 @@ class PGGraphStorage(BaseGraphStorage):
         return d
 
     @staticmethod
-    def _format_properties(
-        properties: dict[str, Any], _id: Union[str, None] = None
-    ) -> str:
+    def _format_properties(properties: dict[str, Any], _id: str | None = None) -> str:
         """
         Convert a dictionary of properties to a string representation that
         can be used in a cypher query insert/merge statement.
@@ -4820,15 +4817,12 @@ class PGGraphStorage(BaseGraphStorage):
         Returns:
             list[str]: A list of all labels in the graph.
         """
-        query = (
-            """SELECT * FROM cypher('%s', $$
+        query = f"""SELECT * FROM cypher('{self.graph_name}', $$
                      MATCH (n:base)
                      WHERE n.entity_id IS NOT NULL
                      RETURN DISTINCT n.entity_id AS label
                      ORDER BY n.entity_id
                    $$) AS (label text)"""
-            % self.graph_name
-        )
 
         results = await self._query(query)
         labels = []

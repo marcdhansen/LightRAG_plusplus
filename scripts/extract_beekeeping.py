@@ -1,5 +1,6 @@
-import pypdf
 import os
+
+import pypdf
 
 pdf_path = "/Users/marchansen/antigravity_lightrag/LightRAG/docs/LightRAG-simple and fast retrieval-augmented generation.pdf"
 output_path = (

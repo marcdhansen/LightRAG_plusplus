@@ -1,7 +1,7 @@
-import os
-import json
-import glob
 import argparse
+import glob
+import json
+import os
 
 
 def extract_unique_contexts(input_directory, output_directory):
@@ -21,7 +21,7 @@ def extract_unique_contexts(input_directory, output_directory):
         print(f"Processing file: {filename}")
 
         try:
-            with open(file_path, "r", encoding="utf-8") as infile:
+            with open(file_path, encoding="utf-8") as infile:
                 for line_number, line in enumerate(infile, start=1):
                     line = line.strip()
                     if not line:

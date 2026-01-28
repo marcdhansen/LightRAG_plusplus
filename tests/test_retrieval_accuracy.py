@@ -1,6 +1,5 @@
-import pytest
-
 import httpx
+import pytest
 
 pytestmark = pytest.mark.heavy
 

@@ -1,12 +1,17 @@
-import pytest
 import numpy as np
+import pytest
+
 from lightrag.kg.memgraph_impl import MemgraphStorage
 from lightrag.kg.shared_storage import initialize_share_data
+from tests.test_graph_storage import (
+    test_graph_advanced as _test_graph_advanced,
+)
 
 # Import generic tests to reuse them
 from tests.test_graph_storage import (
     test_graph_basic as _test_graph_basic,
-    test_graph_advanced as _test_graph_advanced,
+)
+from tests.test_graph_storage import (
     test_graph_batch_operations as _test_graph_batch_operations,
 )
 

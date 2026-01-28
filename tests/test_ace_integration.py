@@ -1,11 +1,12 @@
 import pytest
-from lightrag.core import LightRAG
+
 from lightrag.ace.config import ACEConfig
-from lightrag.ace.playbook import ContextPlaybook
-from lightrag.ace.generator import ACEGenerator
-from lightrag.ace.reflector import ACEReflector
 from lightrag.ace.curator import ACECurator
-from lightrag.llm.ollama import ollama_model_complete, ollama_embed
+from lightrag.ace.generator import ACEGenerator
+from lightrag.ace.playbook import ContextPlaybook
+from lightrag.ace.reflector import ACEReflector
+from lightrag.core import LightRAG
+from lightrag.llm.ollama import ollama_embed, ollama_model_complete
 from lightrag.utils import EmbeddingFunc
 
 pytestmark = pytest.mark.heavy

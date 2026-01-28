@@ -4,7 +4,7 @@ import hashlib
 import os
 import uuid
 from dataclasses import dataclass
-from typing import Any, List, final
+from typing import Any, final
 
 import numpy as np
 import pipmaster as pm
@@ -595,7 +595,7 @@ class QdrantVectorDBStorage(BaseVectorStorage):
         # Qdrant handles persistence automatically
         pass
 
-    async def delete(self, ids: List[str]) -> None:
+    async def delete(self, ids: list[str]) -> None:
         """Delete vectors with specified IDs
 
         Args:
@@ -823,7 +823,7 @@ class QdrantVectorDBStorage(BaseVectorStorage):
                     payload_by_original_id[str(original_id)] = payload
 
             ordered_payloads: list[dict[str, Any] | None] = []
-            for requested_id, qdrant_id in zip(ids, qdrant_ids):
+            for requested_id, qdrant_id in zip(ids, qdrant_ids, strict=False):
                 payload = payload_by_original_id.get(str(requested_id))
                 if payload is None:
                     payload = payload_by_qdrant_id.get(str(qdrant_id))

@@ -1,28 +1,30 @@
-import re
 import json
-import jsonlines
+import re
 
+import jsonlines
 from openai import OpenAI
 
 
 def batch_eval(query_file, result1_file, result2_file, output_file_path):
     client = OpenAI()
 
-    with open(query_file, "r") as f:
+    with open(query_file) as f:
         data = f.read()
 
     queries = re.findall(r"- Question \d+: (.+)", data)
 
-    with open(result1_file, "r") as f:
+    with open(result1_file) as f:
         answers1 = json.load(f)
     answers1 = [i["result"] for i in answers1]
 
-    with open(result2_file, "r") as f:
+    with open(result2_file) as f:
         answers2 = json.load(f)
     answers2 = [i["result"] for i in answers2]
 
     requests = []
-    for i, (query, answer1, answer2) in enumerate(zip(queries, answers1, answers2)):
+    for i, (query, answer1, answer2) in enumerate(
+        zip(queries, answers1, answers2, strict=False)
+    ):
         sys_prompt = """
         ---Role---
         You are an expert tasked with evaluating two answers to the same question based on three criteria: **Comprehensiveness**, **Diversity**, and **Empowerment**.

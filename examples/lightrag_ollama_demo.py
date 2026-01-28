@@ -1,14 +1,15 @@
 import asyncio
-import os
 import inspect
 import logging
 import logging.config
+import os
 from functools import partial
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.ollama import ollama_model_complete, ollama_embed
-from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
 
 from dotenv import load_dotenv
+
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.ollama import ollama_embed, ollama_model_complete
+from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
 
 load_dotenv(dotenv_path=".env", override=False)
 
@@ -149,7 +150,7 @@ async def main():
         print(f"Test dict: {test_text}")
         print(f"Detected embedding dimension: {embedding_dim}\n\n")
 
-        with open("./book.txt", "r", encoding="utf-8") as f:
+        with open("./book.txt", encoding="utf-8") as f:
             await rag.ainsert(f.read())
 
         # Perform naive search

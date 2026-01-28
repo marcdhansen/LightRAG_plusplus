@@ -7,13 +7,13 @@ Tests:
 3. Token renewal state tracking
 """
 
-import pytest
-
+import sys
+import time
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
+
+import pytest
 from fastapi import Response
-import time
-import sys
 
 pytestmark = pytest.mark.heavy
 

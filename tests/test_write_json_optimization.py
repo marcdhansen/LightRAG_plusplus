@@ -8,12 +8,13 @@ This test verifies:
 4. Reloading updates shared memory with cleaned data
 """
 
-import os
 import json
+import os
 import tempfile
+
 import pytest
 
-from lightrag.utils import write_json, load_json, SanitizingJSONEncoder
+from lightrag.utils import SanitizingJSONEncoder, load_json, write_json
 
 pytestmark = pytest.mark.light
 

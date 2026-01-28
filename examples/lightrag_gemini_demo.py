@@ -15,13 +15,14 @@ Usage:
     python examples/lightrag_gemini_demo.py
 """
 
-import os
 import asyncio
+import os
+
 import nest_asyncio
 import numpy as np
 
 from lightrag import LightRAG, QueryParam
-from lightrag.llm.gemini import gemini_model_complete, gemini_embed
+from lightrag.llm.gemini import gemini_embed, gemini_model_complete
 from lightrag.utils import wrap_embedding_func_with_attrs
 
 nest_asyncio.apply()
@@ -44,7 +45,9 @@ if not os.path.exists(WORKING_DIR):
 # --------------------------------------------------
 # LLM function
 # --------------------------------------------------
-async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs):
+async def llm_model_func(prompt, system_prompt=None, history_messages=None, **kwargs):
+    if history_messages is None:
+        history_messages = []
     return await gemini_model_complete(
         prompt,
         system_prompt=system_prompt,
@@ -100,7 +103,7 @@ def main():
     rag = asyncio.run(initialize_rag())
 
     # Insert text
-    with open(BOOK_FILE, "r", encoding="utf-8") as f:
+    with open(BOOK_FILE, encoding="utf-8") as f:
         rag.insert(f.read())
 
     query = "What are the top themes?"

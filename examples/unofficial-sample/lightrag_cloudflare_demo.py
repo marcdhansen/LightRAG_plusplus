@@ -1,14 +1,15 @@
 import asyncio
-import os
 import inspect
 import logging
 import logging.config
+import os
+
+import numpy as np
+import requests
+from dotenv import load_dotenv
+
 from lightrag import LightRAG, QueryParam
 from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
-
-import requests
-import numpy as np
-from dotenv import load_dotenv
 
 """This code is a modified version of lightrag_openai_demo.py"""
 
@@ -263,7 +264,7 @@ async def main():
 
         # Locate the location of what is needed to be added to the knowledge
         # Can add several simultaneously by modifying code
-        with open("./book.txt", "r", encoding="utf-8") as f:
+        with open("./book.txt", encoding="utf-8") as f:
             await rag.ainsert(f.read())
 
         # Perform naive search

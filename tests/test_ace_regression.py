@@ -1,10 +1,12 @@
 import asyncio
 import os
-import pytest
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.ollama import ollama_model_complete, ollama_embed
-from lightrag.utils import EmbeddingFunc
 from functools import partial
+
+import pytest
+
+from lightrag import LightRAG, QueryParam
+from lightrag.llm.ollama import ollama_embed, ollama_model_complete
+from lightrag.utils import EmbeddingFunc
 
 WORKING_DIR = "./rag_storage_ace_regression"
 

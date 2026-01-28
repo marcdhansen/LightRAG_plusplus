@@ -1,6 +1,8 @@
-import pytest
 import os
 import shutil
+
+import pytest
+
 from lightrag import LightRAG
 from lightrag.utils import EmbeddingFunc
 

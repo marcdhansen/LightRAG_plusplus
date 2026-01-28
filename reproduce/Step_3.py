@@ -1,11 +1,12 @@
-import re
 import json
+import re
+
 from lightrag import LightRAG, QueryParam
 from lightrag.utils import always_get_an_event_loop
 
 
 def extract_queries(file_path):
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         data = f.read()
 
     data = data.replace("**", "")

@@ -9,7 +9,6 @@ import os
 import sys
 from pathlib import Path
 
-
 # Known tiktoken encoding names (not model names)
 # These need to be loaded with tiktoken.get_encoding() instead of tiktoken.encoding_for_model()
 TIKTOKEN_ENCODING_NAMES = {"cl100k_base", "p50k_base", "r50k_base", "o200k_base"}

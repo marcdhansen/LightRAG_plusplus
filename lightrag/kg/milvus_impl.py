@@ -1,19 +1,28 @@
 import asyncio
 import os
-from typing import Any, final
 from dataclasses import dataclass
+from typing import Any, final
+
 import numpy as np
-from lightrag.utils import logger, compute_mdhash_id
+import pipmaster as pm
+
+from lightrag.utils import compute_mdhash_id, logger
+
 from ..base import BaseVectorStorage
 from ..constants import DEFAULT_MAX_FILE_PATH_LENGTH
 from ..kg.shared_storage import get_data_init_lock
-import pipmaster as pm
 
 if not pm.is_installed("pymilvus"):
     pm.install("pymilvus>=2.6.2")
 
 import configparser
-from pymilvus import MilvusClient, DataType, CollectionSchema, FieldSchema  # type: ignore
+
+from pymilvus import (  # type: ignore
+    CollectionSchema,
+    DataType,
+    FieldSchema,
+    MilvusClient,
+)
 
 config = configparser.ConfigParser()
 config.read("config.ini", "utf-8")
@@ -865,7 +874,7 @@ class MilvusVectorDBStorage(BaseVectorStorage):
                         f"Collection validation failed for '{self.final_namespace}'. "
                         f"Data migration failure detected. Manual intervention required to prevent data loss. "
                         f"Original error: {validation_error}"
-                    )
+                    ) from validation_error
 
             # Collection doesn't exist, create new collection
             logger.info(f"[{self.workspace}] Creating new collection: {self.namespace}")
@@ -1071,7 +1080,7 @@ class MilvusVectorDBStorage(BaseVectorStorage):
         return results
 
     async def query(
-        self, query: str, top_k: int, query_embedding: list[float] = None
+        self, query: str, top_k: int, query_embedding: list[float] | None = None
     ) -> list[dict[str, Any]]:
         # Ensure collection is loaded before querying
         self._ensure_collection_loaded()

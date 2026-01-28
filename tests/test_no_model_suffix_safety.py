@@ -10,10 +10,12 @@ On second startup, Case 1 logic would delete the only table/collection thinking
 it's "legacy", causing all subsequent operations to fail.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
+
 from lightrag.kg.postgres_impl import PGVectorStorage
+from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
 
 pytestmark = pytest.mark.heavy
 

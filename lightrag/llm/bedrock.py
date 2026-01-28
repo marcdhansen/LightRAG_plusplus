@@ -1,36 +1,35 @@
 import copy
-import os
 import json
 import logging
+import os
 
 import pipmaster as pm  # Pipmaster for dynamic library install
 
 if not pm.is_installed("aioboto3"):
     pm.install("aioboto3")
+
+from collections.abc import AsyncIterator
+from typing import NoReturn
+
 import aioboto3
 import numpy as np
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
-import sys
 from lightrag.utils import wrap_embedding_func_with_attrs
-
-if sys.version_info < (3, 9):
-    from typing import AsyncIterator
-else:
-    from collections.abc import AsyncIterator
-from typing import Union
 
 # Import botocore exceptions for proper exception handling
 try:
     from botocore.exceptions import (
         ClientError,
-        ConnectionError as BotocoreConnectionError,
         ReadTimeoutError,
+    )
+    from botocore.exceptions import (
+        ConnectionError as BotocoreConnectionError,
     )
 except ImportError:
     # If botocore is not installed, define placeholders
@@ -61,7 +60,7 @@ def _set_env_if_present(key: str, value):
         os.environ[key] = value
 
 
-def _handle_bedrock_exception(e: Exception, operation: str = "Bedrock API") -> None:
+def _handle_bedrock_exception(e: Exception, operation: str = "Bedrock API") -> NoReturn:
     """Convert AWS Bedrock exceptions to appropriate custom exceptions.
 
     Args:
@@ -78,8 +77,10 @@ def _handle_bedrock_exception(e: Exception, operation: str = "Bedrock API") -> N
 
     # Handle botocore ClientError with specific error codes
     if isinstance(e, ClientError):
-        error_code = e.response.get("Error", {}).get("Code", "")
-        error_msg = e.response.get("Error", {}).get("Message", error_message)
+        # pyright likes to think ClientError is just Exception if not installed
+        response = getattr(e, "response", {})
+        error_code = response.get("Error", {}).get("Code", "")
+        error_msg = response.get("Error", {}).get("Message", error_message)
 
         # Rate limiting and throttling errors (retryable)
         if error_code in [
@@ -145,13 +146,15 @@ async def bedrock_complete_if_cache(
     model,
     prompt,
     system_prompt=None,
-    history_messages=[],
+    history_messages=None,
     enable_cot: bool = False,
     aws_access_key_id=None,
     aws_secret_access_key=None,
     aws_session_token=None,
     **kwargs,
-) -> Union[str, AsyncIterator[str]]:
+) -> str | AsyncIterator[str]:
+    if history_messages is None:
+        history_messages = []
     if enable_cot:
         import logging
 
@@ -210,7 +213,7 @@ async def bedrock_complete_if_cache(
         "stop_sequences": "stopSequences",
     }
     if inference_params := list(
-        set(kwargs) & set(["max_tokens", "temperature", "top_p", "stop_sequences"])
+        set(kwargs) & {"max_tokens", "temperature", "top_p", "stop_sequences"}
     ):
         args["inferenceConfig"] = {}
         for param in inference_params:
@@ -337,8 +340,14 @@ async def bedrock_complete_if_cache(
 
 # Generic Bedrock completion function
 async def bedrock_complete(
-    prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
-) -> Union[str, AsyncIterator[str]]:
+    prompt,
+    system_prompt=None,
+    history_messages=None,
+    _keyword_extraction=False,
+    **kwargs,
+) -> str | AsyncIterator[str]:
+    if history_messages is None:
+        history_messages = []
     kwargs.pop("keyword_extraction", None)
     model_name = kwargs["hashing_kv"].global_config["llm_model_name"]
     result = await bedrock_complete_if_cache(

@@ -1,126 +1,117 @@
 from __future__ import annotations
 
-import traceback
 import asyncio
 import configparser
 import inspect
 import os
 import time
+import traceback
 import warnings
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from functools import partial
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Iterator,
+    Literal,
     cast,
     final,
-    Literal,
-    Optional,
-    List,
-    Dict,
-    Union,
-)
-from lightrag.prompt import PROMPTS
-from lightrag.exceptions import PipelineCancelledException
-from lightrag.constants import (
-    DEFAULT_MAX_GLEANING,
-    DEFAULT_FORCE_LLM_SUMMARY_ON_MERGE,
-    DEFAULT_TOP_K,
-    DEFAULT_CHUNK_TOP_K,
-    DEFAULT_MAX_ENTITY_TOKENS,
-    DEFAULT_MAX_RELATION_TOKENS,
-    DEFAULT_MAX_TOTAL_TOKENS,
-    DEFAULT_COSINE_THRESHOLD,
-    DEFAULT_RELATED_CHUNK_NUMBER,
-    DEFAULT_KG_CHUNK_PICK_METHOD,
-    DEFAULT_MIN_RERANK_SCORE,
-    DEFAULT_SUMMARY_MAX_TOKENS,
-    DEFAULT_SUMMARY_CONTEXT_SIZE,
-    DEFAULT_SUMMARY_LENGTH_RECOMMENDED,
-    DEFAULT_MAX_ASYNC,
-    DEFAULT_MAX_PARALLEL_INSERT,
-    DEFAULT_MAX_GRAPH_NODES,
-    DEFAULT_MAX_SOURCE_IDS_PER_ENTITY,
-    DEFAULT_MAX_SOURCE_IDS_PER_RELATION,
-    DEFAULT_ENTITY_TYPES,
-    DEFAULT_SUMMARY_LANGUAGE,
-    DEFAULT_LLM_TIMEOUT,
-    DEFAULT_EMBEDDING_TIMEOUT,
-    DEFAULT_SOURCE_IDS_LIMIT_METHOD,
-    DEFAULT_MAX_FILE_PATHS,
-    DEFAULT_FILE_PATH_MORE_PLACEHOLDER,
-)
-from lightrag.utils import get_env_value
-
-from lightrag.kg import (
-    STORAGES,
-    verify_storage_implementation,
 )
 
+from dotenv import load_dotenv
 
-from lightrag.kg.shared_storage import (
-    get_namespace_data,
-    get_data_init_lock,
-    get_default_workspace,
-    set_default_workspace,
-    get_namespace_lock,
-)
-from lightrag.kg.shared_storage import append_pipeline_log
-
+from lightrag.ace.config import ACEConfig
+from lightrag.ace.curator import ACECurator
+from lightrag.ace.generator import ACEGenerator
+from lightrag.ace.playbook import ContextPlaybook
+from lightrag.ace.reflector import ACEReflector
 from lightrag.base import (
     BaseGraphStorage,
     BaseKVStorage,
     BaseVectorStorage,
+    DeletionResult,
     DocProcessingStatus,
     DocStatus,
     DocStatusStorage,
+    OllamaServerInfos,
     QueryParam,
+    QueryResult,
     StorageNameSpace,
     StoragesStatus,
-    DeletionResult,
-    OllamaServerInfos,
-    QueryResult,
+)
+from lightrag.constants import (
+    DEFAULT_CHUNK_TOP_K,
+    DEFAULT_COSINE_THRESHOLD,
+    DEFAULT_EMBEDDING_TIMEOUT,
+    DEFAULT_ENTITY_TYPES,
+    DEFAULT_FILE_PATH_MORE_PLACEHOLDER,
+    DEFAULT_FORCE_LLM_SUMMARY_ON_MERGE,
+    DEFAULT_KG_CHUNK_PICK_METHOD,
+    DEFAULT_LLM_TIMEOUT,
+    DEFAULT_MAX_ASYNC,
+    DEFAULT_MAX_ENTITY_TOKENS,
+    DEFAULT_MAX_FILE_PATHS,
+    DEFAULT_MAX_GLEANING,
+    DEFAULT_MAX_GRAPH_NODES,
+    DEFAULT_MAX_PARALLEL_INSERT,
+    DEFAULT_MAX_RELATION_TOKENS,
+    DEFAULT_MAX_SOURCE_IDS_PER_ENTITY,
+    DEFAULT_MAX_SOURCE_IDS_PER_RELATION,
+    DEFAULT_MAX_TOTAL_TOKENS,
+    DEFAULT_MIN_RERANK_SCORE,
+    DEFAULT_RELATED_CHUNK_NUMBER,
+    DEFAULT_SOURCE_IDS_LIMIT_METHOD,
+    DEFAULT_SUMMARY_CONTEXT_SIZE,
+    DEFAULT_SUMMARY_LANGUAGE,
+    DEFAULT_SUMMARY_LENGTH_RECOMMENDED,
+    DEFAULT_SUMMARY_MAX_TOKENS,
+    DEFAULT_TOP_K,
+    GRAPH_FIELD_SEP,
+)
+from lightrag.core_types import KnowledgeGraph
+from lightrag.exceptions import PipelineCancelledException
+from lightrag.kg import (
+    STORAGES,
+    verify_storage_implementation,
+)
+from lightrag.kg.shared_storage import (
+    append_pipeline_log,
+    get_data_init_lock,
+    get_default_workspace,
+    get_namespace_data,
+    get_namespace_lock,
+    set_default_workspace,
 )
 from lightrag.namespace import NameSpace
 from lightrag.operate import (
     chunking_by_token_size,
     extract_entities,
-    merge_nodes_and_edges,
     kg_query,
+    merge_nodes_and_edges,
     naive_query,
     rebuild_knowledge_from_chunks,
 )
-from lightrag.constants import GRAPH_FIELD_SEP
+from lightrag.prompt import PROMPTS
 from lightrag.utils import (
-    Tokenizer,
-    TiktokenTokenizer,
     EmbeddingFunc,
+    TiktokenTokenizer,
+    Tokenizer,
     always_get_an_event_loop,
-    compute_mdhash_id,
-    lazy_external_import,
-    priority_limit_async_func_call,
-    get_content_summary,
-    sanitize_text_for_encoding,
     check_storage_env_vars,
-    generate_track_id,
+    compute_mdhash_id,
     convert_to_user_format,
+    generate_track_id,
+    get_content_summary,
+    get_env_value,
+    lazy_external_import,
     logger,
-    subtract_source_ids,
     make_relation_chunk_key,
     normalize_source_ids_limit_method,
     parse_model_size,
+    priority_limit_async_func_call,
+    sanitize_text_for_encoding,
+    subtract_source_ids,
 )
-from lightrag.core_types import KnowledgeGraph
-from lightrag.ace.config import ACEConfig
-from lightrag.ace.playbook import ContextPlaybook
-from lightrag.ace.generator import ACEGenerator
-from lightrag.ace.reflector import ACEReflector
-from lightrag.ace.curator import ACECurator
-from dotenv import load_dotenv
 
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
@@ -239,7 +230,7 @@ class LightRAG:
     )
     """Number of overlapping tokens between consecutive text chunks to preserve context."""
 
-    tokenizer: Optional[Tokenizer] = field(default=None)
+    tokenizer: Tokenizer | None = field(default=None)
     """
     A function that returns a Tokenizer instance.
     If None, and a `tiktoken_model_name` is provided, a TiktokenTokenizer will be created.
@@ -253,12 +244,12 @@ class LightRAG:
         [
             Tokenizer,
             str,
-            Optional[str],
+            str | None,
             bool,
             int,
             int,
         ],
-        Union[List[Dict[str, Any]], Awaitable[List[Dict[str, Any]]]],
+        list[dict[str, Any]] | Awaitable[list[dict[str, Any]]],
     ] = field(default_factory=lambda: chunking_by_token_size)
     """
     Custom chunking function for splitting text into chunks before processing.
@@ -459,14 +450,14 @@ class LightRAG:
         default=float(os.getenv("COSINE_THRESHOLD", 0.2))
     )
 
-    ollama_server_infos: Optional[OllamaServerInfos] = field(default=None)
+    ollama_server_infos: OllamaServerInfos | None = field(default=None)
     """Configuration for Ollama server information."""
 
     # ACE Framework
     enable_ace: bool = field(default=False)
     """Enable the Agentic Context Evolution (ACE) framework."""
 
-    ace_config: Optional[ACEConfig] = field(default=None)
+    ace_config: ACEConfig | None = field(default=None)
     """ACE Configuration. If None and enable_ace is True, defaults are used."""
 
     ace_allow_small_reflector: bool = field(default=False)
@@ -516,7 +507,9 @@ class LightRAG:
             if "ollama" in func_name:
                 is_ollama = True
             elif hasattr(self.llm_model_func, "func"):
-                inner_name = getattr(self.llm_model_func.func, "__name__", "")
+                # Use double getattr for Pyright safety
+                inner_func = getattr(self.llm_model_func, "func", None)
+                inner_name = getattr(inner_func, "__name__", "")
                 if "ollama" in inner_name:
                     is_ollama = True
 
@@ -622,13 +615,17 @@ class LightRAG:
         # This ensures _generate_collection_suffix can still access attributes (model_name, embedding_dim)
         # while preventing side effects when the same EmbeddingFunc is reused across multiple LightRAG instances
         if self.embedding_func is not None:
+            # Use getattr to safely access .func which might not be known to Pyright
+            base_func = self.embedding_func.func
             wrapped_func = priority_limit_async_func_call(
                 self.embedding_func_max_async,
                 llm_timeout=self.default_embedding_timeout,
                 queue_name="Embedding func",
-            )(self.embedding_func.func)
+            )(base_func)
             # Use dataclasses.replace() to create a new instance, leaving the original unchanged
-            self.embedding_func = replace(self.embedding_func, func=wrapped_func)
+            self.embedding_func = replace(
+                cast(Any, self.embedding_func), func=wrapped_func
+            )
 
         # Initialize all storages
         self.key_string_value_json_storage_cls: type[BaseKVStorage] = (
@@ -657,19 +654,19 @@ class LightRAG:
             namespace=NameSpace.KV_STORE_LLM_RESPONSE_CACHE,
             workspace=self.workspace,
             global_config=global_config,
-            embedding_func=self.embedding_func,
+            embedding_func=cast(EmbeddingFunc, self.embedding_func),
         )
 
         self.text_chunks: BaseKVStorage = self.key_string_value_json_storage_cls(  # type: ignore
             namespace=NameSpace.KV_STORE_TEXT_CHUNKS,
             workspace=self.workspace,
-            embedding_func=self.embedding_func,
+            embedding_func=cast(EmbeddingFunc, self.embedding_func),
         )
 
         self.full_docs: BaseKVStorage = self.key_string_value_json_storage_cls(  # type: ignore
             namespace=NameSpace.KV_STORE_FULL_DOCS,
             workspace=self.workspace,
-            embedding_func=self.embedding_func,
+            embedding_func=cast(EmbeddingFunc, self.embedding_func),
         )
 
         self.full_entities: BaseKVStorage = self.key_string_value_json_storage_cls(  # type: ignore
@@ -1164,7 +1161,7 @@ class LightRAG:
         self,
         node_label: str,
         max_depth: int = 3,
-        max_nodes: int = None,
+        max_nodes: int | None = None,
     ) -> KnowledgeGraph:
         """Get knowledge graph for a given label
 
@@ -1296,7 +1293,10 @@ class LightRAG:
 
     # TODO: deprecated, use ainsert instead
     async def ainsert_custom_chunks(
-        self, full_text: str, text_chunks: list[str], doc_id: str | None = None
+        self,
+        full_text: str,
+        text_chunks: list[str],
+        doc_id: str | list[str] | None = None,
     ) -> None:
         update_storage = False
         try:
@@ -1308,8 +1308,13 @@ class LightRAG:
             # Process cleaned texts
             if doc_id is None:
                 doc_key = compute_mdhash_id(full_text, prefix="doc-")
+            elif isinstance(doc_id, list):
+                doc_key = (
+                    doc_id[0] if doc_id else compute_mdhash_id(full_text, prefix="doc-")
+                )
             else:
                 doc_key = doc_id
+            doc_key = cast(str, doc_key)
             new_docs = {doc_key: {"content": full_text, "file_path": file_path}}
 
             _add_doc_keys = await self.full_docs.filter_keys({doc_key})
@@ -1324,6 +1329,10 @@ class LightRAG:
             inserting_chunks: dict[str, Any] = {}
             for index, chunk_text in enumerate(text_chunks):
                 chunk_key = compute_mdhash_id(chunk_text, prefix="chunk-")
+                if self.tokenizer is None:
+                    self.tokenizer = TiktokenTokenizer()
+                if self.tokenizer is None:
+                    self.tokenizer = TiktokenTokenizer()
                 tokens = len(self.tokenizer.encode(chunk_text))
                 inserting_chunks[chunk_key] = {
                     "content": chunk_text,
@@ -1357,7 +1366,7 @@ class LightRAG:
     async def apipeline_enqueue_documents(
         self,
         input: str | list[str],
-        ids: list[str] | None = None,
+        ids: str | list[str] | None = None,
         file_paths: str | list[str] | None = None,
         track_id: str | None = None,
     ) -> str:
@@ -1412,7 +1421,7 @@ class LightRAG:
 
             # Generate contents dict and remove duplicates in one pass
             unique_contents = {}
-            for id_, doc, path in zip(ids, input, file_paths):
+            for id_, doc, path in zip(ids, input, file_paths, strict=False):
                 cleaned_content = sanitize_text_for_encoding(doc)
                 if cleaned_content not in unique_contents:
                     unique_contents[cleaned_content] = (id_, path)
@@ -1425,7 +1434,7 @@ class LightRAG:
         else:
             # Clean input text and remove duplicates in one pass
             unique_content_with_paths = {}
-            for doc, path in zip(input, file_paths):
+            for doc, path in zip(input, file_paths, strict=False):
                 cleaned_content = sanitize_text_for_encoding(doc)
                 if cleaned_content not in unique_content_with_paths:
                     unique_content_with_paths[cleaned_content] = path
@@ -1483,7 +1492,7 @@ class LightRAG:
 
         if not new_docs:
             logger.warning("No new unique documents were found.")
-            return
+            return track_id
 
         # 4. Store document content in full_docs and status in doc_status
         #    Store full document content separately
@@ -1579,7 +1588,7 @@ class LightRAG:
         self,
         to_process_docs: dict[str, DocProcessingStatus],
         pipeline_status: dict,
-        pipeline_status_lock: asyncio.Lock,
+        pipeline_status_lock: Any,
     ) -> dict[str, DocProcessingStatus]:
         """Validate and fix document data consistency by deleting inconsistent entries, but preserve failed documents"""
         inconsistent_docs = []
@@ -1846,7 +1855,7 @@ class LightRAG:
                     split_by_character: str | None,
                     split_by_character_only: bool,
                     pipeline_status: dict,
-                    pipeline_status_lock: asyncio.Lock,
+                    pipeline_status_lock: Any,
                     semaphore: asyncio.Semaphore,
                 ) -> None:
                     """Process single document"""
@@ -1855,8 +1864,9 @@ class LightRAG:
                     current_file_number = 0
                     file_extraction_stage_ok = False
                     processing_start_time = int(time.time())
-                    first_stage_tasks = []
                     entity_relation_task = None
+                    chunks: dict[str, Any] = {}
+                    chunk_results: list[Any] = []
 
                     async with semaphore:
                         nonlocal processed_count
@@ -1907,6 +1917,8 @@ class LightRAG:
                                 )
                             content = content_data["content"]
 
+                            if self.tokenizer is None:
+                                self.tokenizer = TiktokenTokenizer()
                             # Call chunking function, supporting both sync and async implementations
                             chunking_result = self.chunking_func(
                                 self.tokenizer,
@@ -2281,9 +2293,10 @@ class LightRAG:
         except Exception as e:
             error_msg = f"Failed to extract entities and relationships: {str(e)}"
             logger.error(error_msg)
-            async with pipeline_status_lock:
-                pipeline_status["latest_message"] = error_msg
-                append_pipeline_log(pipeline_status, error_msg, 40)
+            if pipeline_status_lock is not None:
+                async with pipeline_status_lock:
+                    pipeline_status["latest_message"] = error_msg
+                    append_pipeline_log(pipeline_status, error_msg, 40)
             raise e
 
     async def _insert_done(
@@ -2337,6 +2350,8 @@ class LightRAG:
                 chunk_content = sanitize_text_for_encoding(chunk_data["content"])
                 source_id = chunk_data["source_id"]
                 file_path = chunk_data.get("file_path", "custom_kg")
+                if self.tokenizer is None:
+                    self.tokenizer = TiktokenTokenizer()
                 tokens = len(self.tokenizer.encode(chunk_content))
                 chunk_order_index = (
                     0
@@ -2554,8 +2569,8 @@ class LightRAG:
             return llm_response.get("content", "")
 
     async def ace_query(
-        self, query: str, param: QueryParam = QueryParam(), auto_reflect: bool = True
-    ) -> Dict[str, Any]:
+        self, query: str, param: QueryParam = QueryParam(), _auto_reflect: bool = True
+    ) -> dict[str, Any]:
         """
         Execute a query using the ACE (Agentic Context Evolution) Framework.
 
@@ -3094,7 +3109,9 @@ class LightRAG:
         tasks = [self.doc_status.get_by_id(doc_id) for doc_id in id_list]
         # Execute tasks concurrently and gather the results. Results maintain order.
         # Type hint indicates results can be DocProcessingStatus or None if not found.
-        results_list: list[Optional[DocProcessingStatus]] = await asyncio.gather(*tasks)
+        results_list = cast(
+            list[DocProcessingStatus | None], await asyncio.gather(*tasks)
+        )
 
         # Build the result dictionary, mapping found IDs to their statuses
         found_statuses: dict[str, DocProcessingStatus] = {}
@@ -3214,6 +3231,7 @@ class LightRAG:
         deletion_operations_started = False
         original_exception = None
         doc_llm_cache_ids: list[str] = []
+        file_path: str | None = None
 
         async with pipeline_status_lock:
             log_message = f"Starting deletion process for document {doc_id}"
@@ -3572,8 +3590,8 @@ class LightRAG:
             # 5. Delete chunks from storage
             if chunk_ids:
                 try:
-                    await self.chunks_vdb.delete(chunk_ids)
-                    await self.text_chunks.delete(chunk_ids)
+                    await self.chunks_vdb.delete(list(chunk_ids))
+                    await self.text_chunks.delete(list(chunk_ids))
 
                     async with pipeline_status_lock:
                         log_message = (
@@ -3638,7 +3656,7 @@ class LightRAG:
                     edges_to_delete = set()
                     edges_still_exist = 0
 
-                    for entity, edges in nodes_edges_dict.items():
+                    for _entity, edges in nodes_edges_dict.items():
                         if edges:
                             for src, tgt in edges:
                                 # Normalize edge representation (sorted for consistency)
@@ -3700,13 +3718,15 @@ class LightRAG:
                     # Delete from vector vdb
                     entity_vdb_ids = [
                         compute_mdhash_id(entity, prefix="ent-")
-                        for entity in entities_to_delete
+                        for entity in cast(set[str], entities_to_delete)
                     ]
                     await self.entities_vdb.delete(entity_vdb_ids)
 
                     # Delete from entity_chunks storage
                     if self.entity_chunks:
-                        await self.entity_chunks.delete(list(entities_to_delete))
+                        await self.entity_chunks.delete(
+                            list(cast(set[str], entities_to_delete))
+                        )
 
                     async with pipeline_status_lock:
                         log_message = (
@@ -4106,8 +4126,8 @@ class LightRAG:
         self,
         source_entities: list[str],
         target_entity: str,
-        merge_strategy: dict[str, str] = None,
-        target_entity_data: dict[str, Any] = None,
+        merge_strategy: dict[str, str] | None = None,
+        target_entity_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Asynchronously merge multiple entities into one entity.
 
@@ -4137,18 +4157,18 @@ class LightRAG:
             self.relationships_vdb,
             source_entities,
             target_entity,
-            merge_strategy,
-            target_entity_data,
-            self.entity_chunks,
-            self.relation_chunks,
+            merge_strategy=merge_strategy,
+            target_entity_data=target_entity_data,
+            entity_chunks_storage=self.entity_chunks,
+            relation_chunks_storage=self.relation_chunks,
         )
 
     def merge_entities(
         self,
         source_entities: list[str],
         target_entity: str,
-        merge_strategy: dict[str, str] = None,
-        target_entity_data: dict[str, Any] = None,
+        merge_strategy: dict[str, str] | None = None,
+        target_entity_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         loop = always_get_an_event_loop()
         return loop.run_until_complete(
@@ -4157,7 +4177,7 @@ class LightRAG:
             )
         )
 
-    async def adelete_entity(self, entity_name: str) -> dict[str, Any]:
+    async def adelete_entity(self, entity_name: str) -> DeletionResult:
         """Asynchronously delete an entity and all its relationships.
 
         Removes the entity from the knowledge graph and vector database.
@@ -4179,13 +4199,13 @@ class LightRAG:
             self.relation_chunks,
         )
 
-    def delete_entity(self, entity_name: str) -> dict[str, Any]:
+    def delete_entity(self, entity_name: str) -> DeletionResult:
         loop = always_get_an_event_loop()
         return loop.run_until_complete(self.adelete_entity(entity_name))
 
     async def adelete_relation(
         self, source_entity: str, target_entity: str
-    ) -> dict[str, Any]:
+    ) -> DeletionResult:
         """Asynchronously delete a relation between two entities.
 
         Removes the relation from the knowledge graph and vector database.
@@ -4207,7 +4227,7 @@ class LightRAG:
             self.relation_chunks,
         )
 
-    def delete_relation(self, source_entity: str, target_entity: str) -> dict[str, Any]:
+    def delete_relation(self, source_entity: str, target_entity: str) -> DeletionResult:
         loop = always_get_an_event_loop()
         return loop.run_until_complete(
             self.adelete_relation(source_entity, target_entity)

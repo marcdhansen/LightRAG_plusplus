@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
-from tests.ace_test_utils import ACETestKit
+
+import pytest
+
 from lightrag import LightRAG
+from tests.ace_test_utils import ACETestKit
 
 
 @pytest.mark.asyncio

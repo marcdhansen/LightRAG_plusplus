@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
-from lightrag.core import LightRAG, EmbeddingFunc
+import pytest
+
+from lightrag.core import EmbeddingFunc, LightRAG
 
 
 # Dummy embedding function

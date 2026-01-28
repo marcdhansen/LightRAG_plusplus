@@ -1,8 +1,9 @@
 import logging
-from typing import Dict, Any
+from typing import Any
+
+import nltk
 import torch
 from transformers import AutoModel
-import nltk
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def load_highlight_model():
     return _HIGHLIGHT_MODEL
 
 
-def get_highlights(query: str, context: str, threshold: float = 0.6) -> Dict[str, Any]:
+def get_highlights(query: str, context: str, threshold: float = 0.6) -> dict[str, Any]:
     """
     Get highlighted sentences from context based on query relevance.
 

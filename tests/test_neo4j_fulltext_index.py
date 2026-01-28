@@ -9,8 +9,9 @@ Test Neo4j full-text index functionality, specifically:
 import asyncio
 import os
 import sys
-import pytest
+
 import numpy as np
+import pytest
 
 pytestmark = pytest.mark.heavy
 

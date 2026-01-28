@@ -1,9 +1,10 @@
-import pytest
 import subprocess
 import sys
-import httpx
 import time
 from pathlib import Path
+
+import httpx
+import pytest
 
 # Paths
 ROOT_DIR = Path(__file__).parent.parent
@@ -27,7 +28,7 @@ async def index_sample_documents():
         for doc_path in docs:
             if doc_path.name == "README.md":
                 continue
-            with open(doc_path, "r") as f:
+            with open(doc_path) as f:
                 content = f.read()
 
             resp = await client.post(

@@ -1,17 +1,17 @@
-import os
 import asyncio
+import os
+
 import nest_asyncio
+import numpy as np
 
 from lightrag import LightRAG, QueryParam
 from lightrag.llm import (
-    openai_complete_if_cache,
     nvidia_openai_embed,
+    openai_complete_if_cache,
 )
-from lightrag.utils import EmbeddingFunc
-import numpy as np
 
 # for custom llm_model_func
-from lightrag.utils import locate_json_string_body_from_string
+from lightrag.utils import EmbeddingFunc, locate_json_string_body_from_string
 
 nest_asyncio.apply()
 
@@ -30,8 +30,14 @@ NVIDIA_OPENAI_API_KEY = "nvapi-xxxx"  # your api key
 
 # If you trying to make custom llm_model_func to use llm model on NVIDIA API like other example:
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
+    prompt,
+    system_prompt=None,
+    history_messages=None,
+    keyword_extraction=False,
+    **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     result = await openai_complete_if_cache(
         "nvidia/llama-3.1-nemotron-70b-instruct",
         prompt,
@@ -124,7 +130,7 @@ async def main():
         rag = await initialize_rag()
 
         # reading file
-        with open("./book.txt", "r", encoding="utf-8") as f:
+        with open("./book.txt", encoding="utf-8") as f:
             await rag.ainsert(f.read())
 
         # Perform naive search

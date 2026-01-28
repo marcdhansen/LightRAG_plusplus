@@ -1,10 +1,11 @@
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from unittest.mock import MagicMock, patch, AsyncMock
 import numpy as np
+import pytest
 from qdrant_client import models
-from lightrag.utils import EmbeddingFunc
+
 from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
+from lightrag.utils import EmbeddingFunc
 
 pytestmark = pytest.mark.heavy
 
@@ -238,9 +239,7 @@ async def test_scenario_1_new_workspace_creation(
     assert storage.final_namespace == expected_collection
 
     # Verify create_collection was called with correct name
-    create_calls = [
-        call for call in mock_qdrant_client.create_collection.call_args_list
-    ]
+    create_calls = list(mock_qdrant_client.create_collection.call_args_list)
     assert len(create_calls) > 0
     assert (
         create_calls[0][0][0] == expected_collection
@@ -354,12 +353,12 @@ async def test_scenario_2_legacy_upgrade_migration(
     mock_qdrant_client.create_collection.assert_called()
 
     # 3. Scroll legacy data
-    scroll_calls = [call for call in mock_qdrant_client.scroll.call_args_list]
+    scroll_calls = list(mock_qdrant_client.scroll.call_args_list)
     assert len(scroll_calls) >= 1
     assert scroll_calls[0].kwargs["collection_name"] == legacy_collection
 
     # 4. Upsert to new collection
-    upsert_calls = [call for call in mock_qdrant_client.upsert.call_args_list]
+    upsert_calls = list(mock_qdrant_client.upsert.call_args_list)
     assert len(upsert_calls) >= 1
     assert upsert_calls[0].kwargs["collection_name"] == new_collection
 
@@ -483,9 +482,7 @@ async def test_case1_empty_legacy_auto_cleanup(mock_qdrant_client, mock_embeddin
 
     # Verify: Empty legacy collection should be automatically cleaned up
     # Empty collections are safe to delete without data loss risk
-    delete_calls = [
-        call for call in mock_qdrant_client.delete_collection.call_args_list
-    ]
+    delete_calls = list(mock_qdrant_client.delete_collection.call_args_list)
     assert len(delete_calls) >= 1, "Empty legacy collection should be auto-deleted"
     deleted_collection = (
         delete_calls[0][0][0]
@@ -549,9 +546,7 @@ async def test_case1_nonempty_legacy_warning(mock_qdrant_client, mock_embedding_
 
     # Verify: Legacy collection with data should be preserved
     # We never auto-delete collections that contain data to prevent accidental data loss
-    delete_calls = [
-        call for call in mock_qdrant_client.delete_collection.call_args_list
-    ]
+    delete_calls = list(mock_qdrant_client.delete_collection.call_args_list)
     # Check if legacy collection was deleted (it should not be)
     legacy_deleted = any(
         (call[0][0] if call[0] else call.kwargs.get("collection_name"))

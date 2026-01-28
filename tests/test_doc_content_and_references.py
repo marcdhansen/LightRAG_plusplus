@@ -1,7 +1,8 @@
-import pytest
-import httpx
-import time
 import json
+import time
+
+import httpx
+import pytest
 
 # Configuration
 TIMEOUT = 300  # 5 minutes specifically for indexing

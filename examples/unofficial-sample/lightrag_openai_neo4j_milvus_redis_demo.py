@@ -1,5 +1,6 @@
-import os
 import asyncio
+import os
+
 from lightrag import LightRAG, QueryParam
 from lightrag.llm.ollama import ollama_embed, openai_complete_if_cache
 from lightrag.utils import EmbeddingFunc
@@ -29,8 +30,14 @@ os.environ["MILVUS_DB_NAME"] = "lightrag"
 
 
 async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
+    prompt,
+    system_prompt=None,
+    history_messages=None,
+    keyword_extraction=False,
+    **kwargs,
 ) -> str:
+    if history_messages is None:
+        history_messages = []
     return await openai_complete_if_cache(
         "deepseek-chat",
         prompt,
@@ -73,7 +80,7 @@ def main():
     # Initialize RAG instance
     rag = asyncio.run(initialize_rag())
 
-    with open("./book.txt", "r", encoding="utf-8") as f:
+    with open("./book.txt", encoding="utf-8") as f:
         rag.insert(f.read())
 
     # Perform naive search

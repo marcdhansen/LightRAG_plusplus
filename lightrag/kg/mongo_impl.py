@@ -1,12 +1,13 @@
+import asyncio
+import configparser
 import os
 import re
 import time
 from dataclasses import dataclass, field
-import numpy as np
-import configparser
-import asyncio
+from typing import Any, final
 
-from typing import Any, Union, final
+import numpy as np
+import pipmaster as pm
 
 from ..base import (
     BaseGraphStorage,
@@ -16,22 +17,22 @@ from ..base import (
     DocStatus,
     DocStatusStorage,
 )
-from ..utils import logger, compute_mdhash_id
-from ..core_types import KnowledgeGraph, KnowledgeGraphNode, KnowledgeGraphEdge
 from ..constants import GRAPH_FIELD_SEP
+from ..core_types import KnowledgeGraph, KnowledgeGraphEdge, KnowledgeGraphNode
 from ..kg.shared_storage import get_data_init_lock
-
-import pipmaster as pm
+from ..utils import compute_mdhash_id, logger
 
 if not pm.is_installed("pymongo"):
     pm.install("pymongo")
 
-from pymongo import AsyncMongoClient  # type: ignore
-from pymongo import UpdateOne  # type: ignore
-from pymongo.asynchronous.database import AsyncDatabase  # type: ignore
+from pymongo import (
+    AsyncMongoClient,  # type: ignore
+    UpdateOne,  # type: ignore
+)
 from pymongo.asynchronous.collection import AsyncCollection  # type: ignore
-from pymongo.operations import SearchIndexModel  # type: ignore
+from pymongo.asynchronous.database import AsyncDatabase  # type: ignore
 from pymongo.errors import PyMongoError  # type: ignore
+from pymongo.operations import SearchIndexModel  # type: ignore
 
 config = configparser.ConfigParser()
 config.read("config.ini", "utf-8")
@@ -373,7 +374,7 @@ class MongoDocStatusStorage(DocStatusStorage):
             self.db = None
             self._data = None
 
-    async def get_by_id(self, id: str) -> Union[dict[str, Any], None]:
+    async def get_by_id(self, id: str) -> dict[str, Any] | None:
         return await self._data.find_one({"_id": id})
 
     async def get_by_ids(self, ids: list[str]) -> list[dict[str, Any]]:
@@ -710,7 +711,7 @@ class MongoDocStatusStorage(DocStatusStorage):
 
         return counts
 
-    async def get_doc_by_file_path(self, file_path: str) -> Union[dict[str, Any], None]:
+    async def get_doc_by_file_path(self, file_path: str) -> dict[str, Any] | None:
         """Get document by file path
 
         Args:
@@ -1165,7 +1166,7 @@ class MongoGraphStorage(BaseGraphStorage):
         )
 
     async def get_knowledge_graph_all_by_degree(
-        self, max_depth: int, max_nodes: int
+        self, _max_depth: int, max_nodes: int
     ) -> KnowledgeGraph:
         """
         It's possible that the node with one or multiple relationships is retrieved,
@@ -2187,7 +2188,7 @@ class MongoVectorDBStorage(BaseVectorStorage):
             logger.error(error_msg)
             raise SystemExit(
                 f"Failed to create MongoDB vector index. Program cannot continue. {error_msg}"
-            )
+            ) from e
 
     async def upsert(self, data: dict[str, dict[str, Any]]) -> None:
         logger.debug(f"[{self.workspace}] Inserting {len(data)} to {self.namespace}")

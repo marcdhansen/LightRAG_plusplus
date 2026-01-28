@@ -8,9 +8,9 @@ Critical Bug: Migration copied ALL records from legacy table regardless of works
 causing workspace A to receive workspace B's data, violating multi-tenant isolation.
 """
 
-import pytest
-
 from unittest.mock import AsyncMock
+
+import pytest
 
 from lightrag.kg.postgres_impl import PGVectorStorage
 

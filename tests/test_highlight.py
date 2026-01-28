@@ -1,4 +1,5 @@
 import pytest
+
 from lightrag.highlight import get_highlights
 
 

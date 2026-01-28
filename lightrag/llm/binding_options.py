@@ -5,14 +5,14 @@ This module provides container implementations for various Large Language Model
 bindings and integrations.
 """
 
-from argparse import ArgumentParser, Namespace
 import argparse
 import json
+from argparse import ArgumentParser, Namespace
 from dataclasses import asdict, dataclass, field
-from typing import Any, ClassVar, List, get_args, get_origin
+from typing import Any, ClassVar, get_args, get_origin
 
-from lightrag.utils import get_env_value
 from lightrag.constants import DEFAULT_TEMPERATURE
+from lightrag.utils import get_env_value
 
 
 def _resolve_optional_type(field_type: Any) -> Any:
@@ -113,7 +113,7 @@ class BindingOptions:
         group = parser.add_argument_group(f"{cls._binding_name} binding options")
         for arg_item in cls.args_env_name_type_value():
             # Handle JSON parsing for list types
-            if arg_item["type"] is List[str]:
+            if arg_item["type"] is list[str]:
 
                 def json_list_parser(value):
                     try:
@@ -124,7 +124,7 @@ class BindingOptions:
                             )
                         return parsed
                     except json.JSONDecodeError as e:
-                        raise argparse.ArgumentTypeError(f"Invalid JSON: {e}")
+                        raise argparse.ArgumentTypeError(f"Invalid JSON: {e}") from e
 
                 # Get environment variable with JSON parsing
                 env_value = get_env_value(f"{arg_item['env_name']}", argparse.SUPPRESS)
@@ -152,7 +152,7 @@ class BindingOptions:
                             )
                         return parsed
                     except json.JSONDecodeError as e:
-                        raise argparse.ArgumentTypeError(f"Invalid JSON: {e}")
+                        raise argparse.ArgumentTypeError(f"Invalid JSON: {e}") from e
 
                 # Get environment variable with JSON parsing
                 env_value = get_env_value(f"{arg_item['env_name']}", argparse.SUPPRESS)
@@ -303,7 +303,7 @@ class BindingOptions:
                     sample_stream.write(f"# {arg_item['help']}\n")
 
                 # Handle JSON formatting for list and dict types
-                if arg_item["type"] is List[str] or arg_item["type"] is dict:
+                if arg_item["type"] is list[str] or arg_item["type"] is dict:
                     default_value = json.dumps(arg_item["default"])
                 else:
                     default_value = arg_item["default"]
@@ -418,7 +418,7 @@ class _OllamaOptionsMixin:
 
     # Output control
     penalize_newline: bool = True  # Penalize newline tokens
-    stop: List[str] = field(default_factory=list)  # Stop sequences
+    stop: list[str] = field(default_factory=list)  # Stop sequences
 
     # optional help strings
     _help: ClassVar[dict[str, str]] = {
@@ -488,7 +488,7 @@ class GeminiLLMOptions(BindingOptions):
     candidate_count: int = 1
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
-    stop_sequences: List[str] = field(default_factory=list)
+    stop_sequences: list[str] = field(default_factory=list)
     seed: int | None = None
     thinking_config: dict | None = None
     safety_settings: dict | None = None
@@ -540,16 +540,19 @@ class OpenAILLMOptions(BindingOptions):
 
     # Sampling and generation parameters
     frequency_penalty: float = 0.0  # Penalty for token frequency (-2.0 to 2.0)
-    max_completion_tokens: int = None  # Maximum number of tokens to generate
+    max_completion_tokens: int | None = None  # Maximum number of tokens to generate
     presence_penalty: float = 0.0  # Penalty for token presence (-2.0 to 2.0)
     reasoning_effort: str = "medium"  # Reasoning effort level (low, medium, high)
     safety_identifier: str = ""  # Safety identifier for content filtering
     service_tier: str = ""  # Service tier for API usage
-    stop: List[str] = field(default_factory=list)  # Stop sequences
+    stop: list[str] = field(default_factory=list)  # Stop sequences
     temperature: float = DEFAULT_TEMPERATURE  # Controls randomness (0.0 to 2.0)
     top_p: float = 1.0  # Nucleus sampling parameter (0.0 to 1.0)
-    max_tokens: int = None  # Maximum number of tokens to generate(deprecated, use max_completion_tokens instead)
-    extra_body: dict = None  # Extra body parameters for OpenRouter of vLLM
+    max_tokens: int | None = (
+        None  # Maximum number of tokens to generate(deprecated, use max_completion_tokens instead)
+    )
+    extra_body: dict | None = None  # Extra body parameters for OpenRouter of vLLM
+    reasoning: dict | None = None  # Reasoning parameters for specific models
 
     # Help descriptions
     _help: ClassVar[dict[str, str]] = {
@@ -583,6 +586,7 @@ class OpenAILLMOptions(BindingOptions):
 
 if __name__ == "__main__":
     import sys
+
     import dotenv
     # from io import StringIO
 

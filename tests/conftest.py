@@ -4,10 +4,11 @@ Pytest configuration for LightRAG tests.
 This file provides command-line options and fixtures for test configuration.
 """
 
-import pytest
 import importlib
 import os
 import sys
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -326,12 +327,11 @@ def check_external_services(request):
     if not should_run:
         return
 
+    import os
     import subprocess
     import time
-    import urllib.request
     import urllib.error
-    import socket
-    import os
+    import urllib.request
 
     print("\n[Fixture] Checking external services for integration tests...")
 
@@ -440,7 +440,7 @@ def check_external_services(request):
             if response.status == 200:
                 server_running = True
                 print("[Fixture] Server is running.")
-    except (urllib.error.URLError, socket.timeout, ConnectionRefusedError):
+    except (TimeoutError, urllib.error.URLError, ConnectionRefusedError):
         print("[Fixture] Server is NOT reachable.")
 
     if not server_running:
@@ -542,7 +542,7 @@ def check_external_services(request):
                                 )
 
                             break
-                except (urllib.error.URLError, socket.timeout, ConnectionRefusedError):
+                except (TimeoutError, urllib.error.URLError, ConnectionRefusedError):
                     time.sleep(1)
 
             if not server_running:

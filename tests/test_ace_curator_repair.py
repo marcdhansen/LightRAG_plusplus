@@ -1,6 +1,8 @@
 import asyncio
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
+
 from lightrag import LightRAG
 
 
