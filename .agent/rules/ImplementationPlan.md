@@ -37,5 +37,7 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **Extraction Standardization**: Hard-code YAML for offline LLMs (Beads: lightrag-6h1).
 * [x] **Reasoning Threshold Policy**: Formalize model requirements for reflection (Beads: lightrag-oi6).
 * [x] **Continuous UI Testing**: Implement Playwright for automated frontend validation (Beads: lightrag-fan).
+* [x] **ACE Standardized Testing**: Implemented `ACETestKit` for Injection-Reflection-Repair verification (Beads: lightrag-dog).
+* [x] **Architectural Consolidation**: Centralized ACE control loop in `ACEGenerator` to prevent redundant reflection triggers in `LightRAG.ace_query`.
 
 ## Phase 6: ACE Optimizer (Upcoming)

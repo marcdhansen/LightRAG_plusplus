@@ -70,7 +70,26 @@ During testing with the `qwen2.5-coder:1.5b` model on beekeeping texts, we disco
 </edge>
 ```
 
-This discovery validates the critical need for **ACE Phase 3**, where the **Reflector** will verify edges against source chunks and the **Curator** will prune such illogical connections.
+This discovery validated the need for **ACE Phase 5 (Curator)**, where the **Reflector** verifies edges against source chunks and the **Curator** prunes logically impossible connections.
+
+### Reflector Parsing & Instruction Adherence (2026-01-28)
+
+Recent work on the "Injection-Reflection-Repair" cycle revealed that Reflector components (even 7B+ models) often struggle with exact JSON output in conversational modes.
+
+- **Parsing Strategy**: We implemented `_parse_json_list` in the `ACEReflector` to robustly extract JSON arrays from conversational filler or Markdown blocks.
+- **Node ID Strictness**: We discovered that the Reflector would sometimes invent descriptive labels for nodes (e.g., calling a node "Einstein's Space Claim" instead of the exact graph ID "Albert Einstein"). The prompt was updated to strictly enforce using EXACT IDs to ensure the Curator can find and delete the target nodes.
+
+## 🧪 Testing & Verification
+
+To maintain the quality of the ACE loop, we utilize the **`ACETestKit`** (located in `tests/ace_test_utils.py`).
+
+### Standard Test Pattern: Injection-Reflection-Repair
+
+1. **Inject**: Use `kit.inject_hallucination()` to manually insert a factually incorrect node or edge into the graph.
+2. **Reflect**: Trigger an `ace_query()` that retrieves the hallucinated node.
+3. **Repair**: Verify that the `trajectory` contains a `graph_repair` step and that the `ACETestKit` assertions confirm the hallucination has been removed from the underlying storage.
+
+This pattern ensures that "self-healing" capabilities are regression-tested with every build.
 
 ## 👨‍💻 Human-in-the-Loop (HITL) Review
 
