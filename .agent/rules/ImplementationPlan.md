@@ -40,5 +40,7 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **ACE Standardized Testing**: Implemented `ACETestKit` for Injection-Reflection-Repair verification (Beads: lightrag-dog).
 * [x] **Type Safety & Reliability Refactoring**: Resolved critical Pyright errors in `core.py`, `base.py`, and `utils_graph.py`. Relaxed graph data types to `dict[str, Any]` and fixed suspected `None` attribute access (Beads: lightrag-3mc).
 * [x] **Architectural Consolidation**: Centralized ACE control loop in `ACEGenerator` to prevent redundant reflection triggers in `LightRAG.ace_query`.
+* [x] **Documentation Directory Hardening**: Modified `.gitignore` in `~/.gemini`, `~/.antigravity`, and project `.agent` directories to ignore all files except markdown (Beads: lightrag-986).
+* [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
 
 ## Phase 6: ACE Optimizer (Upcoming)
