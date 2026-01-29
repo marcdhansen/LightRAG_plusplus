@@ -28,6 +28,12 @@ repos:
         language: system
         files: ^lightrag_webui/
         pass_filenames: false
+      - id: docs-coverage
+        name: Documentation Coverage & Portability
+        entry: python3 scripts/check_docs_coverage.py
+        language: system
+        files: ^docs/|^README.md|^\.agent/rules/|^scripts/check_docs_coverage\.py$
+        pass_filenames: false
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.49"
