@@ -70,12 +70,22 @@ def check_coverage():
     # 2. Extract all links from ALL files to find cross-references
     linked_files: set[Path] = set()
     broken_links: list[dict] = []
+    absolute_links: list[dict] = []
 
     for md_file in all_md_files:
         links = extract_links(md_file)
         for link in links:
             if "global_docs" in link:
                 continue
+
+            # Check for absolute path violations
+            # - Starts with '/' (project or system absolute)
+            # - Starts with drive letter 'C:\' etc.
+            if link.startswith("/") or re.match(r"^[a-zA-Z]:\\", link):
+                absolute_links.append(
+                    {"source": md_file.relative_to(PROJECT_ROOT), "target": link}
+                )
+
             target_path = resolve_link(md_file, link)
             if safe_exists(target_path):
                 linked_files.add(target_path)
@@ -136,6 +146,13 @@ def check_coverage():
     else:
         print("✅ No broken links found.")
 
+    if absolute_links:
+        print(f"❌ Found {len(absolute_links)} non-portable absolute links (Must be relative):")
+        for al in absolute_links:
+            print(f"  - In {al['source']}: '{al['target']}'")
+    else:
+        print("✅ All links use portable relative paths.")
+
     if orphaned_in_docs:
         print(
             f"⚠️ Found {len(orphaned_in_docs)} orphaned documentation files (not reachable from README or ARCHITECTURE):"
@@ -146,8 +163,8 @@ def check_coverage():
         print("✅ No orphaned documentation files found.")
 
     # Failure condition
-    if broken_links:
-        print("\n💥 Documentation check FAILED (broken links).")
+    if broken_links or absolute_links:
+        print("\n💥 Documentation check FAILED (violations found).")
         sys.exit(1)
 
     # We might not want to fail on orphans yet, but we should report them.

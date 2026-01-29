@@ -4,7 +4,7 @@
 
 ### Objective
 
-Implement a robust, automated validation script to ensure that all documentation files within the project are correctly cross-referenced and that no "orphaned" documentation exists. This is part of the Librarian skill's responsibility to maintain a high-quality, navigable documentation set.
+Implement a robust, automated validation script to ensure that all documentation files within the project are correctly cross-referenced, that no "orphaned" documentation exists, and that all internal links are portable relative paths (no absolute paths). This is part of the Librarian skill's responsibility to maintain a high-quality, navigable documentation set.
 
 ### Tasks
 
@@ -13,6 +13,7 @@ Implement a robust, automated validation script to ensure that all documentation
   - [x] Implement link extraction from markdown files.
   - [x] Implement detection of orphaned files in `docs/`.
   - [x] Implement broken link detection.
+  - [x] Implement absolute/non-portable link detection.
   - [x] Support for excluding specific files (e.g., templates, example inputs).
 - [x] **Integration**: standalone command `scripts/check_docs_coverage.py` provided.
 - [x] **Remediation**: Fixed all orphaned files:
