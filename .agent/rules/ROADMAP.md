@@ -42,8 +42,9 @@ This is the central directory for all project-specific planning, tracking, and i
   (deletion, merging) and integrated into ACE query loop.
 - ✓ **ACE Asymmetric Routing** (2026-01-27): Implemented model-specific routing
   for extraction vs. reflection (lightrag-043).
-- ✓ **Librarian Cross-Reference** (2026-01-29): Implemented `scripts/check_docs_coverage.py`
-  and resolved all orphaned documentation files (lightrag-6l3).
+- ✓ **Librarian Cross-Reference** (2026-01-29): Implemented `scripts/check_docs_coverage.py`,
+  resolved all orphaned documentation, and integrated checks into `pre-commit`
+  and Flight Director (lightrag-6l3).
 - ✓ **Documentation Validator** (2026-01-27): Created `scripts/validate_docs.py`
   to ensure `ARCHITECTURE.md` integrity (lightrag-rxg).
 - ✓ **Gold Standard Tests** (2026-01-27): Implemented `tests/test_gold_standard_extraction.py`
