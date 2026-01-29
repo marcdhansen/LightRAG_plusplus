@@ -1,6 +1,6 @@
-import re
-import sys
 import os
+import re
+
 
 def extract_logs():
     log_file = "LightRAG/lightrag.log"
@@ -9,17 +9,18 @@ def extract_logs():
         return
 
     pattern = r"\[Frontend\] \[DeleteDocumentsDialog\]"
-    
+
     print(f"Scanning {log_file} for '{pattern}'...")
     found = False
-    with open(log_file, 'r') as f:
+    with open(log_file) as f:
         for line in f:
             if re.search(pattern, line):
                 print(line.strip())
                 found = True
-    
+
     if not found:
         print("No matching logs found.")
+
 
 if __name__ == "__main__":
     extract_logs()
