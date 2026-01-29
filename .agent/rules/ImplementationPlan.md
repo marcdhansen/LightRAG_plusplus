@@ -42,6 +42,7 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **Architectural Consolidation**: Centralized ACE control loop in `ACEGenerator` to prevent redundant reflection triggers in `LightRAG.ace_query`.
 * [x] **Documentation Directory Hardening**: Modified `.gitignore` in `~/.gemini`, `~/.antigravity`, and project `.agent` directories to ignore all files except markdown (Beads: lightrag-986).
 * [ ] **Automatic Bloat Removal**: Implement cleanup steps in RTB to prune binary bloat and temporary files in global config directories (Beads: lightrag-987).
+* [x] **Beads Sync Optimization**: Modified `.gitignore` to track `.beads/issues.jsonl`, resolving "operation not permitted" errors (Beads: lightrag-988).
 * [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
 
 ## Phase 6: ACE Optimizer (Upcoming)

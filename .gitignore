@@ -74,3 +74,6 @@ memory-bank
 # Gemini Code
 GEMINI.md
 global_docs
+
+# beads-related files
+# .beads/issues.jsonl (removed to allow tracking)
