@@ -88,7 +88,7 @@
 
 ## Installation
 
-> **💡 Using uv for Package Management**: This project uses [uv](https://docs.astral.sh/uv/) for fast and reliable Python package management.
+> **💡 Using uv for Package Management**: This project uses [uv](https://docs.astral.sh/uv/) for fast and reliable Python package management. See our [uv.lock Guide](./docs/UV_LOCK_GUIDE.md) for best practices.
 > Install uv first: `curl -LsSf https://astral.sh/uv/install.sh | sh` (Unix/macOS) or `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"` (Windows)
 >
 > **Note**: You can also use pip if you prefer, but uv is recommended for better performance and more reliable dependency management.

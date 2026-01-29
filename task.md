@@ -1,28 +1,31 @@
-# Task: Standardize Injection-Reflection-Repair Unit Test Pattern (lightrag-dog)
+# Task: Implement automated cross-reference check for new benchmark/feature documentation (lightrag-6l3)
 
-## Status: IN_PROGRESS
+## Status: COMPLETE
 
 ### Objective
 
-Establish a standardized, reusable testing pattern for the ACE (Agentic Context Evolution) framework to verify the full Injection-Reflection-Repair cycle. This will replace ad-hoc testing scripts with a robust Pytest fixture or class-based approach, ensuring consistent validation of graph evolution.
+Implement a robust, automated validation script to ensure that all documentation files within the project are correctly cross-referenced and that no "orphaned" documentation exists. This is part of the Librarian skill's responsibility to maintain a high-quality, navigable documentation set.
 
 ### Tasks
 
-- [ ] **Analysis**: Review existing ACE tests (e.g., `tests/test_ace_process.py`) to identify common patterns and pain points.
-- [ ] **Design**: Define a standard `AceIntegrationTest` class or `ace_lifecycle` fixture in `tests/conftest.py` or a shared utility.
-  - [ ] Support for clean injection of entities/relations.
-  - [ ] Triggering of specific Reflection/Curator logic.
-  - [ ] Assertions for "Before" and "After" graph states.
-- [ ] **Implementation**: Create the standardized test harness.
-- [ ] **Migration**: Refactor at least one major ACE test to use the new pattern.
-- [ ] **Verification**: Ensure tests pass reliably and produce clear failure messages.
+- [x] **Design**: Define the scope of the cross-reference check.
+- [x] **Implementation**: Develop `scripts/check_docs_coverage.py`.
+  - [x] Implement link extraction from markdown files.
+  - [x] Implement detection of orphaned files in `docs/`.
+  - [x] Implement broken link detection.
+  - [x] Support for excluding specific files (e.g., templates, example inputs).
+- [x] **Integration**: standalone command `scripts/check_docs_coverage.py` provided.
+- [x] **Remediation**: Fixed all orphaned files:
+  - Linked `ACADEMIC_BENCHMARKING.md` in `EVALUATION.md`.
+  - Linked `Algorithm.md` in `ARCHITECTURE.md`.
+  - Linked `LightRAG_concurrent_explain.md`, `TESTING_SUMMARY.md` in `ARCHITECTURE.md`.
+  - Linked `UV_LOCK_GUIDE.md` in `README.md` and `ARCHITECTURE.md`.
+- [x] **Verification**: Script passes with zero orphans and zero broken links (excluding restricted `global_docs`).
 
 ### Steps
 
-1. [ ] Analyze `tests/test_ace_process.py` and `tests/test_gold_standard_extraction.py`.
-2. [ ] Prototype the `AceTestHarness` class/fixture.
-3. [ ] Implement a test case using the harness:
-   - Inject a contradiction (e.g., "Apple is a fruit" vs "Apple is a car").
-   - Trigger Reflection.
-   - Verify Curator successfully resolves it or flags it.
-4. [ ] Run tests and verify output.
+1. [x] Analyze current `docs/` structure and existing validation script (`scripts/validate_docs.py`).
+2. [x] Create `scripts/check_docs_coverage.py`.
+3. [x] Run the script and identify orphaned files.
+4. [x] Implement fixes for orphaned documentation.
+5. [x] Verified script passes.

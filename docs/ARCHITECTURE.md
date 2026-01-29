@@ -56,7 +56,7 @@ Handles the conversion of raw text into a dual-format knowledge representation:
   (e.g., NanoVectorDB).
 
 - **Extraction Pipeline**: Detailed logic for chunking and LLM-based entity/relation
-  extraction. [Learn more about Extraction](subsystems/EXTRACTION.md).
+  extraction. [Learn more about Extraction](subsystems/EXTRACTION.md) and the [Core Algorithm](Algorithm.md).
 
 ### 2. ACE Framework (Agentic Context Evolution)
 
@@ -71,6 +71,7 @@ The "brain" that optimizes the system over time. [Learn more about ACE](subsyste
 A multi-stage process that leverages the graph structure:
 
 - **Hybrid Search**: Combines keyword search with vector similarity.
+
 - **Graph Reranking**: Prioritizes key entities and relations before token limits
   are hit.
 
@@ -81,3 +82,9 @@ A multi-stage process that leverages the graph structure:
 
 Integrated with **Langfuse** and **RAGAS** to provide real-time monitoring and
 quantitative quality scores for every interaction. [Learn more about Observability](subsystems/OBSERVABILITY.md).
+
+### 📄 Developer Resources
+
+- [Concurrent Processing Explanation](LightRAG_concurrent_explain.md)
+- [uv.lock Management Guide](UV_LOCK_GUIDE.md)
+- [Testing Infrastructure Summary](TESTING_SUMMARY.md)

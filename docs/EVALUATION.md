@@ -56,3 +56,4 @@ For detailed performance analysis of specific features, refer to:
 
 - [RAGAS Documentation](https://docs.ragas.io/)
 - [Langfuse Observability Guide](OBSERVABILITY.md)
+- [Academic Benchmarking Suite](ACADEMIC_BENCHMARKING.md)
