@@ -44,5 +44,6 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [ ] **Automatic Bloat Removal**: Implement cleanup steps in RTB to prune binary bloat and temporary files in global config directories (Beads: lightrag-987).
 * [x] **Beads Sync Optimization**: Modified `.gitignore` to track `.beads/issues.jsonl`, resolving "operation not permitted" errors (Beads: lightrag-988).
 * [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
+* [ ] **Universal SOP Standardization**: Standardize `.gemini`, `.antigravity`, skills, and planning files for cross-IDE/agent compatibility (Beads: lightrag-989).
 
 ## Phase 6: ACE Optimizer (Upcoming)
