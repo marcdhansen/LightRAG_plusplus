@@ -78,9 +78,9 @@ async def test_ollama_timeout_enforcement():
         # Arguments to AsyncClient are (host=..., timeout=..., headers=...)
         # We need to check the call args.
         _, init_kwargs = MockAsyncClient.call_args
-        assert init_kwargs.get("timeout") == test_timeout, (
-            f"Expected timeout {test_timeout}, got {init_kwargs.get('timeout')}"
-        )
+        assert (
+            init_kwargs.get("timeout") == test_timeout
+        ), f"Expected timeout {test_timeout}, got {init_kwargs.get('timeout')}"
 
 
 @pytest.mark.asyncio
@@ -108,6 +108,6 @@ async def test_ollama_timeout_parameter_passed():
 
         # Verification
         _, init_kwargs = MockAsyncClient.call_args
-        assert init_kwargs.get("timeout") == expected_timeout, (
-            "Timeout configuration was not passed to AsyncClient"
-        )
+        assert (
+            init_kwargs.get("timeout") == expected_timeout
+        ), "Timeout configuration was not passed to AsyncClient"

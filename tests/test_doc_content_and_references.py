@@ -178,13 +178,13 @@ def test_document_content_and_reference_streaming(test_document):
                     f"   - ID: {ref.get('reference_id')} | DocID: {ref.get('doc_id')} | File: {ref.get('file_path')}"
                 )
 
-        assert target_ref is not None, (
-            f"Our document {doc_id} was not among the retrieved references"
-        )
+        assert (
+            target_ref is not None
+        ), f"Our document {doc_id} was not among the retrieved references"
         assert "content" in target_ref, "Reference missing chunk content"
-        assert isinstance(target_ref["content"], list), (
-            "Reference content should be a list of strings"
-        )
+        assert isinstance(
+            target_ref["content"], list
+        ), "Reference content should be a list of strings"
         assert len(target_ref["content"]) > 0, "Reference content list is empty"
 
         print(f"✅ Found doc_id in references with {len(target_ref['content'])} chunks")
@@ -194,9 +194,9 @@ def test_document_content_and_reference_streaming(test_document):
             # Note: LightRAG might sanitize or slightly modify text during chunking,
             # so we check if the majority of it exists or use a substring check.
             # Usually it's intact for .txt files.
-            assert chunk_text in original_content, (
-                f"Chunk {i} text not found in original document!"
-            )
+            assert (
+                chunk_text in original_content
+            ), f"Chunk {i} text not found in original document!"
             print(f"   Chunk {i} verified as internal substring")
 
     print("\n🎉 All document content and reference traceability tests passed!")
