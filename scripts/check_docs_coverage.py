@@ -2,6 +2,7 @@
 import re
 import sys
 from pathlib import Path
+from typing import Set, Dict, List
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -22,7 +23,7 @@ IGNORE_FILES = {
 }
 
 
-def extract_links(file_path: Path) -> set[str]:
+def extract_links(file_path: Path) -> Set[str]:
     """
     Extracts all local markdown links from a file.
     """
@@ -68,9 +69,9 @@ def check_coverage():
     print(f"📊 Total documentation files found: {len(all_md_files)}")
 
     # 2. Extract all links from ALL files to find cross-references
-    linked_files: set[Path] = set()
-    broken_links: list[dict] = []
-    absolute_links: list[dict] = []
+    linked_files: Set[Path] = set()
+    broken_links: List[dict] = []
+    absolute_links: List[dict] = []
 
     for md_file in all_md_files:
         links = extract_links(md_file)
