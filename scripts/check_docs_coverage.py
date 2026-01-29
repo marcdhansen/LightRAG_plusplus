@@ -147,7 +147,9 @@ def check_coverage():
         print("✅ No broken links found.")
 
     if absolute_links:
-        print(f"❌ Found {len(absolute_links)} non-portable absolute links (Must be relative):")
+        print(
+            f"❌ Found {len(absolute_links)} non-portable absolute links (Must be relative):"
+        )
         for al in absolute_links:
             print(f"  - In {al['source']}: '{al['target']}'")
     else:
