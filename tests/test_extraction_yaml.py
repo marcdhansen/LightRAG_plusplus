@@ -50,9 +50,9 @@ async def test_ollama_auto_yaml_switch():
     )
 
     # Should automatically switch to key_value because function name contains "ollama"
-    assert (
-        rag.extraction_format == "key_value"
-    ), "Did not switch to key_value for Ollama function"
+    assert rag.extraction_format == "key_value", (
+        "Did not switch to key_value for Ollama function"
+    )
 
     # 2. Test non-ollama function
     async def gpt_mock_func(*args, **kwargs):
@@ -64,9 +64,9 @@ async def test_ollama_auto_yaml_switch():
         extraction_format="standard",
         embedding_func=embedding,
     )
-    assert (
-        rag_gpt.extraction_format == "standard"
-    ), "Switched to key_value for non-Ollama function"
+    assert rag_gpt.extraction_format == "standard", (
+        "Switched to key_value for non-Ollama function"
+    )
 
 
 @pytest.mark.asyncio
