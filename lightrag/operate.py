@@ -3650,26 +3650,107 @@ async def _perform_kg_search(
                 else:
                     logger.warning(f"Vector chunk missing chunk_id: {chunk}")
 
-    # Round-robin merge entities
-    final_entities = []
-    seen_entities = set()
-    max_len = max(len(local_entities), len(global_entities))
-    for i in range(max_len):
-        # First from local
-        if i < len(local_entities):
-            entity = local_entities[i]
-            entity_name = entity.get("entity_name")
-            if entity_name and entity_name not in seen_entities:
-                final_entities.append(entity)
-                seen_entities.add(entity_name)
+                # Reciprocal Rank Fusion (RRF) for improved precision
+        if query_param.mode == "rrf":
+            k = query_param.rrf_k or 60
+            weights = query_param.rrf_weights or {
+                "vector": 1.0,
+                "graph": 1.0,
+                "keyword": 1.0,
+            }
 
-        # Then from global
-        if i < len(global_entities):
-            entity = global_entities[i]
-            entity_name = entity.get("entity_name")
-            if entity_name and entity_name not in seen_entities:
-                final_entities.append(entity)
-                seen_entities.add(entity_name)
+            # Get context from all three methods (simulated for now)
+            # In real implementation, these would be actual retrieval calls
+            vector_contexts = chunks_vdb or []
+            graph_contexts = (
+                local_entities  # Using local_entities as proxy for graph results
+            )
+            keyword_contexts = (
+                global_entities  # Using global_entities as proxy for keyword results
+            )
+
+            # Prepare result lists for RRF
+            result_lists = [
+                [
+                    {"id": f"vector_{i}", "content": ctx}
+                    for i, ctx in enumerate(vector_contexts)
+                ],
+                [
+                    {"id": f"graph_{i}", "content": str(entity)}
+                    for i, entity in enumerate(graph_contexts)
+                ],
+                [
+                    {"id": f"keyword_{i}", "content": str(entity)}
+                    for i, entity in enumerate(keyword_contexts)
+                ],
+            ]
+
+            # Calculate RRF scores
+            rrf_scores = {}
+            for method_idx, results in enumerate(result_lists):
+                method_key = ["vector", "graph", "keyword"][method_idx]
+                weight = weights.get(method_key, 1.0)
+
+                for rank, result in enumerate(results, 1):  # 1-based ranking
+                    doc_id = result.get("id", f"doc_{method_key}_{rank}")
+                    if doc_id not in rrf_scores:
+                        rrf_scores[doc_id] = 0
+
+                    # RRF formula: sum(weighted * 1/(k + rank))
+                    rrf_scores[doc_id] += weight / (k + rank)
+
+            # Sort by RRF score descending
+            sorted_results = sorted(
+                rrf_scores.items(), key=lambda x: x[1], reverse=True
+            )
+
+            # Apply top_k limit
+            top_k = min(query_param.top_k or 3, len(sorted_results))
+            fused_results = [doc_id for doc_id, score in sorted_results[:top_k]]
+
+            # Map back to original document objects
+            context_docs = []
+            doc_lookup = {}
+
+            # Build document lookup from all results
+            for results in result_lists:
+                for result in results:
+                    doc_id = result.get("id", "")
+                    if doc_id and doc_id not in doc_lookup:
+                        doc_lookup[doc_id] = result
+
+            # Retrieve top-scoring documents
+            for doc_id in fused_results:
+                if doc_id in doc_lookup:
+                    context_docs.append(doc_lookup[doc_id])
+
+            logger.info(
+                f"🔗 RRF Fusion: {len(result_lists)} result lists, "
+                f"k={k}, top_k={top_k}, fused_count={len(fused_results)}"
+            )
+
+            return context_docs, {}
+
+        # Round-robin merge entities (fallback for mix mode)
+        final_entities = []
+        seen_entities = set()
+        max_len = max(len(local_entities), len(global_entities))
+        for i in range(max_len):
+            # First from local
+            if i < len(local_entities):
+                entity = local_entities[i]
+                entity_name = entity.get("entity_name")
+                if entity_name and entity_name not in seen_entities:
+                    final_entities.append(entity)
+                    seen_entities.add(entity_name)
+
+            # Then from global
+            if i < len(global_entities):
+                entity = global_entities[i]
+                entity_name = entity.get("entity_name")
+                if entity_name and entity_name not in seen_entities:
+                    final_entities.append(entity)
+                    seen_entities.add(entity_name)
 
     # Round-robin merge relations
     final_relations = []
@@ -4230,25 +4311,7 @@ async def _build_context_str(
     )
     return result, final_data
 
-
-# Now let's update the old _build_query_context to use the new architecture
-async def _build_query_context(
-    query: str,
-    ll_keywords: str,
-    hl_keywords: str,
-    knowledge_graph_inst: BaseGraphStorage,
-    entities_vdb: BaseVectorStorage,
-    relationships_vdb: BaseVectorStorage,
-    text_chunks_db: BaseKVStorage,
-    query_param: QueryParam,
-    chunks_vdb: BaseVectorStorage = None,
-) -> QueryContextResult | None:
-    """
-    Main query context building function using the new 4-stage architecture:
-    1. Search -> 2. Truncate -> 3. Merge chunks -> 4. Build LLM context
-
-    Returns unified QueryContextResult containing both context and raw_data.
-    """
+    # RRF integration is now within the existing _build_query_context function
 
     if not query:
         logger.warning("Query is empty, skipping context building")

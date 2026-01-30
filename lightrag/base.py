@@ -83,7 +83,7 @@ T = TypeVar("T")
 class QueryParam:
     """Configuration parameters for query execution in LightRAG."""
 
-    mode: Literal["local", "global", "hybrid", "naive", "mix", "bypass"] = "mix"
+    mode: Literal["local", "global", "hybrid", "naive", "mix", "rrf", "bypass"] = "mix"
     """Specifies the retrieval mode:
     - "local": Focuses on context-dependent information.
     - "global": Utilizes global knowledge.
@@ -108,6 +108,17 @@ class QueryParam:
     """Number of top items to retrieve. Represents entities in 'local' mode and relationships in 'global' mode."""
 
     chunk_top_k: int = int(os.getenv("CHUNK_TOP_K", str(DEFAULT_CHUNK_TOP_K)))
+
+    # RRF (Reciprocal Rank Fusion) configuration
+    rrf_k: int = 60
+    """RRF damping constant. Higher values give more weight to lower-ranked documents."""
+
+    rrf_weights: dict[str, float] = field(
+        default_factory=lambda: {"vector": 1.0, "graph": 1.0, "keyword": 1.0}
+    )
+    """Weights for different retrieval methods in RRF fusion.
+    Vector, graph, and keyword results can be weighted differently
+    based on their relative importance for specific use cases."""
     """Number of text chunks to retrieve initially from vector search and keep after reranking.
     If None, defaults to top_k value.
     """
