@@ -48,22 +48,141 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 
 ## Phase 6: ACE Optimizer (Current)
 
-Target: Refine the ACE framework for production-grade reliability and performance on small models (Ollama 1.5B/7B).
+**Target**: Refine the ACE framework for production-grade reliability and performance on small models (Ollama 1.5B/7B).
 
-* [ ] **Prompt Optimization (1.5B/7B)**:
-  * Audit current extraction/reflection prompts for hallucination rates on small models.
-  * Implement structured "Chain-of-Thought" (CoT) prompts for the Reflector.
-  * Ensure 100% YAML compliance for extraction via schema-constrained prompting.
-* [ ] **Curator 2.0 (Adaptive Memory)**:
-  * Implement similarity-based de-duplication for the Context Playbook.
-  * Add "Importance Scouring": Automatically prune low-utility insights from the playbook.
-* [ ] **Source Attribution & Citations**:
-  * Modify Graph Storage to maintain deep links to original source chunks (Beads: lightrag-8g4).
-  * Update `ACEGenerator` to include markdown citations `[^N]` in reasoning trajectories.
-* [ ] **Visual Repair Debugging**:
-  * Enhance WebUI "Review" tab to show side-by-side graph diffs for pending repairs (Beads: lightrag-4u6).
-* [ ] **Automated Benchmarking Suite**:
-  * Integrate `ACETestKit` into CI/CD to prevent query-quality regression.
+**Objective**: Achieve consistent, high-quality knowledge graph extraction and reasoning on resource-constrained models through systematic prompt engineering, curator optimization, and comprehensive benchmarking.
+
+### 6.1 Prompt Optimization (1.5B/7B) - **Priority: P2**
+
+**Goal**: Achieve 95%+ extraction accuracy and eliminate hallucinations on small models.
+
+* [ ] **Baseline Audit** (Beads: lightrag-992):
+  * Run extraction benchmarks on Einstein/Dickens test sets with 1.5B, 3B, and 7B models
+  * Measure: entity recall, relationship accuracy, YAML compliance rate, hallucination frequency
+  * Document failure patterns: missing concepts, malformed YAML, entity duplication
+  * **Success Criteria**: Baseline metrics documented for all model sizes
+
+* [ ] **Extraction Prompt Enhancement**:
+  * Implement explicit "Concept Extraction" instructions with examples
+  * Add YAML schema constraints to prevent malformed output
+  * Test gleaning=2 vs. gleaning=1 for small models
+  * **Success Criteria**: 95% YAML compliance, 90% entity recall on 7B models
+
+* [ ] **Reflection Prompt Refinement**:
+  * Design Chain-of-Thought (CoT) prompts for ACE Reflector
+  * Add structured reasoning templates: "Evidence → Analysis → Conclusion"
+  * Implement hallucination detection heuristics in prompts
+  * **Success Criteria**: 80% hallucination detection rate, 70% repair accuracy
+
+* [ ] **Prompt Versioning & A/B Testing**:
+  * Create `lightrag/prompts/versions/` directory for prompt history
+  * Implement A/B testing framework for prompt variants
+  * Track performance metrics per prompt version
+  * **Success Criteria**: Automated prompt regression testing in CI/CD
+
+### 6.2 Curator 2.0 (Adaptive Memory) - **Priority: P3**
+
+**Goal**: Implement intelligent playbook management to prevent context bloat and improve relevance.
+
+* [ ] **Similarity-Based Deduplication**:
+  * Implement embedding-based similarity detection for Context Playbook entries
+  * Merge duplicate insights with confidence scoring
+  * **Success Criteria**: 50% reduction in redundant playbook entries
+
+* [ ] **Importance Scoring**:
+  * Design utility scoring algorithm: frequency × recency × impact
+  * Implement automatic pruning of low-utility insights (score < threshold)
+  * Add manual review interface for borderline cases
+  * **Success Criteria**: Playbook size stable at <100 entries with high relevance
+
+* [ ] **Temporal Decay**:
+  * Implement time-based relevance decay for older insights
+  * Add "refresh" mechanism for frequently-used insights
+  * **Success Criteria**: Playbook automatically adapts to evolving knowledge base
+
+### 6.3 Source Attribution & Citations - **Priority: P2**
+
+**Goal**: Enable full traceability from LLM responses back to original source documents.
+
+* [x] **Graph Storage Enhancement** (Beads: lightrag-8g4):
+  * Implemented automatic citation generation using Zilliz semantic highlighting
+  * Added `auto_citations` and `citation_threshold` parameters to QueryParam
+  * **Status**: Complete - citations now include highlighted excerpts with relevance scores
+
+* [ ] **ACE Reasoning Citations**:
+  * Update `ACEGenerator` to include markdown citations `[^N]` in reasoning trajectories
+  * Link each repair action to specific source chunks
+  * **Success Criteria**: Every ACE repair traceable to source evidence
+
+* [ ] **Citation Validation**:
+  * Implement citation accuracy tests: verify cited chunks support claims
+  * Add citation coverage metrics to benchmarks
+  * **Success Criteria**: 90% citation accuracy, 80% coverage of key facts
+
+### 6.4 Visual Repair Debugging - **Priority**: P3**
+
+**Goal**: Provide intuitive UI for inspecting and validating ACE repairs.
+
+* [x] **Graph Visualizer Integration** (Beads: lightrag-4u6):
+  * Integrated Sigma.js graph visualization in Review tab
+  * **Status**: Complete - users can inspect graph structure before/after repairs
+
+* [ ] **Side-by-Side Diff View**:
+  * Implement graph diff visualization showing added/removed/modified nodes
+  * Add color coding: green (added), red (removed), yellow (modified)
+  * **Success Criteria**: Users can visually validate repairs before approval
+
+* [ ] **Repair Impact Analysis**:
+  * Show downstream effects of repairs (e.g., "Merging entities affects 5 relationships")
+  * Add "undo" functionality for approved repairs
+  * **Success Criteria**: Zero unintended side-effects from repairs
+
+### 6.5 Automated Benchmarking Suite - **Priority: P2**
+
+**Goal**: Prevent quality regression through continuous integration testing.
+
+* [x] **ACETestKit Implementation** (Beads: lightrag-dog):
+  * Created standardized Injection-Reflection-Repair test pattern
+  * **Status**: Complete - framework ready for CI/CD integration
+
+* [ ] **CI/CD Integration**:
+  * Add ACE benchmarks to GitHub Actions workflow
+  * Set quality gates: fail build if accuracy drops >5%
+  * Generate performance reports with trend analysis
+  * **Success Criteria**: Automated quality monitoring on every PR
+
+* [ ] **Multi-Model Benchmarking**:
+  * Test ACE performance across 1.5B, 3B, 7B, and 14B models
+  * Document speed-accuracy tradeoffs for each model size
+  * **Success Criteria**: Clear model selection guidelines based on use case
+
+### 6.6 Performance Optimization - **Priority: P3**
+
+**Goal**: Reduce ACE overhead to <20% of baseline query time.
+
+* [ ] **Reflection Caching**:
+  * Cache reflection results for identical graph states
+  * Implement cache invalidation on graph updates
+  * **Success Criteria**: 50% reduction in redundant reflections
+
+* [ ] **Parallel Reflection**:
+  * Run reflection on multiple graph regions concurrently
+  * Implement conflict resolution for overlapping repairs
+  * **Success Criteria**: 2x speedup on large graphs (>1000 nodes)
+
+* [ ] **Adaptive Reflection Frequency**:
+  * Trigger reflection only when graph quality drops below threshold
+  * Implement "quiet periods" to skip reflection on stable graphs
+  * **Success Criteria**: 70% reduction in unnecessary reflections
+
+### Phase 6 Success Metrics
+
+* **Extraction Quality**: 95% entity recall, 90% relationship accuracy on 7B models
+* **Hallucination Rate**: <5% false entities/relationships
+* **YAML Compliance**: 100% valid YAML output from extraction
+* **ACE Repair Accuracy**: 80% of repairs improve graph quality
+* **Performance**: ACE overhead <20% of baseline query time
+* **User Satisfaction**: 90% of repairs approved without modification
 
 ## Phase 7: MCP Expansion (Upcoming)
 
