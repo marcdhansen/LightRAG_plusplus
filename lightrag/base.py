@@ -184,6 +184,18 @@ class QueryParam:
     containing citation information for the retrieved content.
     """
 
+    auto_citations: bool = False
+    """If True, enables automatic citation generation using Zilliz semantic highlighting.
+    When enabled, citations are automatically generated based on query-relevance
+    using the zilliz highlighting model, providing more accurate source attribution.
+    """
+
+    citation_threshold: float = 0.6
+    """Relevance threshold for automatic citations (0.0 to 1.0).
+    Only sentences above this threshold will be included in automatic citations.
+    Higher values result in fewer but more confident citations.
+    """
+
 
 @dataclass
 class StorageNameSpace(ABC):

@@ -117,6 +117,18 @@ class QueryRequest(BaseModel):
         description="If True, includes actual chunk text content in references. Only applies when include_references=True. Useful for evaluation and debugging.",
     )
 
+    auto_citations: bool | None = Field(
+        default=False,
+        description="If True, enables automatic citation generation using Zilliz semantic highlighting. Provides more accurate source attribution based on query relevance.",
+    )
+
+    citation_threshold: float | None = Field(
+        default=0.6,
+        ge=0.0,
+        le=1.0,
+        description="Relevance threshold for automatic citations (0.0 to 1.0). Only sentences above this threshold will be included in automatic citations. Higher values result in fewer but more confident citations.",
+    )
+
     stream: bool | None = Field(
         default=True,
         description="If True, enables streaming output for real-time responses. Only affects /query/stream endpoint.",

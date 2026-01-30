@@ -16,7 +16,6 @@ from lightrag.base import (
     BaseGraphStorage,
     BaseKVStorage,
     BaseVectorStorage,
-    QueryContextResult,
     QueryParam,
     QueryResult,
     TextChunkSchema,
@@ -40,6 +39,7 @@ from lightrag.exceptions import (
     ChunkTokenLimitExceededError,
     PipelineCancelledException,
 )
+from lightrag.highlight import generate_citations_from_highlights
 from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
 from lightrag.prompt import PROMPTS
@@ -77,6 +77,65 @@ from lightrag.utils import (
 # allows to use different .env file for each lightrag instance
 # the OS environment variables take precedence over the .env file
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
+
+
+async def _generate_citations_with_auto_highlight(
+    truncated_chunks: list[dict],
+    query: str,
+    query_param: QueryParam,
+) -> tuple[list[dict], list[dict]]:
+    """
+    Generate citations using automatic highlighting when auto_citations is enabled.
+
+    This function conditionally uses Zilliz semantic highlighting for automatic
+    citation generation, or falls back to frequency-based citation generation.
+
+    Args:
+        truncated_chunks: List of chunk dictionaries with content and file_path
+        query: User query
+        query_param: Query parameters including auto_citations flag
+
+    Returns:
+        Tuple of (reference_list, truncated_chunks_with_refs)
+    """
+    if query_param.auto_citations:
+        try:
+            # Use automatic citation generation from Zilliz highlights
+            logger.info(
+                f"Generating automatic citations with threshold {query_param.citation_threshold}"
+            )
+            reference_list, highlighted_citations = generate_citations_from_highlights(
+                chunks=truncated_chunks,
+                query=query,
+                threshold=query_param.citation_threshold,
+                max_citations=5,  # Standard max citations
+            )
+
+            # Update chunks with reference_ids from the generated citations
+            file_path_to_ref_id = {
+                ref["file_path"]: ref["reference_id"] for ref in reference_list
+            }
+
+            for chunk in truncated_chunks:
+                file_path = chunk.get("file_path", "unknown_source")
+                if file_path in file_path_to_ref_id:
+                    chunk["reference_id"] = file_path_to_ref_id[file_path]
+                else:
+                    chunk["reference_id"] = ""
+
+            logger.info(
+                f"Auto-citations generated: {len(reference_list)} references from {len(highlighted_citations)} chunks"
+            )
+            return reference_list, truncated_chunks
+
+        except Exception as e:
+            logger.warning(
+                f"Automatic citation generation failed, falling back to frequency-based: {e}"
+            )
+            # Fall through to frequency-based method
+
+    # Use standard frequency-based citation generation
+    return generate_reference_list_from_chunks(truncated_chunks)
 
 
 def _truncate_entity_identifier(
@@ -1059,12 +1118,32 @@ async def _parse_yaml_extraction(
             if first_newline != -1 and last_fence != -1:
                 clean_content = clean_content[first_newline:last_fence].strip()
 
-        data = yaml.safe_load(clean_content)
+        try:
+            data = yaml.safe_load(clean_content)
+        except Exception:
+            # Aggressive strip for malformed YAML wrap (e.g. from tiny 1.5B models)
+            clean_content = clean_content.strip("()[] \n\t")
+            data = yaml.safe_load(clean_content)
+
         if not data:
             return {}, {}
 
+        # Handle entities
         entities = data.get("entities", [])
+        if isinstance(entities, dict):
+            # Convert dict format {name: {type: ..., description: ...}} to list
+            temp_entities = []
+            for name, details in entities.items():
+                if isinstance(details, dict):
+                    details["name"] = name
+                    temp_entities.append(details)
+                else:
+                    temp_entities.append({"name": name, "description": str(details)})
+            entities = temp_entities
+
         for ent in entities:
+            if not isinstance(ent, dict):
+                continue
             name = ent.get("name")
             if not name:
                 continue
@@ -1082,8 +1161,19 @@ async def _parse_yaml_extraction(
                 }
             )
 
+        # Handle relationships
         relationships = data.get("relationships", [])
+        if isinstance(relationships, dict):
+            # Convert dict format {key: {source: ..., target: ...}} to list
+            temp_relationships = []
+            for _key, details in relationships.items():
+                if isinstance(details, dict):
+                    temp_relationships.append(details)
+            relationships = temp_relationships
+
         for rel in relationships:
+            if not isinstance(rel, dict):
+                continue
             src = rel.get("source")
             tgt = rel.get("target")
             if not src or not tgt:
@@ -4225,9 +4315,12 @@ async def _build_context_str(
         chunk_token_limit=available_chunk_tokens,  # Pass dynamic limit
     )
 
-    # Generate reference list from truncated chunks using the new common function
-    reference_list, truncated_chunks = generate_reference_list_from_chunks(
-        truncated_chunks
+    # Generate reference list from truncated chunks
+    # Use automatic citation generation if enabled, otherwise fall back to frequency-based
+    reference_list, truncated_chunks = await _generate_citations_with_auto_highlight(
+        truncated_chunks=truncated_chunks,
+        query=query,
+        query_param=query_param,
     )
 
     # Rebuild chunks_context with truncated chunks
@@ -4310,139 +4403,6 @@ async def _build_context_str(
         f"[_build_context_str] Final data after conversion: {len(final_data.get('entities', []))} entities, {len(final_data.get('relationships', []))} relationships, {len(final_data.get('chunks', []))} chunks"
     )
     return result, final_data
-
-    # RRF integration is now within the existing _build_query_context function
-
-    if not query:
-        logger.warning("Query is empty, skipping context building")
-        return None
-
-    # Stage 1: Pure search
-    search_result = await _perform_kg_search(
-        query,
-        ll_keywords,
-        hl_keywords,
-        knowledge_graph_inst,
-        entities_vdb,
-        relationships_vdb,
-        text_chunks_db,
-        query_param,
-        chunks_vdb,
-    )
-
-    if not search_result["final_entities"] and not search_result["final_relations"]:
-        if query_param.mode != "mix":
-            return None
-        else:
-            if not search_result["chunk_tracking"]:
-                return None
-
-    # Stage 1.5: Rerank graph elements if enabled
-    if query_param.enable_rerank:
-        if (
-            getattr(query_param, "rerank_entities", True)
-            and search_result["final_entities"]
-        ):
-            logger.info(f"Reranking {len(search_result['final_entities'])} entities...")
-            search_result["final_entities"] = await rerank_graph_elements(
-                query,
-                search_result["final_entities"],
-                text_chunks_db.global_config,
-                "entity",
-                query_param,
-            )
-
-        if (
-            getattr(query_param, "rerank_relations", True)
-            and search_result["final_relations"]
-        ):
-            logger.info(
-                f"Reranking {len(search_result['final_relations'])} relations..."
-            )
-            search_result["final_relations"] = await rerank_graph_elements(
-                query,
-                search_result["final_relations"],
-                text_chunks_db.global_config,
-                "relation",
-                query_param,
-            )
-
-    # Stage 2: Apply token truncation for LLM efficiency
-    truncation_result = await _apply_token_truncation(
-        search_result,
-        query_param,
-        text_chunks_db.global_config,
-    )
-
-    # Stage 3: Merge chunks using filtered entities/relations
-    merged_chunks = await _merge_all_chunks(
-        filtered_entities=truncation_result["filtered_entities"],
-        filtered_relations=truncation_result["filtered_relations"],
-        vector_chunks=search_result["vector_chunks"],
-        query=query,
-        knowledge_graph_inst=knowledge_graph_inst,
-        text_chunks_db=text_chunks_db,
-        query_param=query_param,
-        chunks_vdb=chunks_vdb,
-        chunk_tracking=search_result["chunk_tracking"],
-        query_embedding=search_result["query_embedding"],
-    )
-
-    if (
-        not merged_chunks
-        and not truncation_result["entities_context"]
-        and not truncation_result["relations_context"]
-    ):
-        return None
-
-    # Stage 4: Build final LLM context with dynamic token processing
-    # _build_context_str now always returns tuple[str, dict]
-    context, raw_data = await _build_context_str(
-        entities_context=truncation_result["entities_context"],
-        relations_context=truncation_result["relations_context"],
-        merged_chunks=merged_chunks,
-        query=query,
-        query_param=query_param,
-        global_config=text_chunks_db.global_config,
-        chunk_tracking=search_result["chunk_tracking"],
-        entity_id_to_original=truncation_result["entity_id_to_original"],
-        relation_id_to_original=truncation_result["relation_id_to_original"],
-    )
-
-    # Convert keywords strings to lists and add complete metadata to raw_data
-    hl_keywords_list = hl_keywords.split(", ") if hl_keywords else []
-    ll_keywords_list = ll_keywords.split(", ") if ll_keywords else []
-
-    # Add complete metadata to raw_data (preserve existing metadata including query_mode)
-    if "metadata" not in raw_data:
-        raw_data["metadata"] = {}
-
-    # Update keywords while preserving existing metadata
-    raw_data["metadata"]["keywords"] = {
-        "high_level": hl_keywords_list,
-        "low_level": ll_keywords_list,
-    }
-    raw_data["metadata"]["processing_info"] = {
-        "total_entities_found": len(search_result.get("final_entities", [])),
-        "total_relations_found": len(search_result.get("final_relations", [])),
-        "entities_after_truncation": len(
-            truncation_result.get("filtered_entities", [])
-        ),
-        "relations_after_truncation": len(
-            truncation_result.get("filtered_relations", [])
-        ),
-        "merged_chunks_count": len(merged_chunks),
-        "final_chunks_count": len(raw_data.get("data", {}).get("chunks", [])),
-    }
-
-    logger.debug(
-        f"[_build_query_context] Context length: {len(context) if context else 0}"
-    )
-    logger.debug(
-        f"[_build_query_context] Raw data entities: {len(raw_data.get('data', {}).get('entities', []))}, relationships: {len(raw_data.get('data', {}).get('relationships', []))}, chunks: {len(raw_data.get('data', {}).get('chunks', []))}"
-    )
-
-    return QueryContextResult(context=context, raw_data=raw_data)
 
 
 async def _get_node_data(
@@ -5181,9 +5141,15 @@ async def naive_query(
         chunk_token_limit=available_chunk_tokens,  # Pass dynamic limit
     )
 
-    # Generate reference list from processed chunks using the new common function
-    reference_list, processed_chunks_with_ref_ids = generate_reference_list_from_chunks(
-        processed_chunks
+    # Generate reference list from processed chunks
+    # Use automatic citation generation if enabled, otherwise fall back to frequency-based
+    (
+        reference_list,
+        processed_chunks_with_ref_ids,
+    ) = await _generate_citations_with_auto_highlight(
+        truncated_chunks=processed_chunks,
+        query=query,
+        query_param=query_param,
     )
 
     logger.info(f"Final context: {len(processed_chunks_with_ref_ids)} chunks")
