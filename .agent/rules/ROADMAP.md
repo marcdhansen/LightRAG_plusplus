@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: Infrastructure & Process Improvements (Flight Director, YAML-default)
+- **Task**: Phase 6: ACE Optimizer - Systematic prompt & curator refinement.
 - **Status**: ACTIVE
-- **Result**: Robust automated checks and optimized extraction paths.
-- **Next Step**: Phase 6: ACE Optimizer - Systematic prompt refinement.
+- **Result**: Production-grade RAG performance on small (1.5B/7B) models.
+- **Next Step**: Prompt Audit & YAML compliance verification.
 
 ## 🚀 Active Work
 

@@ -46,4 +46,26 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
 * [x] **Universal SOP Standardization**: Documented cross-IDE/agent compatibility design in `CROSS_COMPATIBILITY.md` and integrated into `GLOBAL_INDEX.md` (Beads: lightrag-989).
 
-## Phase 6: ACE Optimizer (Upcoming)
+## Phase 6: ACE Optimizer (Current)
+
+Target: Refine the ACE framework for production-grade reliability and performance on small models (Ollama 1.5B/7B).
+
+* [ ] **Prompt Optimization (1.5B/7B)**:
+  * Audit current extraction/reflection prompts for hallucination rates on small models.
+  * Implement structured "Chain-of-Thought" (CoT) prompts for the Reflector.
+  * Ensure 100% YAML compliance for extraction via schema-constrained prompting.
+* [ ] **Curator 2.0 (Adaptive Memory)**:
+  * Implement similarity-based de-duplication for the Context Playbook.
+  * Add "Importance Scouring": Automatically prune low-utility insights from the playbook.
+* [ ] **Source Attribution & Citations**:
+  * Modify Graph Storage to maintain deep links to original source chunks (Beads: lightrag-8g4).
+  * Update `ACEGenerator` to include markdown citations `[^N]` in reasoning trajectories.
+* [ ] **Visual Repair Debugging**:
+  * Enhance WebUI "Review" tab to show side-by-side graph diffs for pending repairs (Beads: lightrag-4u6).
+* [ ] **Automated Benchmarking Suite**:
+  * Integrate `ACETestKit` into CI/CD to prevent query-quality regression.
+
+## Phase 7: MCP Expansion (Upcoming)
+
+* [ ] **LightRAG as MCP Server**: Expose retrieval/indexing capabilities.
+* [ ] **LightRAG as MCP Client**: Allow the extractor to browse the web or read local files via MCP.
