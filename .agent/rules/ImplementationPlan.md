@@ -41,9 +41,9 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **Type Safety & Reliability Refactoring**: Resolved critical Pyright errors in `core.py`, `base.py`, and `utils_graph.py`. Relaxed graph data types to `dict[str, Any]` and fixed suspected `None` attribute access (Beads: lightrag-3mc).
 * [x] **Architectural Consolidation**: Centralized ACE control loop in `ACEGenerator` to prevent redundant reflection triggers in `LightRAG.ace_query`.
 * [x] **Documentation Directory Hardening**: Modified `.gitignore` in `~/.gemini`, `~/.antigravity`, and project `.agent` directories to ignore all files except markdown (Beads: lightrag-986).
-* [ ] **Automatic Bloat Removal**: Implement cleanup steps in RTB to prune binary bloat and temporary files in global config directories (Beads: lightrag-987).
+* [x] **Automatic Bloat Removal**: Implement cleanup steps in RTB to prune binary bloat and temporary files in global config directories (Beads: lightrag-987).
 * [x] **Beads Sync Optimization**: Modified `.gitignore` to track `.beads/issues.jsonl`, resolving "operation not permitted" errors (Beads: lightrag-988).
 * [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
-* [/] **Universal SOP Standardization**: Documented cross-IDE/agent compatibility design in `CROSS_COMPATIBILITY.md` and integrated into `GLOBAL_INDEX.md` (Beads: lightrag-989).
+* [x] **Universal SOP Standardization**: Documented cross-IDE/agent compatibility design in `CROSS_COMPATIBILITY.md` and integrated into `GLOBAL_INDEX.md` (Beads: lightrag-989).
 
 ## Phase 6: ACE Optimizer (Upcoming)
