@@ -8,10 +8,20 @@
 # Example: issue-prefix: "myproject" creates issues like "myproject-1", "myproject-2", etc.
 issue-prefix: "lightrag"
 
-# Use no-db mode: load from JSONL, no SQLite, write back after each command
-# When true, bd will use .beads/issues.jsonl as the source of truth
-# instead of SQLite database
-no-db: true
+# Database mode configuration
+# no-db: false means use SQLite database for efficient queries and concurrent access
+# This is essential for multi-agent coordination where multiple agents may read/write
+# tasks simultaneously. SQLite provides ACID guarantees and better performance.
+# no-db: true would use JSONL only (simpler but not suitable for concurrent access)
+no-db: false
+
+# Auto-flush: Write SQLite changes back to JSONL after each mutation
+# This ensures JSONL remains up-to-date for git tracking while using SQLite for operations
+auto-flush: true
+
+# Auto-import: Import from JSONL if it's newer than database
+# Ensures agents always work with latest data from git
+auto-import: true
 
 # Disable daemon for RPC communication (forces direct database access)
 # no-daemon: false

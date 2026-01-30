@@ -139,6 +139,15 @@ bd close lightrag-993 -r "Done"  # Close the issue
 - Ensure `AGENT_LOCK_FILE` environment variable is set, or
 - The lock file follows the naming pattern: `agent_<id>_<session>.json`
 
+### Database Configuration for Multi-Agent
+
+**SQLite Mode**: This project uses beads with SQLite (`no-db: false` in `.beads/config.yaml`) for:
+- **ACID guarantees** - Prevents data corruption during concurrent task updates
+- **Better performance** - Faster queries for complex task management
+- **Automatic sync** - SQLite database syncs with JSONL via git
+
+**Important**: Always run `bd sync` before and after working to ensure all agents have the latest task state from git. The SQLite database is gitignored, but the JSONL files (`.beads/issues.jsonl`) are tracked in git and serve as the source of truth.
+
 ## 🛠️ Troubleshooting
 
 ### Beads Disk I/O Error
