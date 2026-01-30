@@ -1,26 +1,38 @@
-# LightRAG Documentation Hub
+# LightRAG
 
-This directory contains centralized documentation for the LightRAG project, bringing together workspace documentation, global configurations, and reference materials.
+**LightRAG** is a simple and fast Retrieval-Augmented Generation (RAG) framework.
 
-## Structure
+## 📁 Documentation Structure
 
-- **`workspace/`** - Workspace-level documentation and research notes from the parent antigravity_LightRAG directory
-- **`global-configs/`** - Configuration files and documentation from ~/.gemini and ~/.antigravity
-- **`references/`** - Research papers, PDFs, and external reference materials
+### 🚀 Quick Start
+- **SOP & Protocols**: `docs/sop/` - Standard Mission Protocol and procedures
+- **Project Documentation**: `docs/project/` - LightRAG-specific documentation
+- **Workspace Guides**: `docs/sop/workspace/` - Workspace-specific guides
+- **Skills**: `docs/sop/skills/` -> `.agent/skills/` - Agent capabilities
 
-## Purpose
+### 📚 Documentation Index
 
-This centralized documentation structure ensures that important project documentation is:
-- Version controlled within the main repository
-- Accessible to all team members
-- Synchronized with project development
-- Preserved across system changes
+- **Comprehensive Index**: `docs/sop/global-configs/GLOBAL_INDEX.md` - Complete documentation map
+- **SOP Reference**: `docs/sop/global-configs/GEMINI.md` - Global agent rules and procedures
 
-## Synchronization
+### 🔧 Key Components
 
-These docs are synchronized from:
-- `~/antigravity_LightRAG/` workspace directory
-- `~/.gemini/` global configuration directory
-- `~/.antigravity/` antigravity system directory
+- **Architecture**: `docs/project/ARCHITECTURE.md`
+- **Evaluation**: `docs/project/EVALUATION.md`
+- **ACE Framework**: `docs/project/ACE_FRAMEWORK.md`
+- **Subsystems**: `docs/subsystems/`
 
-Last sync: 2026-01-30
+### 🌐 External References
+
+- **Cross-IDE Support**: `docs/cross-ide/` - Multi-IDE compatibility
+- **External References**: `docs/external/` - Third-party documentation
+
+## 🚀 Quick Start
+
+1. **Read SOP**: Check `docs/sop/global-configs/GEMINI.md` for procedures
+2. **Project Setup**: See `docs/project/` for LightRAG-specific guides
+3. **Skills**: Available agent capabilities in `docs/sop/skills/`
+
+---
+
+**Note**: Most documentation in `docs/sop/` uses symbolic links to global sources at `~/.gemini/` and `~/.antigravity/` to ensure consistency across workspaces.

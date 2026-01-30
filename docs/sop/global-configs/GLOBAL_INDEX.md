@@ -1,0 +1,1 @@
+/Users/marchansen/.gemini/GLOBAL_INDEX.md
