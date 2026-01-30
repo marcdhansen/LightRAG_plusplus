@@ -523,7 +523,7 @@ async def _handle_single_relationship_extraction(
     ):  # treat "relationship" and "relation" interchangeable
         if len(record_attributes) > 1 and "relation" in record_attributes[0]:
             logger.warning(
-                f"{chunk_key}: LLM output format error; found {len(record_attributes)}/5 fields on REALTION `{record_attributes[1]}`~`{record_attributes[2] if len(record_attributes) > 2 else 'N/A'}`"
+                f"{chunk_key}: LLM output format error; found {len(record_attributes)}/5 fields on RELATION `{record_attributes[1]}`~`{record_attributes[2] if len(record_attributes) > 2 else 'N/A'}`"
             )
             logger.debug(record_attributes)
         return None
@@ -1110,27 +1110,32 @@ async def _parse_yaml_extraction(
     maybe_edges = defaultdict(list)
 
     try:
-        # Strip markdown fences if present
         clean_content = content.strip()
-        if clean_content.startswith("```"):
-            # Find the first newline and the last ```
-            first_newline = clean_content.find("\n")
+        # Robust markdown fence removal
+        if "```" in clean_content:
+            first_fence = clean_content.find("```")
             last_fence = clean_content.rfind("```")
-            if first_newline != -1 and last_fence != -1:
-                clean_content = clean_content[first_newline:last_fence].strip()
+            if last_fence > first_fence:
+                # Find the first newline after the first fence (skips things like ```yaml)
+                newline_idx = clean_content.find("\n", first_fence)
+                if newline_idx != -1 and newline_idx < last_fence:
+                    clean_content = clean_content[newline_idx + 1 : last_fence].strip()
+                else:
+                    # Single line fence or no newline? Just strip the fence markers
+                    clean_content = clean_content[first_fence + 3 : last_fence].strip()
 
         try:
             data = yaml.safe_load(clean_content)
         except Exception:
             # Aggressive strip for malformed YAML wrap (e.g. from tiny 1.5B models)
-            clean_content = clean_content.strip("()[] \n\t")
+            clean_content = clean_content.strip("()[] \n\t`\"'#")
             data = yaml.safe_load(clean_content)
 
         if not data:
             return {}, {}
 
         # Handle entities
-        entities = data.get("entities", [])
+        entities = data.get("entities") or []
         if isinstance(entities, dict):
             # Convert dict format {name: {type: ..., description: ...}} to list
             temp_entities = []
@@ -1163,7 +1168,7 @@ async def _parse_yaml_extraction(
             )
 
         # Handle relationships
-        relationships = data.get("relationships", [])
+        relationships = data.get("relationships") or []
         if isinstance(relationships, dict):
             # Convert dict format {key: {source: ..., target: ...}} to list
             temp_relationships = []

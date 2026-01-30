@@ -100,43 +100,48 @@ Based on the last extraction task, identify and extract any **missed or incorrec
 """
 
 PROMPTS["entity_extraction_key_value_system_prompt"] = """---Role---
-You are a Knowledge Graph Specialist responsible for extracting entities and relationships from the input text.
+You are a Knowledge Graph Specialist responsible for extracting ALL relevant entities and relationships from the input text.
 
 ---Instructions---
-1.  **Entity Extraction:**
-    *   Identify clearly defined and meaningful entities in the input text.
+1.  **ENTITY EXTRACTION (STRICT):**
+    *   Identify ALL meaningful entities including Persons, Locations, Organizations, Events, and **important Concepts** (e.g. "Theory of Relativity", "Universal Healthcare", "Social Justice").
+    *   **CONCEPT RECOGNITION:** Concepts are often abstract nouns representing ideas, philosophies, or major themes.
     *   Categorize entities using types: {entity_types}.
-    *   Provide a concise description for each entity.
-    *   **Decomposition:** Split compound entities (e.g., "Paris, France" -> "Paris", "France"). **Do NOT** split full names (e.g., "Steve Jobs").
+    *   **CRITICAL:** Do NOT skip entities mentioned at the end of the text.
+    *   **DECOMPOSITION:** Always split compound locations (e.g., "Paris, France" -> "Paris", "France").
+    *   **NO HALLUCINATION:** Strictly use information present in the text. Do NOT add biographical info or external facts. Keywords and Descriptions must come ONLY from the Input Text, NOT the examples.
+    *   **FORMAT:** Every entity MUST have 'name', 'type', and 'description'. Use a list of objects.
 
-2.  **Relationship Extraction:**
-    *   Identify direct and meaningful relationships between extracted entities.
-    *   Provide keywords summarizing the nature of the relationship.
-    *   Provide a concise explanation of the relationship.
+2.  **RELATIONSHIP EXTRACTION (STRICT):**
+    *   Identify all meaningful relationships between ALL identified entities.
+    *   **DENSE LINKING:** Do not just link to the main subject; link entities to each other if they appear in the same context or relate to each other.
+    *   **FORMAT:** Use 'source', 'target', 'keywords', 'description' in a list of objects.
+    *   **CONSISTENCY:** Use the EXACT same entity names in relationships as defined in the entities list.
 
-3.  **Output Format:**
-    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.
-    *   Strictly follow the structure in the examples.
+3.  **OUTPUT FORMAT:**
+    *   Return ONLY a valid YAML object with 'entities' and 'relationships' keys.
 
 ---Examples---
 {examples}
 """
 
 PROMPTS["entity_extraction_key_value_user_prompt"] = """---Task---
-Extract entities and relationships from the input text in YAML format.
+Extract ALL entities and relationships from the input text in YAML format.
 
 ---Instructions---
-1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.
-2.  **Entity Mapping:**
+1.  **Strict YAML Output:** Output only valid YAML. Do not include preamble or thoughts.
+2.  **Completeness:** DO NOT omit entities at the end of the text. Extract EVERYTHING relevant, including abstract concepts or themes mentioned.
+3.  **No Contamination:** Descriptions and keywords must be based ONLY on the provided Input Text. Do NOT copy information from the examples.
+4.  **Entity Mapping:**
     - name: "<entity_name>"
       type: "<entity_type>"
       description: "<entity_description>"
-3.  **Relationship Mapping:**
+5.  **Relationship Mapping:**
     - source: "<source_entity>"
       target: "<target_entity>"
       keywords: "<keywords>"
       description: "<description>"
-4.  **Language:** Use {language}.
+6.  **Language:** Use {language}.
 
 <Input Text>
 {input_text}
@@ -145,15 +150,14 @@ Extract entities and relationships from the input text in YAML format.
 """
 
 PROMPTS["entity_continue_extraction_key_value_user_prompt"] = """---Task---
-Based on the last extraction task, identify and extract any **missed or incorrectly formatted** entities and relationships from the input text in YAML format.
+Identify and extract any **MISSING** entities and relationships from the input text that were not found in the previous step.
 
 ---Instructions---
-1.  **Strict YAML Output:** Output only valid YAML. Do not include any text before or after the YAML block.
-2.  **Focus on Corrections/Additions:**
-    *   **Do NOT** re-output entities and relationships that were **correctly and fully** extracted in the last task.
-3.  **Output Format:**
-    *   Your output MUST be in YAML format with 'entities' and 'relationships' keys.
-4.  **Language:** Use {language}.
+1.  **Completeness Check:** Look for overlooked concepts, locations, or people.
+2.  **Strict YAML Output:** Output only valid YAML with 'entities' and 'relationships' keys.
+3.  **If Nothing New Found:** If you find no new entities or relationships, return exactly:
+entities: []
+relationships: []
 
 <Input Text>
 {input_text}
@@ -165,30 +169,37 @@ PROMPTS["entity_extraction_key_value_examples"] = [
     """entities:
   - name: "Alex"
     type: "Person"
-    description: "Alex is a character who experiences frustration and is observant of the dynamics among other characters."
+    description: "Alex is a character who observes the dynamics among other characters."
   - name: "Taylor"
     type: "Person"
-    description: "Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device."
+    description: "Taylor is portrayed with authoritarian certainty."
 relationships:
   - source: "Alex"
     target: "Taylor"
     keywords: "power dynamics, observation"
-    description: "Alex observes Taylor's authoritarian behavior and notes changes in Taylor's attitude toward the device."
+    description: "Alex observes Taylor's behavior."
 """,
     """entities:
-  - name: "Theory of Evolution"
-    type: "Concept"
-    description: "A scientific theory explaining the diversity of life on Earth through natural selection."
   - name: "Charles Darwin"
     type: "Person"
-    description: "A British naturalist and biologist best known for his contributions to the science of evolution."
+    description: "A British naturalist and biologist known for his contributions to evolution."
+  - name: "Shrewsbury"
+    type: "Location"
+    description: "The birthplace of Charles Darwin in England."
   - name: "England"
     type: "Location"
-    description: "A country that is part of the United Kingdom."
+    description: "A country in Europe where Charles Darwin was born."
+  - name: "Theory of Evolution"
+    type: "Concept"
+    description: "A scientific theory explaining the diversity of life through natural selection."
 relationships:
   - source: "Charles Darwin"
+    target: "Shrewsbury"
+    keywords: "birthplace"
+    description: "Charles Darwin was born in Shrewsbury, England."
+  - source: "Charles Darwin"
     target: "Theory of Evolution"
-    keywords: "development, scientific contribution"
+    keywords: "development"
     description: "Charles Darwin developed the Theory of Evolution."
   - source: "Charles Darwin"
     target: "England"

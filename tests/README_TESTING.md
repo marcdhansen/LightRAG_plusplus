@@ -29,6 +29,8 @@ Run comprehensive tests involving databases, LLMs, and API servers.
 ./scripts/test_heavy.sh
 # OR
 pytest -m heavy
+# OR (for full matrix of academic benchmarks)
+pytest -m heavy -k academic_full -v
 ```
 
 ### 3. Simple Offline Tests (Fast)

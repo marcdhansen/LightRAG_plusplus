@@ -43,7 +43,7 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **Documentation Directory Hardening**: Modified `.gitignore` in `~/.gemini`, `~/.antigravity`, and project `.agent` directories to ignore all files except markdown (Beads: lightrag-986).
 * [x] **Automatic Bloat Removal**: Implement cleanup steps in RTB to prune binary bloat and temporary files in global config directories (Beads: lightrag-987).
 * [x] **Beads Sync Optimization**: Modified `.gitignore` to track `.beads/issues.jsonl`, resolving "operation not permitted" errors (Beads: lightrag-988).
-* [/] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes and structured debriefing (Beads: lightrag-982).
+* [x] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes, structured debriefing, and PFC/RTB analysis (Beads: lightrag-982).
 * [x] **Universal SOP Standardization**: Documented cross-IDE/agent compatibility design in `CROSS_COMPATIBILITY.md` and integrated into `GLOBAL_INDEX.md` (Beads: lightrag-989).
 
 ## Phase 6: ACE Optimizer (Current)
@@ -56,11 +56,11 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 
 **Goal**: Achieve 95%+ extraction accuracy and eliminate hallucinations on small models.
 
-* [ ] **Baseline Audit** (Beads: lightrag-992):
+* [x] **Baseline Audit** (Beads: lightrag-992):
   * Run extraction benchmarks on Einstein/Dickens test sets with 1.5B, 3B, and 7B models
   * Measure: entity recall, relationship accuracy, YAML compliance rate, hallucination frequency
   * Document failure patterns: missing concepts, malformed YAML, entity duplication
-  * **Success Criteria**: Baseline metrics documented for all model sizes
+  * **Success Criteria**: Baseline metrics documented in [baseline_audit_report.md](../../audit_results/baseline_audit_report.md)
 
 * [ ] **Extraction Prompt Enhancement**:
   * Implement explicit "Concept Extraction" instructions with examples

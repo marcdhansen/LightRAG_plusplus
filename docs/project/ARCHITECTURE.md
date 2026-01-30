@@ -78,15 +78,15 @@ A multi-stage process that leverages the graph structure:
 - **Reciprocal Rank Fusion (RRF)**: Enhanced precision through consensus scoring
   across multiple retrieval methods. Documents ranking well across vector, graph,
   and keyword searches receive higher RRF scores, significantly improving context
-  precision for small-to-medium documents. [Learn more about RRF Fusion](subsystems/RRF_FUSION.md).
+  precision for small-to-medium documents. [Learn more about RRF Fusion](../subsystems/RRF_FUSION.md).
 
 - **UI Enhancements**: Semantic highlighting and 3D graph exploration.
-  [Learn more about UI Features](subsystems/UI_FEATURES.md).
+  [Learn more about UI Features](../subsystems/UI_FEATURES.md).
 
 ### 4. Observability Layer
 
 Integrated with **Langfuse** and **RAGAS** to provide real-time monitoring and
-quantitative quality scores for every interaction. [Learn more about Observability](subsystems/OBSERVABILITY.md).
+quantitative quality scores for every interaction. [Learn more about Observability](../subsystems/OBSERVABILITY.md).
 
 ### 📄 Developer Resources
 

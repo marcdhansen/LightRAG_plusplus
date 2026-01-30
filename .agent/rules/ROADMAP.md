@@ -7,7 +7,7 @@ This is the central directory for all project-specific planning, tracking, and i
 - **Task**: Phase 6: ACE Optimizer - Systematic prompt & curator refinement.
 - **Status**: ACTIVE
 - **Result**: Production-grade RAG performance on small (1.5B/7B) models.
-- **Next Step**: Prompt Audit & YAML compliance verification.
+- **Next Step**: Phase 6.1: Extraction Prompt Enhancement (Relationship schema refinement).
 
 ## 🚀 Active Work
 
@@ -21,12 +21,12 @@ This is the central directory for all project-specific planning, tracking, and i
 ## 📖 Instructions & Guides (Local)
 
 - **[Project README](../../README.md)**: Main project documentation.
-- **[Observability & Langfuse](../../docs/OBSERVABILITY.md)**: Setup and benefits of Langfuse tracing.
-- **[Evaluation & RAGAS](../../docs/EVALUATION.md)**: How to run and interpret RAGAS benchmarks.
-- **[ACE Framework](../../docs/ACE_FRAMEWORK.md)**: High-level overview of Agentic Context Evolution.
+- **[Observability & Langfuse](../../docs/project/OBSERVABILITY.md)**: Setup and benefits of Langfuse tracing.
+- **[Evaluation & RAGAS](../../docs/project/EVALUATION.md)**: How to run and interpret RAGAS benchmarks.
+- **[ACE Framework](../../docs/project/ACE_FRAMEWORK.md)**: High-level overview of Agentic Context Evolution.
 - **[Local Setup Hints](../../docs/local_setup_hints.md)**: specific commands for manual testing.
-- **[Frontend Build Guide](../../docs/FrontendBuildGuide.md)**: Instructions for building the WebUI.
-- **[Docker Deployment](../../docs/DockerDeployment.md)**: Guide for containerized setup.
+- **[Frontend Build Guide](../../docs/project/FrontendBuildGuide.md)**: Instructions for building the WebUI.
+- **[Docker Deployment](../../docs/project/DockerDeployment.md)**: Guide for containerized setup.
 
 ## 🌐 Global Resources
 

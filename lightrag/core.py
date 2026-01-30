@@ -519,6 +519,10 @@ class LightRAG:
             )
             self.extraction_format = "key_value"
 
+        # Alias "yaml" to "key_value" for consistency
+        if self.extraction_format == "yaml":
+            self.extraction_format = "key_value"
+
         # Handle deprecated parameters
         if self.log_level is not None:
             warnings.warn(

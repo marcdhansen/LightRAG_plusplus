@@ -104,12 +104,12 @@ def find_entity_match(name: str, entities: list) -> dict | None:
 
 async def run_extraction_test(model_name: str, case: dict, working_dir: str) -> dict:
     """
-    Run extraction test for a single case with a specific model.
+    Run entity extraction on a single test case with a specific model.
 
     Returns:
         dict with metrics: entity_recall, relation_accuracy, execution_time, etc.
     """
-    # Clean working directory
+    # Ensure a fresh directory
     if os.path.exists(working_dir):
         shutil.rmtree(working_dir)
     os.makedirs(working_dir)
@@ -142,8 +142,10 @@ async def run_extraction_test(model_name: str, case: dict, working_dir: str) -> 
     # Measure extraction time
     start_time = time.time()
     try:
+        print(f"      [DEBUG] Starting ainsert for {case['id']}...")
         await rag.ainsert(case["text"])
         execution_time = time.time() - start_time
+        print(f"      [DEBUG] ainsert completed in {execution_time:.4f}s")
         yaml_compliant = True
     except Exception as e:
         execution_time = time.time() - start_time
@@ -273,7 +275,7 @@ async def run_baseline_audit(models: list[str], output_file: str):
             print(f"    ✓ YAML Compliant: {result['yaml_compliant']}\n")
 
             # Cleanup
-            if os.path.exists(working_dir):
+            if not os.getenv("KEEP_STORAGE") and os.path.exists(working_dir):
                 shutil.rmtree(working_dir)
 
     # Calculate aggregate metrics per model
@@ -352,9 +354,17 @@ def main():
         default="./audit_results/prompt_baseline_audit.json",
         help="Output file path for results",
     )
+    parser.add_argument(
+        "--keep-storage",
+        action="store_true",
+        help="Do not delete the RAG storage directories after testing",
+    )
 
     args = parser.parse_args()
     models = [m.strip() for m in args.models.split(",")]
+
+    if args.keep_storage:
+        os.environ["KEEP_STORAGE"] = "True"
 
     asyncio.run(run_baseline_audit(models, args.output))
 
