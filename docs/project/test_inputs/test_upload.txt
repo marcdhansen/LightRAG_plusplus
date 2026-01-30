@@ -1,0 +1,1 @@
+LightRAG is an agentic retrieval system.
