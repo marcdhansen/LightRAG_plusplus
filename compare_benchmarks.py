@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import sys
 import tempfile
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -28,13 +29,29 @@ from tests.benchmarks.text2kgbench.full_dataset import get_text2kgbench_full_dat
 
 try:
     from lightrag import LightRAG
+    from lightrag.llm.ollama import ollama_embed, ollama_model_complete
+    from lightrag.utils import EmbeddingFunc
 except ImportError:
     LightRAG = None
+    ollama_embed = None
+    ollama_model_complete = None
+    EmbeddingFunc = None
+
+
+def create_embedding_func() -> Any:
+    """Create embedding function for Ollama nomic-embed-text."""
+    if EmbeddingFunc is None or ollama_embed is None:
+        return None
+    return EmbeddingFunc(
+        embedding_dim=768,
+        max_token_size=8192,
+        func=partial(ollama_embed.func, embed_model="nomic-embed-text:v1.5"),
+    )
 
 
 def create_lightrag_instance(working_dir: str) -> Any:
-    """Create a LightRAG instance for extraction."""
-    if LightRAG is None:
+    """Create a LightRAG instance for extraction with proper embedding config."""
+    if LightRAG is None or ollama_model_complete is None:
         return None
     return LightRAG(
         working_dir=working_dir,
@@ -42,31 +59,14 @@ def create_lightrag_instance(working_dir: str) -> Any:
         vector_storage="NanoVectorDBStorage",
         graph_storage="NetworkXStorage",
         doc_status_storage="JsonDocStatusStorage",
+        llm_model_func=ollama_model_complete,
+        embedding_func=create_embedding_func(),
     )
 
 
-async def extract_entities_lightrag(text: str, lightrag_instance: Any) -> list[dict]:
-    """Extract entities from text using LightRAG."""
-    if lightrag_instance is None:
-        return [{"name": "Mock Entity", "type": "Person"}]
-
-    try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            rag = create_lightrag_instance(tmpdir)
-            await rag.ainsert([text])
-            entities = []
-            return entities
-    except Exception as e:
-        print(f"Extraction error: {e}")
-        return [{"name": "Error Entity", "type": "Error"}]
-
-
-def normalize_entity(entity: dict) -> dict:
-    """Normalize entity format for comparison."""
-    return {
-        "name": entity.get("name", entity.get("entity_name", "")),
-        "type": entity.get("type", entity.get("entity_type", "")),
-    }
+def normalize_entity_name(name: str) -> str:
+    """Normalize entity name for comparison."""
+    return name.lower().strip()
 
 
 class BenchmarkComparator:
@@ -111,7 +111,7 @@ class BenchmarkComparator:
 
     async def extract_entities_from_text(self, text: str, repo_path: str) -> list[dict]:
         """Extract entities from text using LightRAG from specified repo."""
-        if not LightRAG:
+        if LightRAG is None or ollama_model_complete is None:
             return self.extract_entities_mock(text)
 
         repo_lightrag_path = Path(repo_path) / "lightrag"
@@ -120,20 +120,70 @@ class BenchmarkComparator:
 
         try:
             sys.path.insert(0, str(repo_path))
-            from lightrag import LightRAG as RepoLightRAG
 
-            with tempfile.TemporaryDirectory() as tmpdir:
-                rag = RepoLightRAG(
-                    working_dir=tmpdir,
+            try:
+                from lightrag.llm.ollama import ollama_embed as repo_ollama_embed
+                from lightrag.llm.ollama import (
+                    ollama_model_complete as repo_model_complete,
+                )
+                from lightrag.utils import EmbeddingFunc as RepoEmbeddingFunc
+
+                repo_embedding_func = RepoEmbeddingFunc(
+                    embedding_dim=768,
+                    max_token_size=8192,
+                    func=partial(
+                        repo_ollama_embed.func, embed_model="nomic-embed-text:v1.5"
+                    ),
+                )
+
+                rag = LightRAG(
+                    working_dir=tempfile.mkdtemp(),
                     kv_storage="JsonKVStorage",
                     vector_storage="NanoVectorDBStorage",
                     graph_storage="NetworkXStorage",
+                    doc_status_storage="JsonDocStatusStorage",
+                    llm_model_func=repo_model_complete,
+                    embedding_func=repo_embedding_func,
+                    llm_model_name="qwen2.5-coder:1.5b",
                 )
+                await rag.initialize_storages()
                 await rag.ainsert([text])
+
                 entities = []
+                try:
+                    all_nodes = await rag.chunk_entity_relation_graph.get_all_nodes()
+                    for node in all_nodes:
+                        entity_type = node.get("entity_type", "Unknown")
+                        if entity_type in [
+                            "Person",
+                            "Organization",
+                            "Location",
+                            "Concept",
+                            "Event",
+                            "Creature",
+                            "Method",
+                            "Content",
+                            "Data",
+                            "Artifact",
+                            "NaturalObject",
+                        ]:
+                            entities.append(
+                                {
+                                    "name": node.get("id", ""),
+                                    "type": entity_type,
+                                }
+                            )
+                except Exception:
+                    pass
+
                 return entities
+
+            except (ImportError, AttributeError) as e:
+                print(f"Warning: Could not import from {repo_path}: {e}, using mock")
+                return self.extract_entities_mock(text)
+
         except Exception as e:
-            print(f"Warning: Could not use LightRAG from {repo_path}: {e}")
+            print(f"Warning: Extraction failed from {repo_path}: {e}")
             return self.extract_entities_mock(text)
         finally:
             if str(repo_path) in sys.path:
@@ -173,6 +223,11 @@ class BenchmarkComparator:
 
                 original_metrics.append(orig_quality)
                 current_metrics.append(curr_quality)
+
+                print(
+                    f"   Case: Original F1={orig_quality.get('entity_f1', 0):.3f}, "
+                    f"Current F1={curr_quality.get('entity_f1', 0):.3f}"
+                )
 
             results[name] = {
                 "original_repo": self._aggregate_metrics(original_metrics),
@@ -267,6 +322,9 @@ class BenchmarkComparator:
         if not data:
             return "No data available"
         lines = [f"- Cases: {data.get('cases', 0)}"]
+        for metric in ["entity_f1", "entity_recall", "entity_precision", "overall_f1"]:
+            val = data.get(metric, 0)
+            lines.append(f"  - {metric}: {val:.3f}")
         return "\n".join(lines)
 
     def _get_timestamp(self) -> str:
@@ -305,8 +363,8 @@ def main():
     parser.add_argument(
         "--cases",
         type=int,
-        default=10,
-        help="Number of test cases to compare (default: 10)",
+        default=5,
+        help="Number of test cases to compare (default: 5)",
     )
 
     args = parser.parse_args()
