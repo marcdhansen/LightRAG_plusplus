@@ -254,9 +254,9 @@ async def run_baseline_audit(models: list[str], output_file: str):
     print(f"📋 Testing {len(models)} models on {len(TEST_CASES)} test cases\n")
 
     for model in models:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Testing Model: {model}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         for case in TEST_CASES:
             print(f"  Running case: {case['id']}...")
@@ -277,9 +277,9 @@ async def run_baseline_audit(models: list[str], output_file: str):
                 shutil.rmtree(working_dir)
 
     # Calculate aggregate metrics per model
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("📊 Aggregate Results")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     model_aggregates = {}
     for model in models:
