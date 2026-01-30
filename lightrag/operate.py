@@ -16,6 +16,7 @@ from lightrag.base import (
     BaseGraphStorage,
     BaseKVStorage,
     BaseVectorStorage,
+    QueryContextResult,
     QueryParam,
     QueryResult,
     TextChunkSchema,
@@ -4403,6 +4404,162 @@ async def _build_context_str(
         f"[_build_context_str] Final data after conversion: {len(final_data.get('entities', []))} entities, {len(final_data.get('relationships', []))} relationships, {len(final_data.get('chunks', []))} chunks"
     )
     return result, final_data
+
+
+async def _build_query_context(
+    query: str,
+    ll_keywords: str,
+    hl_keywords: str,
+    knowledge_graph_inst: BaseGraphStorage,
+    entities_vdb: BaseVectorStorage,
+    relationships_vdb: BaseVectorStorage,
+    text_chunks_db: BaseKVStorage,
+    query_param: QueryParam,
+    chunks_vdb: BaseVectorStorage = None,
+) -> QueryContextResult | None:
+    """
+    Build complete query context by orchestrating search, reranking, truncation, and formatting.
+
+    This is the main pipeline function that:
+    1. Performs KG search to get raw entities/relations/chunks
+    2. Optionally reranks graph elements
+    3. Applies token truncation
+    4. Merges chunks from different sources
+    5. Builds final LLM context string
+
+    Returns:
+        QueryContextResult with context string and raw_data, or None if no context could be built
+    """
+    if not query:
+        logger.warning("Query is empty, skipping context building")
+        return None
+
+    # Stage 1: Pure search
+    search_result = await _perform_kg_search(
+        query,
+        ll_keywords,
+        hl_keywords,
+        knowledge_graph_inst,
+        entities_vdb,
+        relationships_vdb,
+        text_chunks_db,
+        query_param,
+        chunks_vdb,
+    )
+
+    if not search_result["final_entities"] and not search_result["final_relations"]:
+        if query_param.mode != "mix":
+            return None
+        else:
+            if not search_result["chunk_tracking"]:
+                return None
+
+    # Stage 1.5: Rerank graph elements if enabled
+    if query_param.enable_rerank:
+        if (
+            getattr(query_param, "rerank_entities", True)
+            and search_result["final_entities"]
+        ):
+            logger.info(f"Reranking {len(search_result['final_entities'])} entities...")
+            search_result["final_entities"] = await rerank_graph_elements(
+                query,
+                search_result["final_entities"],
+                text_chunks_db.global_config,
+                "entity",
+                query_param,
+            )
+
+        if (
+            getattr(query_param, "rerank_relations", True)
+            and search_result["final_relations"]
+        ):
+            logger.info(
+                f"Reranking {len(search_result['final_relations'])} relations..."
+            )
+            search_result["final_relations"] = await rerank_graph_elements(
+                query,
+                search_result["final_relations"],
+                text_chunks_db.global_config,
+                "relation",
+                query_param,
+            )
+
+    # Stage 2: Apply token truncation for LLM efficiency
+    truncation_result = await _apply_token_truncation(
+        search_result,
+        query_param,
+        text_chunks_db.global_config,
+    )
+
+    # Stage 3: Merge chunks using filtered entities/relations
+    merged_chunks = await _merge_all_chunks(
+        filtered_entities=truncation_result["filtered_entities"],
+        filtered_relations=truncation_result["filtered_relations"],
+        vector_chunks=search_result["vector_chunks"],
+        query=query,
+        knowledge_graph_inst=knowledge_graph_inst,
+        text_chunks_db=text_chunks_db,
+        query_param=query_param,
+        chunks_vdb=chunks_vdb,
+        chunk_tracking=search_result["chunk_tracking"],
+        query_embedding=search_result["query_embedding"],
+    )
+
+    if (
+        not merged_chunks
+        and not truncation_result["entities_context"]
+        and not truncation_result["relations_context"]
+    ):
+        return None
+
+    # Stage 4: Build final LLM context with dynamic token processing
+    # _build_context_str now always returns tuple[str, dict]
+    context, raw_data = await _build_context_str(
+        entities_context=truncation_result["entities_context"],
+        relations_context=truncation_result["relations_context"],
+        merged_chunks=merged_chunks,
+        query=query,
+        query_param=query_param,
+        global_config=text_chunks_db.global_config,
+        chunk_tracking=search_result["chunk_tracking"],
+        entity_id_to_original=truncation_result["entity_id_to_original"],
+        relation_id_to_original=truncation_result["relation_id_to_original"],
+    )
+
+    # Convert keywords strings to lists and add complete metadata to raw_data
+    hl_keywords_list = hl_keywords.split(", ") if hl_keywords else []
+    ll_keywords_list = ll_keywords.split(", ") if ll_keywords else []
+
+    # Add complete metadata to raw_data (preserve existing metadata including query_mode)
+    if "metadata" not in raw_data:
+        raw_data["metadata"] = {}
+
+    # Update keywords while preserving existing metadata
+    raw_data["metadata"]["keywords"] = {
+        "high_level": hl_keywords_list,
+        "low_level": ll_keywords_list,
+    }
+    raw_data["metadata"]["processing_info"] = {
+        "total_entities_found": len(search_result.get("final_entities", [])),
+        "total_relations_found": len(search_result.get("final_relations", [])),
+        "entities_after_truncation": len(
+            truncation_result.get("filtered_entities", [])
+        ),
+        "relations_after_truncation": len(
+            truncation_result.get("filtered_relations", [])
+        ),
+        "merged_chunks_count": len(merged_chunks),
+        "final_chunks_count": len(raw_data.get("data", {}).get("chunks", [])),
+    }
+
+    logger.debug(
+        f"[_build_query_context] Context length: {len(context) if context else 0}"
+    )
+    logger.debug(
+        f"[_build_query_context] Raw data entities: {len(raw_data.get('data', {}).get('entities', []))}, relationships: {len(raw_data.get('data', {}).get('relationships', []))}, chunks: {len(raw_data.get('data', {}).get('chunks', []))}"
+    )
+
+    return QueryContextResult(context=context, raw_data=raw_data)
 
 
 async def _get_node_data(
