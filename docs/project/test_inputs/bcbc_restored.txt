@@ -55,7 +55,7 @@ accuracy.
 2. Fine-Tuning the Model:Second, fine-tuning the GPT model on a dataset of building code-specific logic
 would further enhance the accuracy of extractions, as it would learn the particular nuances of the BCBC’s
 logical structure.
-3. Tuning the Temperature Parameter:The third 
+3. Tuning the Temperature Parameter:The third
 
 e particular nuances of the BCBC’s
 logical structure.
@@ -182,4 +182,4 @@ the BCBC. This move brought two key advantages:
 efficiency, accelerating turnaround times.
 1
 • Scalability: By integrating the GPT-4 API into automated pipelines, the team could parse large volumes of
-content with minimal 
+content with minimal
