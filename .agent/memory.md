@@ -37,6 +37,12 @@
 - **YAML Solution**: Switching to `key_value` (YAML) extraction format significantly improves parsing success rates and reduces "json decode error" retries.
 - **Auto-Switching**: Implemented auto-detection in `LightRAG` core to enforce YAML format when an Ollama model function is detected, ensuring smoother out-of-the-box experience for local users.
 
+### 2026-01-30: Session Management
+
+- **Task Prioritization**: P0 items (like memory.md updates) should be addressed first before moving to P1/P2 tasks
+- **Beads Workflow**: `bd ready` shows available tasks, `bd close <id> -r "reason"` for completion with context
+- **Continuous Learning**: Memory.md should be updated after each session to maintain project context and avoid knowledge loss
+
 ## ACE Framework Summary
 
 The **Agentic Context Engineering (ACE)** framework optimizes LLM performance by dynamically evolving context (input instructions, memory, strategies) rather than modifying model weights.
