@@ -4,7 +4,7 @@
 
 The `bd sync` command was failing with the error:
 
-```
+```text
 Import failed: import requires SQLite storage backend
 ```
 
