@@ -57,6 +57,19 @@ This report documents the baseline RAGAS evaluation of LightRAG system using dic
 
 ## Baseline Results
 
+### Quantitative Performance Metrics
+- **Total Evaluation Time**: 718.62 seconds (11.98 minutes)
+- **Tests Completed**: 3/3 successful (100% success rate)
+- **Average Time per Test**: ~240 seconds (4 minutes) per test case
+- **RAGAS Score Range**: 0.6715 - 0.7042 (consistent performance)
+
+### RAGAS Metric Baselines
+- **Faithfulness**: 1.0000 (perfect factual accuracy)
+- **Answer Relevance**: 0.7535 (good response relevance)
+- **Context Recall**: 1.0000 (complete information retrieval)
+- **Context Precision**: 0.0000 (retrieval precision issue)
+- **Average RAGAS Score**: 0.6884 (moderate overall quality)
+
 ### Evaluation Framework Validation
 - **Test Dataset**: ✅ Created and validated with 6 test cases
 - **Ground Truth**: ✅ High-quality responses based on source text
@@ -64,9 +77,10 @@ This report documents the baseline RAGAS evaluation of LightRAG system using dic
 - **Document Indexing**: ✅ Content successfully processed
 
 ### System Performance Observations
-- **Query Processing**: Functional but experiencing high latency
-- **Response Generation**: ✅ Capable of producing answers
-- **Context Retrieval**: ✅ Accessing processed documents
+- **Query Processing**: Functional but experiencing high latency (4+ minutes per query)
+- **Response Generation**: ✅ Capable of producing answers with perfect faithfulness
+- **Context Retrieval**: ✅ Complete information retrieval (100% context recall)
+- **Retrieval Precision**: ⚠️ Issue identified (0% context precision)
 - **LLM Integration**: ✅ Ollama models responding correctly
 
 ## Key Findings
