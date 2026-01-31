@@ -154,7 +154,43 @@ bd close lightrag-993 -r "Done"  # Close the issue
 
 **Important**: Always run `bd sync` before and after working to ensure all agents have the latest task state from git. The SQLite database is gitignored, but the JSONL files (`.beads/issues.jsonl`) are tracked in git and serve as the source of truth.
 
+## 📚 Documentation Resources
+
+### .agent Directory Structure
+
+The `.agent/` directory contains organized documentation for cross-agent collaboration:
+
+```
+.agent/
+├── docs/
+│   ├── sop/                    # Standard Operating Procedures
+│   │   ├── global-configs/     # → ~/.gemini/ (global standards)
+│   │   ├── skills/            # → ../.agent/skills/
+│   │   └── workspace/         # Workspace-specific docs
+│   ├── workspace/              # Workspace documentation
+│   │   ├── TODO.md            # Current project tasks
+│   │   └── legacy_todo.md     # Historical TODO items
+│   └── troubleshooting/        # Troubleshooting guides
+│       └── beads_sync_issues.md  # Beads sync problems & solutions
+├── skills/                     # Agent capabilities and workflows
+└── rules/                      # Project rules and roadmaps
+```
+
+### Key Resources
+
+- **Current Tasks**: `.agent/docs/workspace/TODO.md` - Check before starting work
+- **Troubleshooting**: `.agent/docs/troubleshooting/` - Known issues and solutions
+- **Skills**: `.agent/skills/` - Available agent capabilities
+- **Global Standards**: `~/.gemini/GLOBAL_INDEX.md` - System-wide documentation
+
 ## 🛠️ Troubleshooting
+
+### Common Issues
+
+For comprehensive troubleshooting guides, see `.agent/docs/troubleshooting/`:
+
+- **Bead Sync Issues**: `.agent/docs/troubleshooting/beads_sync_issues.md` - Complete guide to Beads synchronization problems
+- **Disk I/O Errors**: Use `bd --sandbox <command>` for environment sandbox restrictions
 
 ### Beads Disk I/O Error
 
