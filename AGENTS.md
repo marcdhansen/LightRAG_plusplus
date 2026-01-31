@@ -35,10 +35,16 @@ Before you write any code:
 4. **PUSH TO REMOTE** - This is MANDATORY:
 
    ```bash
+   # LightRAG repository
    git pull --rebase
    bd sync
    git push
    git status  # MUST show "up to date with origin"
+
+   # Global memory (~/.gemini)
+   cd ~/.gemini && git status
+   cd ~/.gemini && git add -A && git commit -m "Session learnings and SOP updates"
+   cd ~/.gemini && git push
    ```
 
 5. **Clean up** - Clear stashes, prune remote branches
