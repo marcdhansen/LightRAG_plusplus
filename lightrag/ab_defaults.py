@@ -9,7 +9,7 @@ from __future__ import annotations
 
 AB_DEFAULTS = {
     # Explicit per-model defaults (override anything else unless forced)
-    "qwen2.5-coder:1.5b": "A",
+    "qwen2.5-coder:1.5b": "B",
     "qwen2.5-coder:3b": "A",
     "qwen2.5-coder:7b": "B",
 }
@@ -17,9 +17,9 @@ AB_DEFAULTS = {
 AB_WEIGHTS = {
     # Weights per model size group: higher means more preferred for that variant
     # Example: prefer A for smaller models (higher recall), B for largest models (speed)
-    "1.5b": {"A": 1.0, "B": 0.8, "C": 0.95},
-    "3b": {"A": 1.0, "B": 0.95, "C": 0.97},
-    "7b": {"A": 0.9, "B": 1.0, "C": 1.05},
+    "1.5b": {"A": 0.85, "B": 1.0, "C": 0.95},
+    "3b": {"A": 0.9, "B": 1.0, "C": 0.97},
+    "7b": {"A": 0.85, "B": 1.0, "C": 0.95},
 }
 
 

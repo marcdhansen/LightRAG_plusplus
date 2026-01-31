@@ -121,19 +121,28 @@ class BenchmarkComparator:
 
         try:
             cmd = [sys.executable, "isolated_extract.py", repo_path, input_path]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                print(f"Warning: Extraction failed for {repo_path}: {result.stderr}")
-                return self.extract_entities_mock(text)
-
+            # Add timeout to prevent hanging the whole benchmark
             try:
-                entities = json.loads(result.stdout)
-                return entities
-            except json.JSONDecodeError:
-                print(
-                    f"Warning: Could not parse output for {repo_path}: {result.stdout}"
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=300
                 )
+
+                if result.returncode != 0:
+                    print(
+                        f"Warning: Extraction failed for {repo_path}: {result.stderr}"
+                    )
+                    return self.extract_entities_mock(text)
+
+                try:
+                    entities = json.loads(result.stdout)
+                    return entities
+                except json.JSONDecodeError:
+                    print(
+                        f"Warning: Could not parse output for {repo_path}: {result.stdout}"
+                    )
+                    return self.extract_entities_mock(text)
+            except subprocess.TimeoutExpired:
+                print(f"ERROR: Extraction TIMED OUT (300s) for {repo_path}")
                 return self.extract_entities_mock(text)
         finally:
             if os.path.exists(input_path):
@@ -257,23 +266,27 @@ class BenchmarkComparator:
                 "",
                 "## Details",
                 "",
-                "### Few-NERD",
-                self._format_details(results.get("fewnerd", {})),
-                "",
-                "### Text2KGBench",
-                self._format_details(results.get("text2kgbench", {})),
             ]
         )
 
+        for name, data in results.items():
+            lines.append(f"### {name.capitalize()}")
+            lines.append("#### Original Repository")
+            lines.append(self._format_details(data.get("original_repo", {})))
+            lines.append("")
+            lines.append("#### Current Repository")
+            lines.append(self._format_details(data.get("current_repo", {})))
+            lines.append("")
+
         return "\n".join(lines)
 
-    def _format_details(self, data: dict) -> str:
+    def _format_details(self, stats: dict) -> str:
         """Format detailed metrics."""
-        if not data:
+        if not stats:
             return "No data available"
-        lines = [f"- Cases: {data.get('cases', 0)}"]
+        lines = [f"- Cases: {stats.get('cases', 0)}"]
         for metric in ["entity_f1", "entity_recall", "entity_precision", "overall_f1"]:
-            val = data.get(metric, 0)
+            val = stats.get(metric, 0)
             lines.append(f"  - {metric}: {val:.3f}")
         return "\n".join(lines)
 
