@@ -45,6 +45,26 @@ EOF
     echo "✅ Session lock created: $(basename "$LOCK_FILE")"
 }
 
+# Function to start background heartbeat
+start_heartbeat() {
+    echo "💓 Starting background heartbeat every $((HEARTBEAT_INTERVAL / 60)) minutes..."
+    (
+        # Allow some time for the lock file to be fully written and for the parent to update the PID
+        sleep 2
+        while [ -f "$LOCK_FILE" ]; do
+            # Use absolute path to ensure it works from any directory
+            "$(dirname "$0")/agent-heartbeat.sh" > /dev/null 2>&1 || true
+            sleep "$HEARTBEAT_INTERVAL"
+        done
+    ) &
+    HB_PID=$!
+
+    # Store the heartbeat PID in the lock file (macOS compatible sed)
+    sed -i '' 's/"version": "1.0"/ "heartbeat_pid": '"$HB_PID"',\n  "version": "1.0"/' "$LOCK_FILE"
+
+    echo "💓 Heartbeat process started with PID: $HB_PID"
+}
+
 # Function to check for stale locks and warn
 check_existing_locks() {
     local stale_count=0
@@ -99,6 +119,27 @@ usage() {
     echo "  $0 --quiet  # Skip warnings about other agents"
 }
 
+# Function to validate Beads task
+validate_beads_task() {
+    local task_id="$1"
+    if [ "$task_id" = "unknown" ]; then
+        return 0
+    fi
+
+    echo "🔍 Validating Beads task: $task_id..."
+    # Check if task exists in Beads
+    if bd list --id "$task_id" --all --json | grep -q "\"id\": \"$task_id\""; then
+        echo "✅ Task $task_id found in Beads."
+
+        # Automatically label the task with the current agent if not already present
+        # This helps with coordination and visibility in bd list
+        bd update "$task_id" --labels "agent:${AGENT_NAME}" > /dev/null 2>&1 || true
+    else
+        echo "⚠️  WARNING: Task $task_id NOT FOUND in Beads."
+        echo "Please verify the ID or create it with 'bd create'."
+    fi
+}
+
 # Parse arguments
 TASK_ID="unknown"
 TASK_DESC="unknown"
@@ -144,8 +185,14 @@ if [ "$QUIET" = false ]; then
     check_existing_locks
 fi
 
+# Validate Beads task
+validate_beads_task "$TASK_ID"
+
 # Create lock file
 create_lock "$TASK_ID" "$TASK_DESC"
+
+# Start automated heartbeat
+start_heartbeat
 
 # Export lock file path for other scripts
 export AGENT_LOCK_FILE="$LOCK_FILE"

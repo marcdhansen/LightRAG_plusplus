@@ -26,7 +26,30 @@ if [ "$EXIT_CODE" = "1" ]; then
     exit 1
 fi
 
-# 2. Run PFC
+# 2. Check for Active Agents
+echo -e "\n👥 Checking Agent Status..."
+./scripts/agent-status.sh
+
+# 3. Session Registration
+echo -e "\n🔐 Session Registration..."
+if [[ -n "$ZSH_VERSION" ]]; then
+    read "TASK_ID?Enter Task ID (e.g., lightrag-123) [unknown]: "
+    read "TASK_DESC?Enter brief work description [unknown]: "
+else
+    read -p "Enter Task ID (e.g., lightrag-123) [unknown]: " TASK_ID
+    read -p "Enter brief work description [unknown]: " TASK_DESC
+fi
+
+TASK_ID=${TASK_ID:-unknown}
+TASK_DESC=${TASK_DESC:-unknown}
+
+./scripts/agent-start.sh --task-id "$TASK_ID" --task-desc "$TASK_DESC"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Session registration failed.${NC}"
+    exit 1
+fi
+
+# 4. Run PFC
 echo -e "\n📋 Running Flight Director Pre-Flight Check..."
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc
 
@@ -35,7 +58,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 3. Discover Ready Tasks
+# 5. Discover Ready Tasks
 echo -e "\n🐚 Discovering Ready Tasks (Beads)..."
 bd ready
 

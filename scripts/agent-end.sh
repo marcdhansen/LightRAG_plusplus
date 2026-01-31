@@ -61,6 +61,21 @@ cleanup_lock() {
     fi
 }
 
+# Function to kill heartbeat process
+kill_heartbeat() {
+    local lock_file="$1"
+    if [ -f "$lock_file" ]; then
+        # Extract heartbeat PID (macOS compatible grep/sed)
+        local hb_pid=$(grep '"heartbeat_pid"' "$lock_file" | sed 's/.*: \([0-9]*\),.*/\1/')
+
+        if [ -n "$hb_pid" ] && kill -0 "$hb_pid" 2>/dev/null; then
+            echo "💓 Stopping heartbeat process (PID: $hb_pid)..."
+            kill "$hb_pid" || true
+            echo "✅ Heartbeat stopped"
+        fi
+    fi
+}
+
 # Function to show session summary
 show_summary() {
     local lock_file="$1"
@@ -153,6 +168,9 @@ fi
 if [ "$SILENT" = false ]; then
     show_summary "$LOCK_FILE"
 fi
+
+# Stop heartbeat
+kill_heartbeat "$LOCK_FILE"
 
 # Clean up lock file
 echo ""
