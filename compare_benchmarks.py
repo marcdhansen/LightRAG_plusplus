@@ -110,84 +110,34 @@ class BenchmarkComparator:
         return [{"name": "Simulated Entity", "type": "Person"}]
 
     async def extract_entities_from_text(self, text: str, repo_path: str) -> list[dict]:
-        """Extract entities from text using LightRAG from specified repo."""
-        if LightRAG is None or ollama_model_complete is None:
-            return self.extract_entities_mock(text)
+        """Extract entities from text using isolated subprocess to avoid module caching issues."""
+        import json
+        import os
+        import subprocess
 
-        repo_lightrag_path = Path(repo_path) / "lightrag"
-        if not repo_lightrag_path.exists():
-            return self.extract_entities_mock(text)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"text": text}, f)
+            input_path = f.name
 
         try:
-            sys.path.insert(0, str(repo_path))
+            cmd = [sys.executable, "isolated_extract.py", repo_path, input_path]
+            result = subprocess.run(cmd, capture_output=True, text=True)
 
-            try:
-                from lightrag.llm.ollama import ollama_embed as repo_ollama_embed
-                from lightrag.llm.ollama import (
-                    ollama_model_complete as repo_model_complete,
-                )
-                from lightrag.utils import EmbeddingFunc as RepoEmbeddingFunc
-
-                repo_embedding_func = RepoEmbeddingFunc(
-                    embedding_dim=768,
-                    max_token_size=8192,
-                    func=partial(
-                        repo_ollama_embed.func, embed_model="nomic-embed-text:v1.5"
-                    ),
-                )
-
-                rag = LightRAG(
-                    working_dir=tempfile.mkdtemp(),
-                    kv_storage="JsonKVStorage",
-                    vector_storage="NanoVectorDBStorage",
-                    graph_storage="NetworkXStorage",
-                    doc_status_storage="JsonDocStatusStorage",
-                    llm_model_func=repo_model_complete,
-                    embedding_func=repo_embedding_func,
-                    llm_model_name="qwen2.5-coder:1.5b",
-                )
-                await rag.initialize_storages()
-                await rag.ainsert([text])
-
-                entities = []
-                try:
-                    all_nodes = await rag.chunk_entity_relation_graph.get_all_nodes()
-                    for node in all_nodes:
-                        entity_type = node.get("entity_type", "Unknown")
-                        if entity_type in [
-                            "Person",
-                            "Organization",
-                            "Location",
-                            "Concept",
-                            "Event",
-                            "Creature",
-                            "Method",
-                            "Content",
-                            "Data",
-                            "Artifact",
-                            "NaturalObject",
-                        ]:
-                            entities.append(
-                                {
-                                    "name": node.get("id", ""),
-                                    "type": entity_type,
-                                }
-                            )
-                except Exception:
-                    pass
-
-                return entities
-
-            except (ImportError, AttributeError) as e:
-                print(f"Warning: Could not import from {repo_path}: {e}, using mock")
+            if result.returncode != 0:
+                print(f"Warning: Extraction failed for {repo_path}: {result.stderr}")
                 return self.extract_entities_mock(text)
 
-        except Exception as e:
-            print(f"Warning: Extraction failed from {repo_path}: {e}")
-            return self.extract_entities_mock(text)
+            try:
+                entities = json.loads(result.stdout)
+                return entities
+            except json.JSONDecodeError:
+                print(
+                    f"Warning: Could not parse output for {repo_path}: {result.stdout}"
+                )
+                return self.extract_entities_mock(text)
         finally:
-            if str(repo_path) in sys.path:
-                sys.path.remove(str(repo_path))
+            if os.path.exists(input_path):
+                os.remove(input_path)
 
     async def run_comparison_async(
         self, benchmarks: dict, cases_per_benchmark: int = 10

@@ -81,6 +81,30 @@ You are a Knowledge Graph Specialist specializing in quick, robust extraction fo
    - Keep entity names in Title Case when appropriate and descriptions in the input's language.
 """
 
+PROMPTS["entity_extraction_system_prompt_variant_A"] = """---Role---
+You are a Knowledge Graph Specialist specializing in quick, lightweight extraction for smaller models (Variant A).
+
+---Instructions---
+1. Entity Extraction:
+   - Identify all meaningful entities in the input text.
+   - Output a compact line per entity using the same 4 fields as in the standard prompt, separated by {tuple_delimiter}:
+     entity{tuple_delimiter}{entity_name}{tuple_delimiter}{entity_type}{tuple_delimiter}{entity_description}
+2. Relationship Extraction:
+   - Identify direct binary relationships between extracted entities.
+   - Output a single line per relationship using the 5 fields:
+     relation{tuple_delimiter}{source_entity}{tuple_delimiter}{target_entity}{tuple_delimiter}{relationship_keywords}{tuple_delimiter}{relationship_description}
+3. Delimiters:
+   - Use {tuple_delimiter} strictly as field separators.
+4. Language & Completion:
+   - Language: {language}
+   - Completion signal: {completion_delimiter}
+5. Output style:
+   - Keep names in Title Case; descriptions in {language}.
+"""
+PROMPTS["entity_extraction_system_prompt_variant_B"] = PROMPTS[
+    "entity_extraction_system_prompt"
+]
+
 PROMPTS["entity_extraction_user_prompt"] = """---Task---
 Extract entities and relationships from the input text in Data to be Processed below.
 

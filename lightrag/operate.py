@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from collections import Counter, defaultdict
 from functools import partial
@@ -2992,28 +2993,72 @@ async def extract_entities(
         continue_prompt_key = "entity_continue_extraction_key_value_user_prompt"
         example_key = "entity_extraction_key_value_examples"
     else:
-        # Decide on a prompt variant depending on model size (small models get a simplified prompt)
-        model_name = (
-            global_config.get("llm_model_name", "")
-            if isinstance(global_config, dict)
-            else ""
-        )
-        mlower = str(model_name).lower()
-        small_model = False
-        if mlower:
-            if any(x in mlower for x in ("1.5b", "3b", "7b", "8b")):
-                small_model = True
-            else:
+        # AB Testing path (optional)
+        ab_enabled = False
+        try:
+            ab_enabled = str(os.getenv("PROMPT_AB_TEST", "0")).lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+        except Exception:
+            ab_enabled = False
+
+        if ab_enabled:
+            try:
+                # Deterministic override via PROMPT_AB_FORCE_VARIANT
+                forced = None
                 try:
-                    size = parse_model_size(model_name)
-                    if size is not None and size <= 8.0:
-                        small_model = True
+                    forced = os.getenv("PROMPT_AB_FORCE_VARIANT")
                 except Exception:
-                    pass
-        if small_model:
-            system_prompt_key = "entity_extraction_system_prompt_small"
+                    forced = None
+                if forced and str(forced).upper() in ("A", "B"):
+                    if str(forced).upper() == "A":
+                        system_prompt_key = "entity_extraction_system_prompt_variant_A"
+                    else:
+                        system_prompt_key = "entity_extraction_system_prompt_variant_B"
+                else:
+                    from lightrag.prompts.ab_testing import choose_variant
+
+                    model_name = (
+                        global_config.get("llm_model_name", "")
+                        if isinstance(global_config, dict)
+                        else ""
+                    )
+                    variant = choose_variant(
+                        model_name if isinstance(model_name, str) else ""
+                    )
+                    if str(variant).upper() == "A":
+                        system_prompt_key = "entity_extraction_system_prompt_variant_A"
+                    elif str(variant).upper() == "B":
+                        system_prompt_key = "entity_extraction_system_prompt_variant_B"
+                    else:
+                        system_prompt_key = "entity_extraction_system_prompt"
+            except Exception:
+                system_prompt_key = "entity_extraction_system_prompt"
         else:
-            system_prompt_key = "entity_extraction_system_prompt"
+            model_name = (
+                global_config.get("llm_model_name", "")
+                if isinstance(global_config, dict)
+                else ""
+            )
+            mlower = str(model_name).lower()
+            small_model = False
+            if mlower:
+                if any(x in mlower for x in ("1.5b", "3b", "7b", "8b")):
+                    small_model = True
+                else:
+                    try:
+                        size = parse_model_size(model_name)
+                        if size is not None and size <= 8.0:
+                            small_model = True
+                    except Exception:
+                        pass
+            if small_model:
+                system_prompt_key = "entity_extraction_system_prompt_small"
+            else:
+                system_prompt_key = "entity_extraction_system_prompt"
         user_prompt_key = "entity_extraction_user_prompt"
         continue_prompt_key = "entity_continue_extraction_user_prompt"
         example_key = "entity_extraction_examples"
