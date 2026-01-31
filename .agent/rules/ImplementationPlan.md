@@ -55,8 +55,9 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 To ensure coordination and safety in multi-agent environments, the following gates are enforced:
 
 1. **Pre-Flight Check (PFC)**: Verifies tools, Beads, and planning documents.
-2. **Plan-Blocker Gate**: Prevents implementation from starting until the user has added a `## Approval` marker to the `task.md`.
-3. **Return To Base (RTB)**: Verifies cleanup, linting, and git sync.
+2. **Isolation Gate**: Verifies the agent is on a dedicated task branch and using a unique filesystem path (Worktree isolation).
+3. **Plan-Blocker Gate**: Prevents implementation from starting until the user has added a `## Approval` marker to the `task.md`.
+4. **Return To Base (RTB)**: Verifies cleanup, linting, and git sync.
 
 ## Phase 6: ACE Optimizer (Current)
 

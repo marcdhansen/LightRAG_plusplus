@@ -100,6 +100,58 @@ def check_session_conflicts():
         print(f"✅ No session conflicts found for task {current_task}.")
 
 
+def check_workspace_isolation():
+    """Ensure the agent is on a dedicated task branch and path."""
+    print("🛤️  Checking workspace isolation...")
+    branch, code = run_command("git rev-parse --abbrev-ref HEAD")
+    if code != 0 or not branch:
+        return
+
+    # Check for shared feature branch (anti-pattern)
+    if branch in ("main", "master", "develop", "staging"):
+        print(f"❌ ERROR: Do NOT work directly on '{branch}'. Create a task branch.")
+        sys.exit(1)
+
+    # Check session locks for other agents on THIS branch
+    locks_dir = Path(".agent/session_locks")
+    if locks_dir.exists():
+        current_pid = os.getpid()
+        now = datetime.now(timezone.utc)
+        for lock_path in locks_dir.glob("*.json"):
+            try:
+                with open(lock_path) as f:
+                    lock = json.load(f)
+                    # Skip self
+                    if lock.get("pid") == current_pid:
+                        continue
+                    # Check if lock is active
+                    hb_str = lock.get("last_heartbeat")
+                    hb_time = datetime.fromisoformat(hb_str.replace("Z", "+00:00"))
+                    if (now - hb_time).total_seconds() < 600:
+                        # Shared Branch Check
+                        if lock.get("current_branch") == branch:
+                            print(
+                                f"🛑 ISOLATION FAILURE: Agent {lock.get('agent_name')} is already active on branch '{branch}'."
+                            )
+                            print(
+                                "   Use a separate branch and worktree for this task."
+                            )
+                            sys.exit(1)
+                        # Shared Path Check
+                        if lock.get("current_path") == str(Path.cwd()):
+                            print(
+                                f"🛑 ISOLATION FAILURE: Agent {lock.get('agent_name')} is already active in this directory."
+                            )
+                            print(
+                                "   Use 'bd worktree create' to prepare an isolated workspace."
+                            )
+                            sys.exit(1)
+            except Exception:
+                continue
+
+    print(f"✅ Workspace Isolated: Branch '{branch}' | Path '{Path.cwd().name}'")
+
+
 def check_pfc():
     """Pre-Flight Check: Verify Beads issue, Task artifact, and Sessions."""
     print("🛫 Initiating Pre-Flight Check (PFC)...")
@@ -107,6 +159,7 @@ def check_pfc():
 
     # 1. Multi-Agent Coordination
     check_session_conflicts()
+    check_workspace_isolation()
 
     # 2. Check Beads
     bd_check, code = run_command("bd ready")
