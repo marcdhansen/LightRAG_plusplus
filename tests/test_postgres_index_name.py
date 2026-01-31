@@ -131,9 +131,9 @@ class TestSafeIndexName:
             result = _safe_index_name(table_name, suffix)
 
             # Critical: must be within PostgreSQL's 63-byte limit
-            assert (
-                len(result.encode("utf-8")) <= 63
-            ), f"Index name too long: {result} for table {table_name}"
+            assert len(result.encode("utf-8")) <= 63, (
+                f"Index name too long: {result} for table {table_name}"
+            )
 
             # Must have consistent format
             assert result.startswith("idx_"), f"Missing idx_ prefix: {result}"
@@ -180,9 +180,9 @@ class TestIndexNameIntegration:
 
         # The key fix: our generated name should equal the stored name
         # because it's already within the 63-byte limit
-        assert (
-            index_name == stored_name
-        ), "Index name would be truncated by PostgreSQL, causing lookup failures!"
+        assert index_name == stored_name, (
+            "Index name would be truncated by PostgreSQL, causing lookup failures!"
+        )
 
     def test_backward_compatibility_short_names(self):
         """
@@ -207,6 +207,6 @@ class TestIndexNameIntegration:
 
                 # Short names should remain unchanged for backward compatibility
                 if len(expected.encode("utf-8")) <= 63:
-                    assert (
-                        result == expected
-                    ), f"Short name changed unexpectedly: {result} != {expected}"
+                    assert result == expected, (
+                        f"Short name changed unexpectedly: {result} != {expected}"
+                    )

@@ -75,9 +75,9 @@ async def test_rrf_scoring_formula():
     # Verify RRF scores match expected
     for doc_id, expected_score in expected_scores.items():
         actual_score = rrf_scores.get(doc_id, 0)
-        assert (
-            abs(actual_score - expected_score) < 0.001
-        ), f"RRF score for {doc_id}: {actual_score} vs expected {expected_score}"
+        assert abs(actual_score - expected_score) < 0.001, (
+            f"RRF score for {doc_id}: {actual_score} vs expected {expected_score}"
+        )
 
 
 @pytest.mark.asyncio

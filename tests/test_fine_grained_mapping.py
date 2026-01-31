@@ -60,9 +60,9 @@ class TestTypeHierarchy:
 
         for entity_type, expected_category in test_cases:
             category = get_fine_grained_category(entity_type, "fewnerd")
-            assert (
-                category == expected_category
-            ), f"{entity_type} should be in {expected_category}"
+            assert category == expected_category, (
+                f"{entity_type} should be in {expected_category}"
+            )
 
     def test_unknown_type_mapping(self):
         """Unknown types should map to 'Other'."""

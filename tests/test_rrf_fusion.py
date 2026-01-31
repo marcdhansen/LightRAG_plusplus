@@ -68,25 +68,25 @@ class TestRRFFusion:
         # doc1 appears in all three methods: rank 1,1,2
         expected_doc1_score = (1.0 / 61) + (1.0 / 61) + (1.0 / 61)  # ranks 1,1,2
         actual_doc1_score = rrf_scores.get("doc1", 0)
-        assert (
-            abs(actual_doc1_score - expected_doc1_score) < 0.001
-        ), f"doc1 RRF score mismatch: {actual_doc1_score} vs {expected_doc1_score}"
+        assert abs(actual_doc1_score - expected_doc1_score) < 0.001, (
+            f"doc1 RRF score mismatch: {actual_doc1_score} vs {expected_doc1_score}"
+        )
 
         # doc3 appears in vector(3) and keyword(3): rank 3,3
         expected_doc3_score = (1.0 / 63) + (1.0 / 63)  # vector rank 3, keyword rank 3
         actual_doc3_score = rrf_scores.get("doc3", 0)
-        assert (
-            abs(actual_doc3_score - expected_doc3_score) < 0.001
-        ), f"doc3 RRF score mismatch: {actual_doc3_score} vs {expected_doc3_score}"
+        assert abs(actual_doc3_score - expected_doc3_score) < 0.001, (
+            f"doc3 RRF score mismatch: {actual_doc3_score} vs {expected_doc3_score}"
+        )
 
         # Verify sorting
         sorted_results = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
-        assert (
-            sorted_results[0][0] == "doc1"
-        ), f"Top result should be doc1, got {sorted_results[0][0]}"
-        assert (
-            sorted_results[1][0] == "doc3"
-        ), f"Second result should be doc3, got {sorted_results[1][0]}"
+        assert sorted_results[0][0] == "doc1", (
+            f"Top result should be doc1, got {sorted_results[0][0]}"
+        )
+        assert sorted_results[1][0] == "doc3", (
+            f"Second result should be doc3, got {sorted_results[1][0]}"
+        )
 
     @pytest.mark.asyncio
     async def test_rrf_consensus_behavior(self):
@@ -133,15 +133,15 @@ class TestRRFFusion:
         consensus_score = rrf_scores.get("consensus_doc", 0)
         noise_score = rrf_scores.get("noise_doc", 0)
 
-        assert (
-            consensus_score > noise_score
-        ), f"Consensus doc ({consensus_score}) should outrank noise ({noise_score})"
+        assert consensus_score > noise_score, (
+            f"Consensus doc ({consensus_score}) should outrank noise ({noise_score})"
+        )
 
         # Verify top result is consensus doc
         sorted_results = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
-        assert (
-            sorted_results[0][0] == "consensus_doc"
-        ), "Top result should be consensus doc"
+        assert sorted_results[0][0] == "consensus_doc", (
+            "Top result should be consensus doc"
+        )
 
     @pytest.mark.asyncio
     async def test_rrf_weighted_scoring(self):
@@ -188,9 +188,9 @@ class TestRRFFusion:
 
         # Vector-important doc should rank highest
         sorted_results = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
-        assert (
-            sorted_results[0][0] == "vector_important"
-        ), "Weighted RRF should prioritize vector results"
+        assert sorted_results[0][0] == "vector_important", (
+            "Weighted RRF should prioritize vector results"
+        )
 
     @pytest.mark.asyncio
     async def test_rrf_parameter_validation(self):
@@ -205,9 +205,9 @@ class TestRRFFusion:
 
         # Test default parameters
         query_param = QueryParam(mode="rrf")
-        assert (
-            query_param.rrf_k == 60
-        ), f"Default rrf_k should be 60, got {query_param.rrf_k}"
+        assert query_param.rrf_k == 60, (
+            f"Default rrf_k should be 60, got {query_param.rrf_k}"
+        )
         assert query_param.rrf_weights == {
             "vector": 1.0,
             "graph": 1.0,
@@ -221,9 +221,9 @@ class TestRRFFusion:
             rrf_weights={"vector": 1.5, "graph": 0.8, "keyword": 0.2},
         )
         assert custom_param.rrf_k == 100, "Custom rrf_k should be 100"
-        assert (
-            custom_param.rrf_weights["vector"] == 1.5
-        ), "Custom vector weight should be 1.5"
+        assert custom_param.rrf_weights["vector"] == 1.5, (
+            "Custom vector weight should be 1.5"
+        )
 
     @pytest.mark.asyncio
     async def test_rrf_vs_mix_precision_comparison(self):
@@ -245,9 +245,9 @@ class TestRRFFusion:
         assert rrf_param.rrf_k == 60
 
         # Test that RRF logic exists and is callable
-        assert hasattr(
-            lightrag, "rrf_fusion_context"
-        ), "RRF fusion method should be implemented"
+        assert hasattr(lightrag, "rrf_fusion_context"), (
+            "RRF fusion method should be implemented"
+        )
 
         # This would be expanded with actual retrieval method mocking
         # in integration tests
