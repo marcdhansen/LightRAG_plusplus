@@ -49,6 +49,7 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
   * Enhanced `Flight Director` script to enforce a "Plan Approval" check in PFC.
   * Required marker: `## Approval: [User Sign-off at YYYY-MM-DD HH:MM...]` in `task.md`.
   * Status: Complete - agent cannot enter IFO without explicit approval marker.
+* [x] **Container Management SOP Rule**: Added rule to global SMP (GEMINI.md) to run Docker without Docker Desktop to minimize resource consumption (Beads: lightrag-2kp).
 
 ## Agent Mission Protocol (AMP)
 
