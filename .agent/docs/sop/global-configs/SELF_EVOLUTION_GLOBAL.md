@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/docs/sop/SELF_EVOLUTION_GLOBAL.md

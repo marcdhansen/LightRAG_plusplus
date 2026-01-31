@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/docs/sop/MISSION_NOMENCLATURE.md

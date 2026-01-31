@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/docs/sop/HOW_TO_USE_BEADS.md
