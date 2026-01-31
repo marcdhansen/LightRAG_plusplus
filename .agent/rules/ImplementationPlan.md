@@ -56,8 +56,9 @@ To ensure coordination and safety in multi-agent environments, the following gat
 
 1. **Pre-Flight Check (PFC)**: Verifies tools, Beads, and planning documents.
 2. **Isolation Gate**: Verifies the agent is on a dedicated task branch and using a unique filesystem path (Worktree isolation).
-3. **Plan-Blocker Gate**: Prevents implementation from starting until the user has added a `## Approval` marker to the `task.md`.
-4. **Return To Base (RTB)**: Verifies cleanup, linting, and git sync.
+3. **Plan-Blocker Gate**: Prevents implementation from starting until the user has added a fresh `## Approval` marker to the `task.md`. Approvals are only valid for 4 hours from the timestamp.
+4. **Execution Handshake**: For tasks involving "Heavy Execution" (benchmarks, indexing, multi-hour scripts), the agent MUST explicitly list the proposed command and wait for a "Go" signal (e.g., "Go", "Execute", "Proceed"), even if the plan is approved.
+5. **Return To Base (RTB)**: Verifies cleanup, linting, git sync, and clears/neutralizes the approval marker.
 
 ## Phase 6: ACE Optimizer (Current)
 

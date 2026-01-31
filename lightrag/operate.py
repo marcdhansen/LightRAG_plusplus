@@ -3013,11 +3013,13 @@ async def extract_entities(
                     forced = os.getenv("PROMPT_AB_FORCE_VARIANT")
                 except Exception:
                     forced = None
-                if forced and str(forced).upper() in ("A", "B"):
+                if forced and str(forced).upper() in ("A", "B", "C"):
                     if str(forced).upper() == "A":
                         system_prompt_key = "entity_extraction_system_prompt_variant_A"
-                    else:
+                    elif str(forced).upper() == "B":
                         system_prompt_key = "entity_extraction_system_prompt_variant_B"
+                    else:
+                        system_prompt_key = "entity_extraction_system_prompt_variant_C"
                 else:
                     from lightrag.prompts.ab_testing import choose_variant
 
@@ -3033,6 +3035,8 @@ async def extract_entities(
                         system_prompt_key = "entity_extraction_system_prompt_variant_A"
                     elif str(variant).upper() == "B":
                         system_prompt_key = "entity_extraction_system_prompt_variant_B"
+                    elif str(variant).upper() == "C":
+                        system_prompt_key = "entity_extraction_system_prompt_variant_C"
                     else:
                         system_prompt_key = "entity_extraction_system_prompt"
             except Exception:

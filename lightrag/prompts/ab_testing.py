@@ -11,10 +11,25 @@ Usage (reserved for future integration):
 
 from __future__ import annotations
 
+import os
+
 try:
     from .ab_test_config import DEFAULT_AB_VARIANT  # type: ignore
 except Exception:
     DEFAULT_AB_VARIANT = None  # type: ignore
+
+
+def _size_key_from_model(model_name: str) -> str:
+    if not model_name:
+        return ""
+    m = model_name.lower()
+    if "1.5b" in m:
+        return "1.5b"
+    if "3b" in m:
+        return "3b"
+    if "7b" in m:
+        return "7b"
+    return ""
 
 
 def choose_variant(llm_model_name: str) -> str:
@@ -25,10 +40,27 @@ def choose_variant(llm_model_name: str) -> str:
     """
     # First, check for per-model default variant from AB defaults
     try:
-        from lightrag.ab_defaults import get_default_variant
+        from lightrag.ab_defaults import AB_WEIGHTS, get_default_variant
 
         default_variant = get_default_variant(llm_model_name)
         if default_variant:
+            # Optional override: allow C via weights if requested
+            allow_c = str(os.getenv("PROMPT_AB_ALLOW_C", "0")).lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+            if allow_c:
+                size_key = _size_key_from_model(llm_model_name)
+                weights = AB_WEIGHTS.get(size_key, {})
+                if weights:
+                    best = max(weights.items(), key=lambda kv: kv[1])[0]
+                    if (
+                        str(best).upper() == "C"
+                        and str(best).upper() != str(default_variant).upper()
+                    ):
+                        return best
             return default_variant
     except Exception:
         pass
@@ -45,6 +77,16 @@ def choose_variant(llm_model_name: str) -> str:
         size = parse_model_size(llm_model_name)  # type: ignore
         if size is not None and size >= 3.0:
             return "B"
+    except Exception:
+        pass
+    # Fallback to weighted choice if no explicit default
+    try:
+        from lightrag.ab_defaults import AB_WEIGHTS
+
+        size_key = _size_key_from_model(llm_model_name)
+        weights = AB_WEIGHTS.get(size_key, {})
+        if weights:
+            return max(weights.items(), key=lambda kv: kv[1])[0]
     except Exception:
         pass
     return DEFAULT_AB_VARIANT or "A"

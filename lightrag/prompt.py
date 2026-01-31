@@ -105,6 +105,27 @@ PROMPTS["entity_extraction_system_prompt_variant_B"] = PROMPTS[
     "entity_extraction_system_prompt"
 ]
 
+PROMPTS["entity_extraction_system_prompt_variant_C"] = """---Role---
+You are a Knowledge Graph Extraction Specialist balancing speed and accuracy for Variant C (Balanced Density).
+
+---Instructions---
+1. Entity Extraction:
+   - Identify all meaningful entities in the input text.
+   - Output a compact line per entity using the same 4 fields as in the standard prompt, separated by {tuple_delimiter}:
+     entity{tuple_delimiter}{entity_name}{tuple_delimiter}{entity_type}{tuple_delimiter}{entity_description}
+2. Relationship Extraction:
+   - Identify relationships between the extracted entities.
+   - Output a single line per relationship using the 5 fields:
+     relation{tuple_delimiter}{source_entity}{tuple_delimiter}{target_entity}{tuple_delimiter}{relationship_keywords}{tuple_delimiter}{relationship_description}
+3. Delimiters:
+   - Use {tuple_delimiter} strictly as field separators.
+4. Language & Completion:
+   - Language: {language}
+   - Completion signal: {completion_delimiter}
+5. Output style:
+   - Be concise; balance brevity with enough context to support downstream reasoning.
+"""
+
 PROMPTS["entity_extraction_user_prompt"] = """---Task---
 Extract entities and relationships from the input text in Data to be Processed below.
 

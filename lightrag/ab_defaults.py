@@ -17,9 +17,9 @@ AB_DEFAULTS = {
 AB_WEIGHTS = {
     # Weights per model size group: higher means more preferred for that variant
     # Example: prefer A for smaller models (higher recall), B for largest models (speed)
-    "1.5b": {"A": 1.0, "B": 0.8},
-    "3b": {"A": 1.0, "B": 0.95},
-    "7b": {"A": 0.9, "B": 1.0},
+    "1.5b": {"A": 1.0, "B": 0.8, "C": 0.95},
+    "3b": {"A": 1.0, "B": 0.95, "C": 0.97},
+    "7b": {"A": 0.9, "B": 1.0, "C": 1.05},
 }
 
 
@@ -63,6 +63,8 @@ def select_variant_by_weights(model_name: str) -> str:
         # Fallback to A if we can't determine size
         return "A"
     weights = AB_WEIGHTS[key]
-    aw = weights.get("A", 0)
-    bw = weights.get("B", 0)
-    return "A" if aw >= bw else "B"
+    if not weights:
+        return "A"
+    # Pick the variant with the highest weight (supports A/B/C)
+    best = max(weights.items(), key=lambda kv: kv[1])[0]
+    return best

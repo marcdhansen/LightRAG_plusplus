@@ -195,15 +195,43 @@ def check_pfc():
 
     # 3. Check for Plan Approval in task.md
     if task_file.exists():
+        import re
+
         with open(task_file) as f:
             content = f.read()
-            # Look for Approval marker
-            if "## Approval:" not in content:
+            # Look for Approval marker with timestamp
+            # Format: ## Approval: [User Sign-off at 2026-01-31 15:44]
+            pattern = r"## Approval: \[User Sign-off at ([\d\-\s:]+)\]"
+            match = re.search(pattern, content)
+
+            if not match:
                 errors.append(
                     "❌ Mission Plan NOT APPROVED. Add '## Approval: [User Sign-off at YYYY-MM-DD HH:MM...]' to `task.md` before starting implementation."
                 )
             else:
-                print("✅ Mission Plan: APPROVED")
+                try:
+                    approval_time_str = match.group(1).strip()
+                    approval_time = datetime.strptime(
+                        approval_time_str, "%Y-%m-%d %H:%M"
+                    ).replace(tzinfo=timezone.utc)
+                    now = datetime.now(timezone.utc)
+
+                    # Check if the approval is "fresh" (e.g., within the last 4 hours)
+                    # This prevents stale approvals from previous sessions being reused.
+                    age_hours = (now - approval_time).total_seconds() / 3600
+                    if age_hours > 4:
+                        errors.append(
+                            f"❌ Mission Plan Approval is STALE ({age_hours:.1f} hours old). "
+                            "Please re-review the plan and update the timestamp in `task.md` to authorize the current session."
+                        )
+                    else:
+                        print(
+                            f"✅ Mission Plan: APPROVED (Freshness: {age_hours:.1f} hours)"
+                        )
+                except ValueError:
+                    errors.append(
+                        "❌ Mission Plan Approval format INVALID. Use 'YYYY-MM-DD HH:MM' format."
+                    )
 
     if errors:
         print("\n🛑 PFC FAILED:")
