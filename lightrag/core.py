@@ -20,6 +20,16 @@ from typing import (
 
 from dotenv import load_dotenv
 
+try:
+    from keybert import KeyBERT
+    from sentence_transformers import SentenceTransformer
+
+    _KB_IMPORT_OK = True
+except Exception:
+    KeyBERT = None
+    SentenceTransformer = None
+    _KB_IMPORT_OK = False
+
 from lightrag.ace.config import ACEConfig
 from lightrag.ace.curator import ACECurator
 from lightrag.ace.generator import ACEGenerator
@@ -519,6 +529,10 @@ class LightRAG:
             )
             self.extraction_format = "key_value"
 
+        # Lazy KeyBERT initialization placeholders
+        self._kb_model = None
+        self._kb_available = False
+
         # Alias "yaml" to "key_value" for consistency
         if self.extraction_format == "yaml":
             self.extraction_format = "key_value"
@@ -544,6 +558,9 @@ class LightRAG:
             delattr(self, "log_file_path")
 
         initialize_share_data()
+        # Initialize placeholders for lazy KeyBERT (will be loaded when needed)
+        self._kb_model = None
+        self._kb_available = False
 
         if not os.path.exists(self.working_dir):
             logger.info(f"Creating working directory {self.working_dir}")

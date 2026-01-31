@@ -20,6 +20,12 @@ repos:
         stages: [pre-commit, pre-push, manual]
       - id: debug-statements
         stages: [pre-commit, pre-push, manual]
+      - id: check-case-conflict
+        stages: [pre-commit, pre-push, manual]
+      - id: check-merge-conflict
+        stages: [pre-commit, pre-push, manual]
+      - id: mixed-line-ending
+        stages: [pre-commit, pre-push, manual]
       - id: requirements-txt-fixer
         exclude: ^lightrag/api/webui/
         stages: [pre-commit, pre-push, manual]
@@ -46,7 +52,7 @@ repos:
         stages: [pre-push, manual]
       - id: docs-coverage
         name: Documentation Coverage & Portability
-        entry: python3 scripts/check_docs_coverage.py
+        entry: uv run python scripts/check_docs_coverage.py
         language: system
         files: ^docs/|^README.md|^\.agent/rules/|^scripts/check_docs_coverage\.py$
         pass_filenames: false
