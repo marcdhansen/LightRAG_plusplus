@@ -1,6 +1,408 @@
 {
   "consolidated": [
     {
+      "model": "prompt_ab_1_5b_A",
+      "data": {
+        "timestamp": "2026-01-31T17:18:20.940945",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 362.8509268760681,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 135.7723650932312,
+            "entity_recall": 1.0,
+            "relation_accuracy": 0.5,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 4,
+            "entities_extracted": 4,
+            "relations_found": 2,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 355.3056390285492,
+            "entity_recall": 0.6666666666666666,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 6,
+            "entities_extracted": 3,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 0.8888888888888888,
+            "avg_relation_accuracy": 0.8333333333333334,
+            "avg_hallucination_rate": 0.0,
+            "avg_execution_time": 284.64297699928284,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
+      "model": "prompt_ab_1_5b_A_B_C",
+      "data": {
+        "timestamp": "2026-01-31T16:50:51.178329",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 371.7319369316101,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 374.1965789794922,
+            "entity_recall": 1.0,
+            "relation_accuracy": 0.25,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 4,
+            "entities_extracted": 4,
+            "relations_found": 1,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 94.51440215110779,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 6,
+            "entities_expected": 6,
+            "entities_extracted": 5,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 1.0,
+            "avg_relation_accuracy": 0.75,
+            "avg_hallucination_rate": 0.0,
+            "avg_execution_time": 280.14763935407,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
+      "model": "prompt_ab_1_5b_A_after",
+      "data": {
+        "timestamp": "2026-01-31T18:13:41.428507",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 46.3871808052063,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 50.63207507133484,
+            "entity_recall": 1.0,
+            "relation_accuracy": 0.5,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 4,
+            "entities_extracted": 4,
+            "relations_found": 2,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 88.27977132797241,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 6,
+            "entities_expected": 6,
+            "entities_extracted": 12,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 1.0,
+            "avg_relation_accuracy": 0.8333333333333334,
+            "avg_hallucination_rate": 0.0,
+            "avg_execution_time": 61.76634240150452,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
+      "model": "prompt_ab_1_5b_A_forced",
+      "data": {
+        "timestamp": "2026-01-31T19:07:22.764693",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 58.95129203796387,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 39.03618597984314,
+            "entity_recall": 1.0,
+            "relation_accuracy": 0.75,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 4,
+            "entities_extracted": 3,
+            "relations_found": 3,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 63.55174994468689,
+            "entity_recall": 0.8333333333333334,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.2,
+            "entities_found": 5,
+            "entities_expected": 6,
+            "entities_extracted": 5,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 0.9444444444444445,
+            "avg_relation_accuracy": 0.9166666666666666,
+            "avg_hallucination_rate": 0.06666666666666667,
+            "avg_execution_time": 53.8464093208313,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
+      "model": "prompt_ab_1_5b_B",
+      "data": {
+        "timestamp": "2026-01-31T17:34:24.927906",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 310.6105070114136,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 274.1404378414154,
+            "entity_recall": 1.0,
+            "relation_accuracy": 0.25,
+            "hallucination_rate": 0.0,
+            "entities_found": 4,
+            "entities_expected": 4,
+            "entities_extracted": 4,
+            "relations_found": 1,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 234.29607915878296,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 6,
+            "entities_expected": 6,
+            "entities_extracted": 5,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 1.0,
+            "avg_relation_accuracy": 0.75,
+            "avg_hallucination_rate": 0.0,
+            "avg_execution_time": 273.0156746705373,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
+      "model": "prompt_ab_1_5b_C",
+      "data": {
+        "timestamp": "2026-01-31T17:52:15.245993",
+        "models_tested": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "test_cases": [
+          "simple_person_org",
+          "einstein_basic",
+          "dickens_opening"
+        ],
+        "individual_results": [
+          {
+            "case_id": "simple_person_org",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 170.15876078605652,
+            "entity_recall": 1.0,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.0,
+            "entities_found": 2,
+            "entities_expected": 2,
+            "entities_extracted": 2,
+            "relations_found": 1,
+            "relations_expected": 1
+          },
+          {
+            "case_id": "einstein_basic",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 301.3196427822113,
+            "entity_recall": 0.75,
+            "relation_accuracy": 0.25,
+            "hallucination_rate": 0.0,
+            "entities_found": 3,
+            "entities_expected": 4,
+            "entities_extracted": 3,
+            "relations_found": 1,
+            "relations_expected": 4
+          },
+          {
+            "case_id": "dickens_opening",
+            "model": "qwen2.5-coder:1.5b",
+            "yaml_compliant": true,
+            "execution_time": 354.5024697780609,
+            "entity_recall": 0.3333333333333333,
+            "relation_accuracy": 1.0,
+            "hallucination_rate": 0.3333333333333333,
+            "entities_found": 2,
+            "entities_expected": 6,
+            "entities_extracted": 3,
+            "relations_found": 0,
+            "relations_expected": 0
+          }
+        ],
+        "model_aggregates": {
+          "qwen2.5-coder:1.5b": {
+            "avg_entity_recall": 0.6944444444444445,
+            "avg_relation_accuracy": 0.75,
+            "avg_hallucination_rate": 0.1111111111111111,
+            "avg_execution_time": 275.32695778210956,
+            "yaml_compliance_rate": 1.0
+          }
+        }
+      }
+    },
+    {
       "model": "prompt_ab_3b_A",
       "data": {
         "timestamp": "2026-01-31T05:42:59.697423",
@@ -273,57 +675,333 @@
       "data": {
         "consolidated": [
           {
-            "model": "qwen2.5-coder:1.5b",
-            "Variant_A": {
-              "entity_recall": 100,
-              "relation_accuracy": 75,
-              "yaml": true,
-              "avg_time": 101.89
-            },
-            "Variant_B": {
-              "entity_recall": 66.7,
-              "relation_accuracy": 50,
-              "yaml": 66.7,
-              "avg_time": 37.13
+            "model": "prompt_ab_3b_A",
+            "data": {
+              "timestamp": "2026-01-31T05:42:59.697423",
+              "models_tested": [
+                "qwen2.5-coder:3b"
+              ],
+              "test_cases": [
+                "simple_person_org",
+                "einstein_basic",
+                "dickens_opening"
+              ],
+              "individual_results": [
+                {
+                  "case_id": "simple_person_org",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 74.2704849243164,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 2,
+                  "entities_expected": 2,
+                  "entities_extracted": 2,
+                  "relations_found": 1,
+                  "relations_expected": 1
+                },
+                {
+                  "case_id": "einstein_basic",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 41.51600694656372,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 0.75,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 4,
+                  "entities_expected": 4,
+                  "entities_extracted": 4,
+                  "relations_found": 3,
+                  "relations_expected": 4
+                },
+                {
+                  "case_id": "dickens_opening",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 37.60016942024231,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 6,
+                  "entities_expected": 6,
+                  "entities_extracted": 6,
+                  "relations_found": 0,
+                  "relations_expected": 0
+                }
+              ],
+              "model_aggregates": {
+                "qwen2.5-coder:3b": {
+                  "avg_entity_recall": 1.0,
+                  "avg_relation_accuracy": 0.9166666666666666,
+                  "avg_hallucination_rate": 0.0,
+                  "avg_execution_time": 51.12888709704081,
+                  "yaml_compliance_rate": 1.0
+                }
+              }
             }
           },
           {
-            "model": "qwen2.5-coder:3b",
-            "Variant_A": {
-              "entity_recall": 100,
-              "relation_accuracy": 91.7,
-              "yaml": true,
-              "avg_time": 51.13
-            },
-            "Variant_B": {
-              "entity_recall": 94.4,
-              "relation_accuracy": 91.7,
-              "yaml": 100,
-              "avg_time": 56.87
+            "model": "prompt_ab_3b_B",
+            "data": {
+              "timestamp": "2026-01-31T05:52:29.848871",
+              "models_tested": [
+                "qwen2.5-coder:3b"
+              ],
+              "test_cases": [
+                "simple_person_org",
+                "einstein_basic",
+                "dickens_opening"
+              ],
+              "individual_results": [
+                {
+                  "case_id": "simple_person_org",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 73.38449907302856,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 2,
+                  "entities_expected": 2,
+                  "entities_extracted": 2,
+                  "relations_found": 1,
+                  "relations_expected": 1
+                },
+                {
+                  "case_id": "einstein_basic",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 42.511634349823,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 0.75,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 4,
+                  "entities_expected": 4,
+                  "entities_extracted": 4,
+                  "relations_found": 3,
+                  "relations_expected": 4
+                },
+                {
+                  "case_id": "dickens_opening",
+                  "model": "qwen2.5-coder:3b",
+                  "yaml_compliant": true,
+                  "execution_time": 54.70186710357666,
+                  "entity_recall": 0.8333333333333334,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 5,
+                  "entities_expected": 6,
+                  "entities_extracted": 5,
+                  "relations_found": 0,
+                  "relations_expected": 0
+                }
+              ],
+              "model_aggregates": {
+                "qwen2.5-coder:3b": {
+                  "avg_entity_recall": 0.9444444444444445,
+                  "avg_relation_accuracy": 0.9166666666666666,
+                  "avg_hallucination_rate": 0.0,
+                  "avg_execution_time": 56.866000175476074,
+                  "yaml_compliance_rate": 1.0
+                }
+              }
             }
           },
           {
-            "model": "qwen2.5-coder:7b",
-            "Variant_A": {
-              "entity_recall": 100,
-              "relation_accuracy": 91.7,
-              "yaml": true,
-              "avg_time": 119.34
-            },
-            "Variant_B": {
-              "entity_recall": 100,
-              "relation_accuracy": 91.7,
-              "yaml": true,
-              "avg_time": 93.76
+            "model": "prompt_ab_7b_A",
+            "data": {
+              "timestamp": "2026-01-31T05:46:05.429635",
+              "models_tested": [
+                "qwen2.5-coder:7b"
+              ],
+              "test_cases": [
+                "simple_person_org",
+                "einstein_basic",
+                "dickens_opening"
+              ],
+              "individual_results": [
+                {
+                  "case_id": "simple_person_org",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 150.84832406044006,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 2,
+                  "entities_expected": 2,
+                  "entities_extracted": 2,
+                  "relations_found": 1,
+                  "relations_expected": 1
+                },
+                {
+                  "case_id": "einstein_basic",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 82.93614196777344,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 0.75,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 4,
+                  "entities_expected": 4,
+                  "entities_extracted": 4,
+                  "relations_found": 3,
+                  "relations_expected": 4
+                },
+                {
+                  "case_id": "dickens_opening",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 124.24904203414917,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 6,
+                  "entities_expected": 6,
+                  "entities_extracted": 6,
+                  "relations_found": 0,
+                  "relations_expected": 0
+                }
+              ],
+              "model_aggregates": {
+                "qwen2.5-coder:7b": {
+                  "avg_entity_recall": 1.0,
+                  "avg_relation_accuracy": 0.9166666666666666,
+                  "avg_hallucination_rate": 0.0,
+                  "avg_execution_time": 119.34450268745422,
+                  "yaml_compliance_rate": 1.0
+                }
+              }
+            }
+          },
+          {
+            "model": "prompt_ab_7b_B",
+            "data": {
+              "timestamp": "2026-01-31T05:55:44.014037",
+              "models_tested": [
+                "qwen2.5-coder:7b"
+              ],
+              "test_cases": [
+                "simple_person_org",
+                "einstein_basic",
+                "dickens_opening"
+              ],
+              "individual_results": [
+                {
+                  "case_id": "simple_person_org",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 51.81298613548279,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 2,
+                  "entities_expected": 2,
+                  "entities_extracted": 2,
+                  "relations_found": 1,
+                  "relations_expected": 1
+                },
+                {
+                  "case_id": "einstein_basic",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 80.70238375663757,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 0.75,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 4,
+                  "entities_expected": 4,
+                  "entities_extracted": 4,
+                  "relations_found": 3,
+                  "relations_expected": 4
+                },
+                {
+                  "case_id": "dickens_opening",
+                  "model": "qwen2.5-coder:7b",
+                  "yaml_compliant": true,
+                  "execution_time": 148.76974511146545,
+                  "entity_recall": 1.0,
+                  "relation_accuracy": 1.0,
+                  "hallucination_rate": 0.0,
+                  "entities_found": 6,
+                  "entities_expected": 6,
+                  "entities_extracted": 16,
+                  "relations_found": 0,
+                  "relations_expected": 0
+                }
+              ],
+              "model_aggregates": {
+                "qwen2.5-coder:7b": {
+                  "avg_entity_recall": 1.0,
+                  "avg_relation_accuracy": 0.9166666666666666,
+                  "avg_hallucination_rate": 0.0,
+                  "avg_execution_time": 93.76170500119527,
+                  "yaml_compliance_rate": 1.0
+                }
+              }
+            }
+          },
+          {
+            "model": "prompt_ab_consolidated_summary",
+            "data": {
+              "consolidated": [
+                {
+                  "model": "qwen2.5-coder:1.5b",
+                  "Variant_A": {
+                    "entity_recall": 100,
+                    "relation_accuracy": 75,
+                    "yaml": true,
+                    "avg_time": 101.89
+                  },
+                  "Variant_B": {
+                    "entity_recall": 66.7,
+                    "relation_accuracy": 50,
+                    "yaml": 66.7,
+                    "avg_time": 37.13
+                  }
+                },
+                {
+                  "model": "qwen2.5-coder:3b",
+                  "Variant_A": {
+                    "entity_recall": 100,
+                    "relation_accuracy": 91.7,
+                    "yaml": true,
+                    "avg_time": 51.13
+                  },
+                  "Variant_B": {
+                    "entity_recall": 94.4,
+                    "relation_accuracy": 91.7,
+                    "yaml": 100,
+                    "avg_time": 56.87
+                  }
+                },
+                {
+                  "model": "qwen2.5-coder:7b",
+                  "Variant_A": {
+                    "entity_recall": 100,
+                    "relation_accuracy": 91.7,
+                    "yaml": true,
+                    "avg_time": 119.34
+                  },
+                  "Variant_B": {
+                    "entity_recall": 100,
+                    "relation_accuracy": 91.7,
+                    "yaml": true,
+                    "avg_time": 93.76
+                  }
+                }
+              ],
+              "default_strategy": {
+                "1.5b": "A",
+                "3b": "A",
+                "7b": "B"
+              },
+              "notes": "Variant A recommended for recall on 1.5b/3b; Variant B preferred for throughput on 7b. See ab_defaults for weights and default mappings."
             }
           }
         ],
-        "default_strategy": {
-          "1.5b": "A",
-          "3b": "A",
-          "7b": "B"
-        },
-        "notes": "Variant A recommended for recall on 1.5b/3b; Variant B preferred for throughput on 7b. See ab_defaults for weights and default mappings."
+        "note": "Auto-generated by ab_consolidator.py"
       }
     }
   ],

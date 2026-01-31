@@ -66,6 +66,7 @@ def choose_variant(llm_model_name: str) -> str:
         pass
 
     name = (llm_model_name or "").lower()
+    # Default-size gating: if it's clearly a large model, bias toward B
     if "7b" in name or name.endswith("b") and len(name) > 0:
         return "B"  # Larger (7B) tends to benefit from a different prompt
     if "3b" in name:
@@ -79,7 +80,25 @@ def choose_variant(llm_model_name: str) -> str:
             return "B"
     except Exception:
         pass
-    # Fallback to weighted choice if no explicit default
+    # If C is explicitly disabled, force A/B-only selection
+    allow_c = False
+    try:
+        allow_c = str(
+            __import__("os").environ.get("PROMPT_AB_ALLOW_C", "0")
+        ).lower() in ("1", "true", "yes", "on")
+    except Exception:
+        pass
+    if not allow_c:
+        from lightrag.ab_defaults import AB_WEIGHTS
+
+        size_key = _size_key_from_model(llm_model_name)
+        weights = AB_WEIGHTS.get(size_key, {})
+        # Only consider A/B
+        candidates = [k for k in ("A", "B") if k in weights]
+        if candidates:
+            return max(candidates, key=lambda k: weights[k])
+        return DEFAULT_AB_VARIANT or "A"
+    # If we got here, C is allowed; fall back to weighted decision across A/B/C
     try:
         from lightrag.ab_defaults import AB_WEIGHTS
 
