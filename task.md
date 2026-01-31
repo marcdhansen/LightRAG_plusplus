@@ -1,28 +1,25 @@
-# Task: Reflector Skill Formalization (lightrag-982)
+# Task: Run Benchmark Comparison with Ollama Models (lightrag-1sk)
 
-## Status: COMPLETE
+## Status: IN_PROGRESS
 
 ### Objective
 
-Update the `reflect` skill with standard mission processes, including PFC/RTB analysis, structured debriefing, and automated memory discovery.
+Verify that optimizations and changes in the current repository do not degrade extraction quality compared to the original LightRAG implementation.
 
 ### Tasks
 
 - [x] **PFC**: Run Pre-Flight Check and verify current objective.
-- [x] **Analyze Skills**: Review existing `SKILL.md` files for consistency and structure.
-- [x] **Define Template**: Update `reflect/SKILL.md` with a definitive "Mission Reflection" template aligned with SMP.
-- [x] **Enhance Workflow**: Update the `reflect` workflow to explicitly include PFC/RTB diagnostic analysis.
-- [x] **Implement Debrief**: Update `enhanced_reflect_system.py` to generate formal "Post-Mission Debrief" reports.
-- [x] **Memory Discovery**: Implement robust memory discovery in `reflect_assistant.py`.
-- [x] **Verify SMP Alignment**: Ensure the skill aligns with the Standard Mission Protocol.
+- [ ] **Environment Check**: Verify access to original repo and Ollama models.
+- [ ] **Commit Pending Optimizations**: Stabilize and commit current extraction prompt enhancements.
+- [ ] **Execute Comparison**: Run `compare_benchmarks.py` with both repositories.
+- [ ] **Analyze Results**: Review `benchmark_comparison_report.md` for regressions.
+- [ ] **Document Findings**: Update `lightrag-1sk` status with results.
 
 ### Steps
 
-1. [x] Run PFC and identify current objective (`lightrag-982`).
-2. [x] Analyze current `reflect` skill and scripts.
-3. [x] Review other `SKILL.md` files for structural patterns.
-4. [x] Propose updates to `reflect/SKILL.md` with enhanced template and workflow.
-5. [x] Implement debrief generation logic in `enhanced_reflect_system.py`.
-6. [x] Implement robust keyword/context analysis in `reflect_assistant.py`.
-7. [x] Verify everything works by running a test reflection.
-8. [x] Perform RTB and final debrief.
+1. [x] Run PFC and identify current objective (`lightrag-1sk`).
+2. [ ] Review uncommitted changes and stabilize them.
+3. [ ] Commit current optimizations to ensure a consistent benchmark base.
+4. [ ] Run `compare_benchmarks.py --cases 5` (starting small as per memories).
+5. [ ] Generate and analyze the comparison report.
+6. [ ] Perform RTB and final debrief.

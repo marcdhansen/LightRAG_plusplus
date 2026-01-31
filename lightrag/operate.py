@@ -61,6 +61,7 @@ from lightrag.utils import (
     make_relation_chunk_key,
     merge_source_ids,
     pack_user_ass_to_openai_messages,
+    parse_model_size,
     pick_by_vector_similarity,
     pick_by_weighted_polling,
     process_chunks_unified,
@@ -2991,10 +2992,36 @@ async def extract_entities(
         continue_prompt_key = "entity_continue_extraction_key_value_user_prompt"
         example_key = "entity_extraction_key_value_examples"
     else:
-        system_prompt_key = "entity_extraction_system_prompt"
+        # Decide on a prompt variant depending on model size (small models get a simplified prompt)
+        model_name = (
+            global_config.get("llm_model_name", "")
+            if isinstance(global_config, dict)
+            else ""
+        )
+        mlower = str(model_name).lower()
+        small_model = False
+        if mlower:
+            if any(x in mlower for x in ("1.5b", "3b", "7b", "8b")):
+                small_model = True
+            else:
+                try:
+                    size = parse_model_size(model_name)
+                    if size is not None and size <= 8.0:
+                        small_model = True
+                except Exception:
+                    pass
+        if small_model:
+            system_prompt_key = "entity_extraction_system_prompt_small"
+        else:
+            system_prompt_key = "entity_extraction_system_prompt"
         user_prompt_key = "entity_extraction_user_prompt"
         continue_prompt_key = "entity_continue_extraction_user_prompt"
         example_key = "entity_extraction_examples"
+
+        # Adaptive gleaning for small models: bump to at least 2 if a small model is detected
+        if "small_model" in locals() and small_model:
+            if global_config.get("entity_extract_max_gleaning", 1) < 2:
+                global_config["entity_extract_max_gleaning"] = 2
 
     examples = "\n".join(PROMPTS[example_key])
 

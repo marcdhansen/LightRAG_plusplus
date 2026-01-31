@@ -60,6 +60,27 @@ You are a Knowledge Graph Specialist responsible for extracting entities and rel
 {examples}
 """
 
+PROMPTS["entity_extraction_system_prompt_small"] = """---Role---
+You are a Knowledge Graph Specialist specializing in quick, robust extraction for smaller models.
+
+---Instructions---
+1. Entity Extraction:
+   - Identify all meaningful entities in the input text.
+   - For each entity output a single line with the following 4 fields delimited by {tuple_delimiter}:
+     entity{tuple_delimiter}entity_name{tuple_delimiter}entity_type{tuple_delimiter}entity_description
+2. Relationship Extraction:
+   - Identify direct relationships between the extracted entities.
+   - For each relationship output a single line with the following 5 fields delimited by {tuple_delimiter}:
+     relation{tuple_delimiter}source_entity{tuple_delimiter}target_entity{tuple_delimiter}relationship_keywords{tuple_delimiter}relationship_description
+3. Delimiters:
+   - Use {tuple_delimiter} as a strict field separator; do not include extra content in that token.
+4. Language & Completion:
+   - Language: {language}
+   - Completion signal: {completion_delimiter}
+5. Output style:
+   - Keep entity names in Title Case when appropriate and descriptions in the input's language.
+"""
+
 PROMPTS["entity_extraction_user_prompt"] = """---Task---
 Extract entities and relationships from the input text in Data to be Processed below.
 
