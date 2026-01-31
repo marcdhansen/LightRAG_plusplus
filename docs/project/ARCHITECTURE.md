@@ -50,17 +50,17 @@ graph TD
 Handles the conversion of raw text into a dual-format knowledge representation:
 
 - **Graph Storage**: Captures semantic relationships between entities (e.g.,
-  Neo4j, Memgraph, or JSON). [Learn more about MemGraph Storage](subsystems/GRAPH_STORAGE.md).
+  Neo4j, Memgraph, or JSON). [Learn more about MemGraph Storage](../subsystems/GRAPH_STORAGE.md).
 
 - **Vector Storage**: Stores embeddings for high-speed similarity search
   (e.g., NanoVectorDB).
 
 - **Extraction Pipeline**: Detailed logic for chunking and LLM-based entity/relation
-  extraction. [Learn more about Extraction](subsystems/EXTRACTION.md) and the [Core Algorithm](Algorithm.md).
+  extraction. [Learn more about Extraction](../subsystems/EXTRACTION.md) and the [Core Algorithm](Algorithm.md).
 
 ### 2. ACE Framework (Agentic Context Evolution)
 
-The "brain" that optimizes the system over time. [Learn more about ACE](subsystems/ACE.md).
+The "brain" that optimizes the system over time. [Learn more about ACE](../subsystems/ACE.md).
 
 - **Reflector**: Analyzes traces to identify knowledge gaps or low-quality retrievals.
 - **Curator**: Standardizes naming, merges redundant nodes, and repairs the graph.
@@ -91,5 +91,5 @@ quantitative quality scores for every interaction. [Learn more about Observabili
 ### 📄 Developer Resources
 
 - [Concurrent Processing Explanation](LightRAG_concurrent_explain.md)
-- [uv.lock Management Guide](UV_LOCK_GUIDE.md)
-- [Testing Infrastructure Summary](TESTING_SUMMARY.md)
+- [uv.lock Management Guide](../UV_LOCK_GUIDE.md)
+- [Testing Infrastructure Summary](../TESTING_SUMMARY.md)

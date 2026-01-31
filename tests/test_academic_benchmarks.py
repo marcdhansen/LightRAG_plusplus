@@ -470,7 +470,6 @@ class TestBenchmarkIntegration:
 # ============================================================================
 
 from tests.benchmarks.fewnerd.full_dataset import (
-    convert_fewnerd_to_lightrag,
     get_fewnerd_full_dataset,
 )
 from tests.benchmarks.text2kgbench.full_dataset import (

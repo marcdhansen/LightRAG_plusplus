@@ -8,8 +8,8 @@ import asyncio
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from lightrag.utils import get_env_value, logger
 
@@ -158,7 +158,7 @@ def track_operation(
         )
 
 
-def estimate_prompt_tokens(text: str, model: str = "gpt-4o-mini") -> int:
+def estimate_prompt_tokens(text: str) -> int:
     """Estimate token count for a text string.
 
     This is a simple estimation. For accurate counts, use tiktoken.
