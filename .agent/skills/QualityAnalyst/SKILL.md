@@ -9,6 +9,8 @@ description: Standards for performance evaluation, benchmarking, speed-accuracy 
 
 The Quality Analyst (QA) ensures that system improvements are not just effective, but efficient and robust. This skill focuses on the substantive quality of the code, emphasizing both the **Speed-Accuracy Tradeoff** for backend systems and **User Interface Integrity** for frontend interactions.
 
+All QA activities follow the **Spec-Driven TDD Protocol** (see `GEMINI.md`) to ensure objective verification of quality gates.
+
 ## 📋 Benchmarking Protocol (Backend/RAG)
 
 ### 1. Mandatory Dual Metrics
