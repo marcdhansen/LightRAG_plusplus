@@ -539,3 +539,24 @@ Output:
 
 """,
 ]
+
+PROMPTS["entity_extraction_with_description_prompt"] = """You are a knowledge graph extraction assistant. Extract entities and relationships from the following text in YAML format.
+
+Entity types: {entity_types}
+Language: {language}
+
+Text:
+{input_text}
+
+Output (YAML entities and relationships):"""
+
+PROMPTS["entity_continue_extraction_prompt"] = """Find MISSING entities/relationships from:
+{input_text}
+
+Output (YAML):"""
+
+PROMPTS["mini_system_prompt"] = """Extract entities (name|type|description) and relations (source|target|keywords|description) from text. Types: {entity_types}. Language: {language}. End with {completion_delimiter}."""
+
+PROMPTS["mini_user_prompt"] = """Text: {input_text}\n\nOutput:"""
+
+PROMPTS["mini_continue_prompt"] = """Add missed entities/relations from:\n{input_text}\n\nOutput:"""

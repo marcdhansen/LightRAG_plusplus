@@ -581,6 +581,6 @@ if __name__ == "__main__":
             etype = convert_to_lightrag(entity["type"])
             type_counts[etype] = type_counts.get(etype, 0) + 1
 
-    print(f"\nEntity type distribution (LightRAG types):")
+    print("\nEntity type distribution (LightRAG types):")
     for etype, count in sorted(type_counts.items(), key=lambda x: -x[1]):
         print(f"  {etype}: {count}")

@@ -14,10 +14,6 @@ Run with:
     pytest -m heavy -k academic_full  # Full benchmarks (manual)
 """
 
-import json
-import os
-from typing import Any
-
 import pytest
 
 from tests.benchmarks.eval_metrics import (
@@ -27,7 +23,6 @@ from tests.benchmarks.eval_metrics import (
     calculate_extraction_quality_score,
     format_metrics_report,
 )
-
 
 # ============================================================================
 # Few-NERD Benchmark Data (Representative Subset)
@@ -475,12 +470,12 @@ class TestBenchmarkIntegration:
 # ============================================================================
 
 from tests.benchmarks.fewnerd.full_dataset import (
-    get_fewnerd_full_dataset,
     convert_fewnerd_to_lightrag,
+    get_fewnerd_full_dataset,
 )
 from tests.benchmarks.text2kgbench.full_dataset import (
-    get_text2kgbench_full_dataset,
     convert_text2kgbench_to_lightrag,
+    get_text2kgbench_full_dataset,
 )
 
 
@@ -570,10 +565,10 @@ async def test_fewnerd_full_benchmark_metrics():
             etype = entity["type"]
             type_counts[etype] = type_counts.get(etype, 0) + 1
 
-    print(f"\n=== FEWNERD FULL DATASET METRICS ===")
+    print("\n=== FEWNERD FULL DATASET METRICS ===")
     print(f"Total cases: {len(lightrag_data)}")
     print(f"Total entities: {sum(type_counts.values())}")
-    print(f"Entity type distribution:")
+    print("Entity type distribution:")
     for etype, count in sorted(type_counts.items(), key=lambda x: -x[1])[:10]:
         print(f"  {etype}: {count}")
 
@@ -597,10 +592,10 @@ async def test_text2kgbench_full_benchmark_metrics():
             etype = entity["type"]
             type_counts[etype] = type_counts.get(etype, 0) + 1
 
-    print(f"\n=== TEXT2KGBENCH FULL DATASET METRICS ===")
+    print("\n=== TEXT2KGBENCH FULL DATASET METRICS ===")
     print(f"Total cases: {len(lightrag_data)}")
     print(f"Total entities: {sum(type_counts.values())}")
-    print(f"Entity type distribution:")
+    print("Entity type distribution:")
     for etype, count in sorted(type_counts.items(), key=lambda x: -x[1])[:10]:
         print(f"  {etype}: {count}")
 
@@ -626,7 +621,7 @@ async def test_benchmark_data_validation():
         assert "entities" in case
         assert "relations" in case
 
-    print(f"\n=== DATA VALIDATION ===")
+    print("\n=== DATA VALIDATION ===")
     print(f"Few-NERD: {len(fewnerd_data)} cases validated")
     print(f"Text2KGBench: {len(t2kg_data)} cases validated")
     print("All datasets have correct structure ✓")

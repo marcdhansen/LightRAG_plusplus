@@ -12,14 +12,15 @@ Features:
 """
 
 from typing import Any
+
 from tests.benchmarks.type_hierarchy import (
-    FEWNERD_TO_LIGHTRAG,
-    TEXT2KGBENCH_TO_LIGHTRAG,
     FEWNERD_HIERARCHY,
-    TEXT2KGBENCH_HIERARCHY,
-    get_fine_grained_category,
-    get_all_fewnerd_types,
+    FEWNERD_TO_LIGHTRAG,
     LIGHTRAG_TYPES,
+    TEXT2KGBENCH_HIERARCHY,
+    TEXT2KGBENCH_TO_LIGHTRAG,
+    get_all_fewnerd_types,
+    get_fine_grained_category,
 )
 
 

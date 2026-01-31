@@ -9,17 +9,16 @@ These tests validate:
 """
 
 import pytest
-from tests.benchmarks.type_hierarchy import (
-    get_all_fewnerd_types,
-    get_fine_grained_category,
-    map_to_lightrag,
-    map_with_metadata,
-    FEWNERD_TO_LIGHTRAG,
-    LIGHTRAG_TYPES,
-)
+
 from tests.benchmarks.entity_type_mapper import (
     EntityTypeMapper,
     create_mapper,
+)
+from tests.benchmarks.type_hierarchy import (
+    LIGHTRAG_TYPES,
+    get_all_fewnerd_types,
+    get_fine_grained_category,
+    map_to_lightrag,
 )
 
 
@@ -61,9 +60,9 @@ class TestTypeHierarchy:
 
         for entity_type, expected_category in test_cases:
             category = get_fine_grained_category(entity_type, "fewnerd")
-            assert category == expected_category, (
-                f"{entity_type} should be in {expected_category}"
-            )
+            assert (
+                category == expected_category
+            ), f"{entity_type} should be in {expected_category}"
 
     def test_unknown_type_mapping(self):
         """Unknown types should map to 'Other'."""
@@ -227,8 +226,8 @@ class TestIntegration:
 
     def test_fewnerd_subset_mapping(self):
         """Test mapping Few-NERD subset data."""
-        from tests.benchmarks.fewnerd.full_dataset import get_fewnerd_full_dataset
         from tests.benchmarks.entity_type_mapper import create_mapper
+        from tests.benchmarks.fewnerd.full_dataset import get_fewnerd_full_dataset
 
         mapper = create_mapper()
         dataset = get_fewnerd_full_dataset()
@@ -245,10 +244,10 @@ class TestIntegration:
 
     def test_text2kgbench_mapping(self):
         """Test mapping Text2KGBench data."""
+        from tests.benchmarks.entity_type_mapper import create_mapper
         from tests.benchmarks.text2kgbench.full_dataset import (
             get_text2kgbench_full_dataset,
         )
-        from tests.benchmarks.entity_type_mapper import create_mapper
 
         mapper = create_mapper()
         dataset = get_text2kgbench_full_dataset()
