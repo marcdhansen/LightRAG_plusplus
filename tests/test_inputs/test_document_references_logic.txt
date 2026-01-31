@@ -1,0 +1,5 @@
+Quantum computing is a type of computing that uses the collective properties of quantum states, such as superposition, interference, and entanglement, to perform calculations. The fundamental units of quantum information are qubits, which can exist in multiple states simultaneously.
+
+In contrast to classical computers that use bits (0 or 1), quantum computers leverage quantum bits. This allows them to solve certain complex problems much faster than traditional supercomputers. Shor's algorithm for factoring large integers is a famous example of a quantum algorithm that outperforms its classical counterpart.
+
+LightRAG can index this quantum computing information into a knowledge graph. It allow users to retrieve specific facts about qubits and quantum algorithms. The system maintains references to the original document to ensure traceability of information.

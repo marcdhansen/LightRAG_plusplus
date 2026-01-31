@@ -4,21 +4,42 @@ repos:
     hooks:
       - id: trailing-whitespace
         exclude: ^lightrag/api/webui/
+        stages: [pre-commit, pre-push, manual]
       - id: end-of-file-fixer
         exclude: ^lightrag/api/webui/
+        stages: [pre-commit, pre-push, manual]
+      - id: check-yaml
+        stages: [pre-commit, pre-push, manual]
+        exclude: ^k8s-deploy/
+      - id: check-json
+        stages: [pre-commit, pre-push, manual]
+        exclude: ^lightrag_webui/tsconfig\.json$
+      - id: check-toml
+        stages: [pre-commit, pre-push, manual]
+      - id: check-added-large-files
+        stages: [pre-commit, pre-push, manual]
+      - id: debug-statements
+        stages: [pre-commit, pre-push, manual]
+      - id: check-case-conflict
+        stages: [pre-commit, pre-push, manual]
+      - id: check-merge-conflict
+        stages: [pre-commit, pre-push, manual]
+      - id: mixed-line-ending
+        stages: [pre-commit, pre-push, manual]
       - id: requirements-txt-fixer
         exclude: ^lightrag/api/webui/
-
+        stages: [pre-commit, pre-push, manual]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.4
+    rev: v0.9.3
     hooks:
       - id: ruff-format
         exclude: ^lightrag/api/webui/
+        stages: [pre-commit, pre-push, manual]
       - id: ruff
         args: [--fix, --ignore=E402]
         exclude: ^lightrag/api/webui/
-
+        stages: [pre-commit, pre-push, manual]
 
   - repo: local
     hooks:
@@ -28,15 +49,17 @@ repos:
         language: system
         files: ^lightrag_webui/
         pass_filenames: false
+        stages: [pre-push, manual]
       - id: docs-coverage
         name: Documentation Coverage & Portability
-        entry: python3 scripts/check_docs_coverage.py
+        entry: uv run python scripts/check_docs_coverage.py
         language: system
         files: ^docs/|^README.md|^\.agent/rules/|^scripts/check_docs_coverage\.py$
         pass_filenames: false
+        stages: [pre-push, manual]
 
   - repo: https://github.com/mgedmin/check-manifest
-    rev: "0.49"
+    rev: "0.50"
     hooks:
       - id: check-manifest
         stages: [manual]

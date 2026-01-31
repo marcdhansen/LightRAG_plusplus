@@ -17,17 +17,17 @@
 <div align="center">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 25px; text-align: center;">
     <p>
-      <a href='https://github.com/marcdhansen/LightRAG_gemini'><img src='https://img.shields.io/badge/🔥Project-Page-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e'></a>
-      <a href='https://arxiv.org/abs/2410.05779'><img src='https://img.shields.io/badge/📄arXiv-2410.05779-ff6b6b?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=1a1a2e'></a>
-      <a href="https://github.com/marcdhansen/LightRAG_gemini/stargazers"><img src='https://img.shields.io/github/stars/marcdhansen/LightRAG_gemini?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' /></a>
+      <a href='https://github.com/marcdhansen/LightRAG_gemini'><img src='https://img.shields.io/badge/🔥Project-Page-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e' alt="Project Page"></a>
+      <a href='https://arxiv.org/abs/2410.05779'><img src='https://img.shields.io/badge/📄arXiv-2410.05779-ff6b6b?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=1a1a2e' alt="arXiv 2410.05779"></a>
+      <a href="https://github.com/marcdhansen/LightRAG_gemini/stargazers"><img src='https://img.shields.io/github/stars/marcdhansen/LightRAG_gemini?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' alt="Stars"></a>
     </p>
     <p>
-      <img src="https://img.shields.io/badge/🐍Python-3.10-4ecdc4?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a2e">
-      <a href="https://pypi.org/project/lightrag-hku/"><img src="https://img.shields.io/pypi/v/lightrag-hku.svg?style=for-the-badge&logo=pypi&logoColor=white&labelColor=1a1a2e&color=ff6b6b"></a>
+      <img src="https://img.shields.io/badge/🐍Python-3.10-4ecdc4?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a2e" alt="Python 3.10">
+      <a href="https://pypi.org/project/lightrag-hku/"><img src="https://img.shields.io/pypi/v/lightrag-hku.svg?style=for-the-badge&logo=pypi&logoColor=white&labelColor=1a1a2e&color=ff6b6b" alt="PyPI version"></a>
     </p>
     <p>
-      <a href="https://discord.gg/yF2MmDJyGJ"><img src="https://img.shields.io/badge/💬Discord-Community-7289da?style=for-the-badge&logo=discord&logoColor=white&labelColor=1a1a2e"></a>
-      <a href="https://github.com/marcdhansen/LightRAG_gemini/issues/285"><img src="https://img.shields.io/badge/💬WeChat-Group-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e"></a>
+      <a href="https://discord.gg/yF2MmDJyGJ"><img src="https://img.shields.io/badge/💬Discord-Community-7289da?style=for-the-badge&logo=discord&logoColor=white&labelColor=1a1a2e" alt="Discord"></a>
+      <a href="https://github.com/marcdhansen/LightRAG_gemini/issues/285"><img src="https://img.shields.io/badge/💬WeChat-Group-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e" alt="WeChat"></a>
     </p>
     <p>
       <a href="README-zh.md"><img src="https://img.shields.io/badge/🇨🇳中文版-1a1a2e?style=for-the-badge"></a>
@@ -42,7 +42,7 @@
 </div>
 
 <div align="center" style="margin: 30px 0;">
-  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="800">
+  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="800" alt="LightRAG demo gif">
 </div>
 
 <div align="center" style="margin: 30px 0;">
@@ -53,7 +53,7 @@
 
 ## 🎉 News
 
-- [2026.01]🎯[New Feature]: **Graph Reranking**: Optimized retrieval quality by implementing granular reranking for entities and relations, achieving a **+13.8% performance boost** and perfect faithfulness in benchmarks. See [Documentation](./docs/GRAPH_RERANKING.md).
+- [2026.01]🎯[New Feature]: **Graph Reranking**: Optimized retrieval quality by implementing granular reranking for entities and relations, achieving a **+13.8% performance boost** and perfect faithfulness in benchmarks. See [Documentation](./docs/project/GRAPH_RERANKING.md).
 - [2026.01]🎯[New Feature]: **ACE Framework (Alpha)**: Introduced the Agentic Context Evolution framework for self-improving RAG via a Generate-Reflect-Curate loop.
 - [2025.11]🎯[New Feature]: Integrated **RAGAS for Evaluation** and **Langfuse for Tracing**. Updated the API to return retrieved contexts alongside query results to support context precision metrics.
 - [2025.10]🎯[Scalability Enhancement]: Eliminated processing bottlenecks to support **Large-Scale Datasets Efficiently**.
@@ -93,7 +93,7 @@
 >
 > **Note**: You can also use pip if you prefer, but uv is recommended for better performance and more reliable dependency management.
 >
-> **📦 Offline Deployment**: For offline or air-gapped environments, see the [Offline Deployment Guide](./docs/OfflineDeployment.md) for instructions on pre-installing all dependencies and cache files.
+> **📦 Offline Deployment**: For offline or air-gapped environments, see the [Offline Deployment Guide](./docs/project/OfflineDeployment.md) for instructions on pre-installing all dependencies and cache files.
 
 ### Install LightRAG Server
 

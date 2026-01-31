@@ -44,4 +44,4 @@ For model performance tradeoffs discovered during these tests, see [MODEL_PROFIL
 
 ## 🚀 How to Run Tests
 
-Refer to [EVALUATION.md](EVALUATION.md) for detailed commands and setup instructions.
+Refer to [EVALUATION.md](project/EVALUATION.md) for detailed commands and setup instructions.

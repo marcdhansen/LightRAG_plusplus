@@ -1,0 +1,34 @@
+{
+  "test_cases": [
+    {
+      "question": "What was the historical period described in the opening passage?",
+      "ground_truth": "The period described was the year 1775 during the reign of kings with large jaws in both England and France, characterized by extreme contrasts and contradictions.",
+      "project": "dickens_baseline"
+    },
+    {
+      "question": "Who were the rulers of England and France during this time?",
+      "ground_truth": "There was a king with a large jaw and a queen with a plain face on the throne of England, and a king with a large jaw and a queen with a fair face on the throne of France.",
+      "project": "dickens_baseline"
+    },
+    {
+      "question": "What spiritual revelations and events were mentioned in relation to England?",
+      "ground_truth": "England had spiritual revelations including Mrs. Southcott's twenty-fifth birthday, a prophetic private in the Life Guards, the Cock-lane ghost, and communications from British subjects in America.",
+      "project": "dickens_baseline"
+    },
+    {
+      "question": "How was France described compared to England in matters spiritual?",
+      "ground_truth": "France was less favoured than England in spiritual matters, rolling smoothly downhill making paper money and spending it, while engaging in cruel punishments under Christian pastors.",
+      "project": "dickens_baseline"
+    },
+    {
+      "question": "What famous closing lines are referenced in the text?",
+      "ground_truth": "The text references the famous closing lines: 'It is a far, far better thing that I do, than I have ever done; it is a far, far better rest that I go to than I have ever known.'",
+      "project": "dickens_baseline"
+    },
+    {
+      "question": "What were the main contrasts and paradoxes described in the opening passage?",
+      "ground_truth": "The passage describes multiple contradictions: best of times vs worst of times, age of wisdom vs age of foolishness, epoch of belief vs epoch of incredulity, season of Light vs season of Darkness, spring of hope vs winter of despair.",
+      "project": "dickens_baseline"
+    }
+  ]
+}

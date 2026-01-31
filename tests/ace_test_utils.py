@@ -47,9 +47,9 @@ class ACETestKit:
         if should_exist:
             assert exists, f"Relation should exist between '{src_id}' and '{tgt_id}'"
         else:
-            assert (
-                not exists
-            ), f"Relation between '{src_id}' and '{tgt_id}' should have been removed"
+            assert not exists, (
+                f"Relation between '{src_id}' and '{tgt_id}' should have been removed"
+            )
 
     async def verify_entity_existence(self, entity_id: str, should_exist: bool = False):
         """

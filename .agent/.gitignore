@@ -3,3 +3,5 @@
 !*/
 !*.md
 !.gitignore
+!session_locks/
+!session_locks/.gitkeep

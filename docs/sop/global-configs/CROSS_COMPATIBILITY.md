@@ -1,0 +1,1 @@
+/Users/marchansen/.gemini/CROSS_COMPATIBILITY.md

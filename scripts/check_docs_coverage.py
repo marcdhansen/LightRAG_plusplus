@@ -58,6 +58,10 @@ def check_coverage():
 
     # 1. Collect all MD files in docs/ and .agent/rules/
     all_md_files = set(PROJECT_ROOT.glob("docs/**/*.md"))
+
+    # Filter out SOPs which often have different relative path contexts
+    all_md_files = {f for f in all_md_files if "docs/sop/" not in str(f)}
+
     all_md_files.update(PROJECT_ROOT.glob(".agent/rules/*.md"))
     # Add root README
     all_md_files.add(PROJECT_ROOT / "README.md")

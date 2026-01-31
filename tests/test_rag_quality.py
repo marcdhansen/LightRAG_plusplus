@@ -35,9 +35,9 @@ async def index_sample_documents():
                 f"{BASE_URL}/documents/text",
                 json={"text": content, "file_source": doc_path.name},
             )
-            assert (
-                resp.status_code == 200
-            ), f"Failed to index {doc_path.name}: {resp.text}"
+            assert resp.status_code == 200, (
+                f"Failed to index {doc_path.name}: {resp.text}"
+            )
             print(f"   ✅ Indexed {doc_path.name}")
 
     # Give some time for processing (though ainsert is async on server side,

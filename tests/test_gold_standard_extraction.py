@@ -202,9 +202,9 @@ async def test_gold_standard_extraction_cases(gold_rag):
                     f"Expected failure for {case['id']}: Missing Entities {missing_entities}"
                 )
 
-        assert (
-            not missing_entities
-        ), f"Case {case['id']} failed: Missing Entities {missing_entities}"
+        assert not missing_entities, (
+            f"Case {case['id']} failed: Missing Entities {missing_entities}"
+        )
         # assert not missing_relations, f"Case {case['id']} failed: Missing Relations {missing_relations}"
         # Commenting out relation assertion for now as it is strictly dependent on the stochastic LLM extraction
         # but the Entity Check is a good baseline 'Gold' standard.

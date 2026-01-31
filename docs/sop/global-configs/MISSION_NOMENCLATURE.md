@@ -1,0 +1,1 @@
+/Users/marchansen/.gemini/MISSION_NOMENCLATURE.md

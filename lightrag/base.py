@@ -83,7 +83,7 @@ T = TypeVar("T")
 class QueryParam:
     """Configuration parameters for query execution in LightRAG."""
 
-    mode: Literal["local", "global", "hybrid", "naive", "mix", "bypass"] = "mix"
+    mode: Literal["local", "global", "hybrid", "naive", "mix", "rrf", "bypass"] = "mix"
     """Specifies the retrieval mode:
     - "local": Focuses on context-dependent information.
     - "global": Utilizes global knowledge.
@@ -108,6 +108,17 @@ class QueryParam:
     """Number of top items to retrieve. Represents entities in 'local' mode and relationships in 'global' mode."""
 
     chunk_top_k: int = int(os.getenv("CHUNK_TOP_K", str(DEFAULT_CHUNK_TOP_K)))
+
+    # RRF (Reciprocal Rank Fusion) configuration
+    rrf_k: int = 60
+    """RRF damping constant. Higher values give more weight to lower-ranked documents."""
+
+    rrf_weights: dict[str, float] = field(
+        default_factory=lambda: {"vector": 1.0, "graph": 1.0, "keyword": 1.0}
+    )
+    """Weights for different retrieval methods in RRF fusion.
+    Vector, graph, and keyword results can be weighted differently
+    based on their relative importance for specific use cases."""
     """Number of text chunks to retrieve initially from vector search and keep after reranking.
     If None, defaults to top_k value.
     """
@@ -171,6 +182,18 @@ class QueryParam:
     """If True, includes reference list in the response for supported endpoints.
     This parameter controls whether the API response includes a references field
     containing citation information for the retrieved content.
+    """
+
+    auto_citations: bool = False
+    """If True, enables automatic citation generation using Zilliz semantic highlighting.
+    When enabled, citations are automatically generated based on query-relevance
+    using the zilliz highlighting model, providing more accurate source attribution.
+    """
+
+    citation_threshold: float = 0.6
+    """Relevance threshold for automatic citations (0.0 to 1.0).
+    Only sentences above this threshold will be included in automatic citations.
+    Higher values result in fewer but more confident citations.
     """
 
 

@@ -20,7 +20,7 @@ def mock_pg_db():
     db.workspace = "test_workspace"
 
     # Mock query responses with multirows support
-    async def mock_query(sql, params=None, multirows=False, **kwargs):
+    async def mock_query(sql, params: list | None = None, multirows=False, **kwargs):
         # Default return value
         if multirows:
             return []  # Return empty list for multirows
@@ -129,7 +129,7 @@ async def test_postgres_migration_trigger(
     ]
     migration_state = {"new_table_count": 0}
 
-    async def mock_query(sql, params=None, multirows=False, **kwargs):
+    async def mock_query(sql, params: list | None = None, multirows=False, **kwargs):
         if "COUNT(*)" in sql:
             sql_upper = sql.upper()
             legacy_table = storage.legacy_table_name.upper()
@@ -149,31 +149,31 @@ async def test_postgres_migration_trigger(
             if "WHERE workspace" in sql:
                 if "id >" in sql:
                     # Keyset pagination: params = [workspace, last_id, limit]
-                    last_id = params[1] if len(params) > 1 else None
+                    last_id = params[1] if params and len(params) > 1 else None
                     # Find rows after last_id
                     start_idx = 0
                     for i, row in enumerate(mock_rows):
                         if row["id"] == last_id:
                             start_idx = i + 1
                             break
-                    limit = params[2] if len(params) > 2 else 500
+                    limit = params[2] if params and len(params) > 2 else 500
                 else:
                     # First batch (no last_id): params = [workspace, limit]
                     start_idx = 0
-                    limit = params[1] if len(params) > 1 else 500
+                    limit = params[1] if params and len(params) > 1 else 500
             else:
                 # No workspace filter with keyset
                 if "id >" in sql:
-                    last_id = params[0] if params else None
+                    last_id = params[0] if params and len(params) > 0 else None
                     start_idx = 0
                     for i, row in enumerate(mock_rows):
                         if row["id"] == last_id:
                             start_idx = i + 1
                             break
-                    limit = params[1] if len(params) > 1 else 500
+                    limit = params[1] if params and len(params) > 1 else 500
                 else:
                     start_idx = 0
-                    limit = params[0] if params else 500
+                    limit = params[0] if params and len(params) > 0 else 500
             end = min(start_idx + limit, len(mock_rows))
             return mock_rows[start_idx:end]
         return {}
@@ -333,7 +333,7 @@ async def test_scenario_2_legacy_upgrade_migration(
     query_history = []
     migration_state = {"new_table_count": 0}
 
-    async def mock_query(sql, params=None, multirows=False, **kwargs):
+    async def mock_query(sql, params: list | None = None, multirows=False, **kwargs):
         query_history.append(sql)
 
         if "COUNT(*)" in sql:
@@ -365,31 +365,31 @@ async def test_scenario_2_legacy_upgrade_migration(
             if "WHERE workspace" in sql:
                 if "id >" in sql:
                     # Keyset pagination: params = [workspace, last_id, limit]
-                    last_id = params[1] if len(params) > 1 else None
+                    last_id = params[1] if params and len(params) > 1 else None
                     # Find rows after last_id
                     start_idx = 0
                     for i, row in enumerate(mock_rows):
                         if row["id"] == last_id:
                             start_idx = i + 1
                             break
-                    limit = params[2] if len(params) > 2 else 500
+                    limit = params[2] if params and len(params) > 2 else 500
                 else:
                     # First batch (no last_id): params = [workspace, limit]
                     start_idx = 0
-                    limit = params[1] if len(params) > 1 else 500
+                    limit = params[1] if params and len(params) > 1 else 500
             else:
                 # No workspace filter with keyset
                 if "id >" in sql:
-                    last_id = params[0] if params else None
+                    last_id = params[0] if params and len(params) > 0 else None
                     start_idx = 0
                     for i, row in enumerate(mock_rows):
                         if row["id"] == last_id:
                             start_idx = i + 1
                             break
-                    limit = params[1] if len(params) > 1 else 500
+                    limit = params[1] if params and len(params) > 1 else 500
                 else:
                     start_idx = 0
-                    limit = params[0] if params else 500
+                    limit = params[0] if params and len(params) > 0 else 500
             end = min(start_idx + limit, len(mock_rows))
             return mock_rows[start_idx:end]
         return {}
@@ -524,7 +524,7 @@ async def test_case1_empty_legacy_auto_cleanup(
     mock_pg_db.check_table_exists = AsyncMock(side_effect=mock_check_table_exists)
 
     # Mock: Legacy table is empty (0 records)
-    async def mock_query(sql, params=None, multirows=False, **kwargs):
+    async def mock_query(sql, params: list | None = None, multirows=False, **kwargs):
         if "COUNT(*)" in sql:
             if storage.legacy_table_name in sql:
                 return {"count": 0}  # Empty legacy table
@@ -547,9 +547,9 @@ async def test_case1_empty_legacy_auto_cleanup(
         assert len(delete_calls) >= 1, "Empty legacy table should be auto-deleted"
         # Check if legacy table was dropped
         dropped_table = storage.legacy_table_name
-        assert any(
-            dropped_table in str(call) for call in delete_calls
-        ), f"Expected to drop empty legacy table '{dropped_table}'"
+        assert any(dropped_table in str(call) for call in delete_calls), (
+            f"Expected to drop empty legacy table '{dropped_table}'"
+        )
 
         print(
             f"✅ Case 1a: Empty legacy table '{dropped_table}' auto-deleted successfully"
@@ -588,7 +588,7 @@ async def test_case1_nonempty_legacy_warning(
     mock_pg_db.check_table_exists = AsyncMock(side_effect=mock_check_table_exists)
 
     # Mock: Legacy table has data (50 records)
-    async def mock_query(sql, params=None, multirows=False, **kwargs):
+    async def mock_query(sql, params: list | None = None, multirows=False, **kwargs):
         if "COUNT(*)" in sql:
             if storage.legacy_table_name in sql:
                 return {"count": 50}  # Legacy has data
@@ -721,17 +721,17 @@ async def test_case1_sequential_workspace_migration(
                     # Handle keyset pagination
                     if "id >" in sql:
                         # params = [workspace, last_id, limit]
-                        last_id = params[1] if len(params) > 1 else None
+                        last_id = params[1] if params and len(params) > 1 else None
                         start_idx = 0
                         for i, row in enumerate(mock_rows_a):
                             if row["id"] == last_id:
                                 start_idx = i + 1
                                 break
-                        limit = params[2] if len(params) > 2 else 500
+                        limit = params[2] if params and len(params) > 2 else 500
                     else:
                         # First batch: params = [workspace, limit]
                         start_idx = 0
-                        limit = params[1] if len(params) > 1 else 500
+                        limit = params[1] if params and len(params) > 1 else 500
                     end = min(start_idx + limit, len(mock_rows_a))
                     return mock_rows_a[start_idx:end]
         return {}
@@ -756,9 +756,9 @@ async def test_case1_sequential_workspace_migration(
 
     print("✅ Step 1: Workspace A initialized")
     # Verify migration was executed via _run_with_retry (batch migration uses executemany)
-    assert (
-        len(migration_a_executed) > 0
-    ), "Migration should have been executed for workspace_a"
+    assert len(migration_a_executed) > 0, (
+        "Migration should have been executed for workspace_a"
+    )
     print(f"✅ Step 1: Migration executed {len(migration_a_executed)} batch(es)")
 
     # Step 2: Simulate workspace_b initialization (Case 3 - both exist, but legacy has B's data)
@@ -815,17 +815,17 @@ async def test_case1_sequential_workspace_migration(
                     # Handle keyset pagination
                     if "id >" in sql:
                         # params = [workspace, last_id, limit]
-                        last_id = params[1] if len(params) > 1 else None
+                        last_id = params[1] if params and len(params) > 1 else None
                         start_idx = 0
                         for i, row in enumerate(mock_rows_b):
                             if row["id"] == last_id:
                                 start_idx = i + 1
                                 break
-                        limit = params[2] if len(params) > 2 else 500
+                        limit = params[2] if params and len(params) > 2 else 500
                     else:
                         # First batch: params = [workspace, limit]
                         start_idx = 0
-                        limit = params[1] if len(params) > 1 else 500
+                        limit = params[1] if params and len(params) > 1 else 500
                     end = min(start_idx + limit, len(mock_rows_b))
                     return mock_rows_b[start_idx:end]
         return {}
@@ -850,9 +850,9 @@ async def test_case1_sequential_workspace_migration(
 
     # Verify workspace_b migration happens when new table has no workspace_b data
     # but legacy table still has workspace_b data.
-    assert (
-        len(migration_b_executed) > 0
-    ), "Migration should have been executed for workspace_b"
+    assert len(migration_b_executed) > 0, (
+        "Migration should have been executed for workspace_b"
+    )
     print("✅ Step 2: Migration executed for workspace_b")
 
     print("\n🎉 Case 1c: Sequential workspace migration verification complete!")

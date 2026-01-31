@@ -1,0 +1,1 @@
+/Users/marchansen/.gemini/HOW_TO_USE_BEADS.md

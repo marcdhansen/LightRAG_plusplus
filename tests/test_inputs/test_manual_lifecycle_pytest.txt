@@ -1,0 +1,1 @@
+LightRAG is a robust Retrieval-Augmented Generation system using knowledge graphs.

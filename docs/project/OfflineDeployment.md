@@ -227,6 +227,7 @@ python -c "import redis; print('✓ Redis available')"
 **Problem**: `Unable to load tokenizer for model gpt-4o-mini`
 
 **Solution**:
+
 ```bash
 # Ensure TIKTOKEN_CACHE_DIR is set
 echo $TIKTOKEN_CACHE_DIR
@@ -242,6 +243,7 @@ ls -la ~/.tiktoken_cache/
 **Problem**: `Error installing package xxx`
 
 **Solution**:
+
 ```bash
 # Pre-install the specific package you need
 # For API with document processing:
@@ -259,6 +261,7 @@ pip install lightrag-hku[offline-llm]
 **Problem**: `ModuleNotFoundError: No module named 'xxx'`
 
 **Solution**:
+
 ```bash
 # Check what you have installed
 pip list | grep -i xxx
@@ -272,6 +275,7 @@ pip install lightrag-hku[offline]  # Install all offline deps
 **Problem**: `PermissionError: [Errno 13] Permission denied`
 
 **Solution**:
+
 ```bash
 # Ensure cache directory has correct permissions
 chmod 755 ~/.tiktoken_cache
@@ -291,11 +295,13 @@ mkdir -p ~/my_tiktoken_cache
 3. **Document Your Setup**: Keep notes on which optional dependencies you actually need.
 
 4. **Version Pinning**: Consider pinning specific versions in production:
+
    ```bash
    pip freeze > requirements-production.txt
    ```
 
 5. **Minimal Installation**: Only install what you need:
+
    ```bash
    # If you only need API with document processing
    pip install lightrag-hku[api]
@@ -306,12 +312,12 @@ mkdir -p ~/my_tiktoken_cache
 
 - [LightRAG GitHub Repository](https://github.com/marcdhansen/LightRAG_gemini)
 - [Docker Deployment Guide](./DockerDeployment.md)
-- [API Documentation](../lightrag/api/README.md)
+- [API Documentation](../../lightrag/api/README.md)
 
 ## Support
 
 If you encounter issues not covered in this guide:
 
 1. Check the [GitHub Issues](https://github.com/marcdhansen/LightRAG_gemini/issues)
-2. Review the [project documentation](../README.md)
+2. Review the [project documentation](../../README.md)
 3. Create a new issue with your offline deployment details

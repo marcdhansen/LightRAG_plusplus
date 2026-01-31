@@ -4,10 +4,10 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ## 🎯 Current Objective
 
-- **Task**: Infrastructure & Process Improvements (Flight Director, YAML-default)
+- **Task**: Phase 6: ACE Optimizer - Systematic prompt & curator refinement.
 - **Status**: ACTIVE
-- **Result**: Robust automated checks and optimized extraction paths.
-- **Next Step**: Phase 6: ACE Optimizer - Systematic prompt refinement.
+- **Result**: Production-grade RAG performance on small (1.5B/7B) models.
+- **Next Step**: Phase 6.1: Extraction Prompt Enhancement (Relationship schema refinement).
 
 ## 🚀 Active Work
 
@@ -21,12 +21,12 @@ This is the central directory for all project-specific planning, tracking, and i
 ## 📖 Instructions & Guides (Local)
 
 - **[Project README](../../README.md)**: Main project documentation.
-- **[Observability & Langfuse](../../docs/OBSERVABILITY.md)**: Setup and benefits of Langfuse tracing.
-- **[Evaluation & RAGAS](../../docs/EVALUATION.md)**: How to run and interpret RAGAS benchmarks.
-- **[ACE Framework](../../docs/ACE_FRAMEWORK.md)**: High-level overview of Agentic Context Evolution.
+- **[Observability & Langfuse](../../docs/project/OBSERVABILITY.md)**: Setup and benefits of Langfuse tracing.
+- **[Evaluation & RAGAS](../../docs/project/EVALUATION.md)**: How to run and interpret RAGAS benchmarks.
+- **[ACE Framework](../../docs/project/ACE_FRAMEWORK.md)**: High-level overview of Agentic Context Evolution.
 - **[Local Setup Hints](../../docs/local_setup_hints.md)**: specific commands for manual testing.
-- **[Frontend Build Guide](../../docs/FrontendBuildGuide.md)**: Instructions for building the WebUI.
-- **[Docker Deployment](../../docs/DockerDeployment.md)**: Guide for containerized setup.
+- **[Frontend Build Guide](../../docs/project/FrontendBuildGuide.md)**: Instructions for building the WebUI.
+- **[Docker Deployment](../../docs/project/DockerDeployment.md)**: Guide for containerized setup.
 
 ## 🌐 Global Resources
 
@@ -37,7 +37,7 @@ This is the central directory for all project-specific planning, tracking, and i
 ## 📈 Recent Accomplishments
 
 - ✓ **Type Safety Refactoring** (2026-01-28): Resolved critical Pyright errors across
-  core modules and relaxed graph data types for better compatibility (lightrag-3mc).
+  core modules and relaxed graph data types for better compatibility (lightrag-3mc - Part 1).
 - ✓ **ACE Phase 5: Curator** (2026-01-27): Implemented automated graph repair
   (deletion, merging) and integrated into ACE query loop.
 - ✓ **ACE Asymmetric Routing** (2026-01-27): Implemented model-specific routing

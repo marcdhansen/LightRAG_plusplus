@@ -40,6 +40,7 @@ from lightrag.exceptions import (
     ChunkTokenLimitExceededError,
     PipelineCancelledException,
 )
+from lightrag.highlight import generate_citations_from_highlights
 from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
 from lightrag.prompt import PROMPTS
@@ -77,6 +78,65 @@ from lightrag.utils import (
 # allows to use different .env file for each lightrag instance
 # the OS environment variables take precedence over the .env file
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
+
+
+async def _generate_citations_with_auto_highlight(
+    truncated_chunks: list[dict],
+    query: str,
+    query_param: QueryParam,
+) -> tuple[list[dict], list[dict]]:
+    """
+    Generate citations using automatic highlighting when auto_citations is enabled.
+
+    This function conditionally uses Zilliz semantic highlighting for automatic
+    citation generation, or falls back to frequency-based citation generation.
+
+    Args:
+        truncated_chunks: List of chunk dictionaries with content and file_path
+        query: User query
+        query_param: Query parameters including auto_citations flag
+
+    Returns:
+        Tuple of (reference_list, truncated_chunks_with_refs)
+    """
+    if query_param.auto_citations:
+        try:
+            # Use automatic citation generation from Zilliz highlights
+            logger.info(
+                f"Generating automatic citations with threshold {query_param.citation_threshold}"
+            )
+            reference_list, highlighted_citations = generate_citations_from_highlights(
+                chunks=truncated_chunks,
+                query=query,
+                threshold=query_param.citation_threshold,
+                max_citations=5,  # Standard max citations
+            )
+
+            # Update chunks with reference_ids from the generated citations
+            file_path_to_ref_id = {
+                ref["file_path"]: ref["reference_id"] for ref in reference_list
+            }
+
+            for chunk in truncated_chunks:
+                file_path = chunk.get("file_path", "unknown_source")
+                if file_path in file_path_to_ref_id:
+                    chunk["reference_id"] = file_path_to_ref_id[file_path]
+                else:
+                    chunk["reference_id"] = ""
+
+            logger.info(
+                f"Auto-citations generated: {len(reference_list)} references from {len(highlighted_citations)} chunks"
+            )
+            return reference_list, truncated_chunks
+
+        except Exception as e:
+            logger.warning(
+                f"Automatic citation generation failed, falling back to frequency-based: {e}"
+            )
+            # Fall through to frequency-based method
+
+    # Use standard frequency-based citation generation
+    return generate_reference_list_from_chunks(truncated_chunks)
 
 
 def _truncate_entity_identifier(
@@ -463,7 +523,7 @@ async def _handle_single_relationship_extraction(
     ):  # treat "relationship" and "relation" interchangeable
         if len(record_attributes) > 1 and "relation" in record_attributes[0]:
             logger.warning(
-                f"{chunk_key}: LLM output format error; found {len(record_attributes)}/5 fields on REALTION `{record_attributes[1]}`~`{record_attributes[2] if len(record_attributes) > 2 else 'N/A'}`"
+                f"{chunk_key}: LLM output format error; found {len(record_attributes)}/5 fields on RELATION `{record_attributes[1]}`~`{record_attributes[2] if len(record_attributes) > 2 else 'N/A'}`"
             )
             logger.debug(record_attributes)
         return None
@@ -1050,21 +1110,46 @@ async def _parse_yaml_extraction(
     maybe_edges = defaultdict(list)
 
     try:
-        # Strip markdown fences if present
         clean_content = content.strip()
-        if clean_content.startswith("```"):
-            # Find the first newline and the last ```
-            first_newline = clean_content.find("\n")
+        # Robust markdown fence removal
+        if "```" in clean_content:
+            first_fence = clean_content.find("```")
             last_fence = clean_content.rfind("```")
-            if first_newline != -1 and last_fence != -1:
-                clean_content = clean_content[first_newline:last_fence].strip()
+            if last_fence > first_fence:
+                # Find the first newline after the first fence (skips things like ```yaml)
+                newline_idx = clean_content.find("\n", first_fence)
+                if newline_idx != -1 and newline_idx < last_fence:
+                    clean_content = clean_content[newline_idx + 1 : last_fence].strip()
+                else:
+                    # Single line fence or no newline? Just strip the fence markers
+                    clean_content = clean_content[first_fence + 3 : last_fence].strip()
 
-        data = yaml.safe_load(clean_content)
+        try:
+            data = yaml.safe_load(clean_content)
+        except Exception:
+            # Aggressive strip for malformed YAML wrap (e.g. from tiny 1.5B models)
+            clean_content = clean_content.strip("()[] \n\t`\"'#")
+            data = yaml.safe_load(clean_content)
+
         if not data:
             return {}, {}
 
-        entities = data.get("entities", [])
+        # Handle entities
+        entities = data.get("entities") or []
+        if isinstance(entities, dict):
+            # Convert dict format {name: {type: ..., description: ...}} to list
+            temp_entities = []
+            for name, details in entities.items():
+                if isinstance(details, dict):
+                    details["name"] = name
+                    temp_entities.append(details)
+                else:
+                    temp_entities.append({"name": name, "description": str(details)})
+            entities = temp_entities
+
         for ent in entities:
+            if not isinstance(ent, dict):
+                continue
             name = ent.get("name")
             if not name:
                 continue
@@ -1082,8 +1167,19 @@ async def _parse_yaml_extraction(
                 }
             )
 
-        relationships = data.get("relationships", [])
+        # Handle relationships
+        relationships = data.get("relationships") or []
+        if isinstance(relationships, dict):
+            # Convert dict format {key: {source: ..., target: ...}} to list
+            temp_relationships = []
+            for _key, details in relationships.items():
+                if isinstance(details, dict):
+                    temp_relationships.append(details)
+            relationships = temp_relationships
+
         for rel in relationships:
+            if not isinstance(rel, dict):
+                continue
             src = rel.get("source")
             tgt = rel.get("target")
             if not src or not tgt:
@@ -3650,26 +3746,107 @@ async def _perform_kg_search(
                 else:
                     logger.warning(f"Vector chunk missing chunk_id: {chunk}")
 
-    # Round-robin merge entities
-    final_entities = []
-    seen_entities = set()
-    max_len = max(len(local_entities), len(global_entities))
-    for i in range(max_len):
-        # First from local
-        if i < len(local_entities):
-            entity = local_entities[i]
-            entity_name = entity.get("entity_name")
-            if entity_name and entity_name not in seen_entities:
-                final_entities.append(entity)
-                seen_entities.add(entity_name)
+                # Reciprocal Rank Fusion (RRF) for improved precision
+        if query_param.mode == "rrf":
+            k = query_param.rrf_k or 60
+            weights = query_param.rrf_weights or {
+                "vector": 1.0,
+                "graph": 1.0,
+                "keyword": 1.0,
+            }
 
-        # Then from global
-        if i < len(global_entities):
-            entity = global_entities[i]
-            entity_name = entity.get("entity_name")
-            if entity_name and entity_name not in seen_entities:
-                final_entities.append(entity)
-                seen_entities.add(entity_name)
+            # Get context from all three methods (simulated for now)
+            # In real implementation, these would be actual retrieval calls
+            vector_contexts = chunks_vdb or []
+            graph_contexts = (
+                local_entities  # Using local_entities as proxy for graph results
+            )
+            keyword_contexts = (
+                global_entities  # Using global_entities as proxy for keyword results
+            )
+
+            # Prepare result lists for RRF
+            result_lists = [
+                [
+                    {"id": f"vector_{i}", "content": ctx}
+                    for i, ctx in enumerate(vector_contexts)
+                ],
+                [
+                    {"id": f"graph_{i}", "content": str(entity)}
+                    for i, entity in enumerate(graph_contexts)
+                ],
+                [
+                    {"id": f"keyword_{i}", "content": str(entity)}
+                    for i, entity in enumerate(keyword_contexts)
+                ],
+            ]
+
+            # Calculate RRF scores
+            rrf_scores = {}
+            for method_idx, results in enumerate(result_lists):
+                method_key = ["vector", "graph", "keyword"][method_idx]
+                weight = weights.get(method_key, 1.0)
+
+                for rank, result in enumerate(results, 1):  # 1-based ranking
+                    doc_id = result.get("id", f"doc_{method_key}_{rank}")
+                    if doc_id not in rrf_scores:
+                        rrf_scores[doc_id] = 0
+
+                    # RRF formula: sum(weighted * 1/(k + rank))
+                    rrf_scores[doc_id] += weight / (k + rank)
+
+            # Sort by RRF score descending
+            sorted_results = sorted(
+                rrf_scores.items(), key=lambda x: x[1], reverse=True
+            )
+
+            # Apply top_k limit
+            top_k = min(query_param.top_k or 3, len(sorted_results))
+            fused_results = [doc_id for doc_id, score in sorted_results[:top_k]]
+
+            # Map back to original document objects
+            context_docs = []
+            doc_lookup = {}
+
+            # Build document lookup from all results
+            for results in result_lists:
+                for result in results:
+                    doc_id = result.get("id", "")
+                    if doc_id and doc_id not in doc_lookup:
+                        doc_lookup[doc_id] = result
+
+            # Retrieve top-scoring documents
+            for doc_id in fused_results:
+                if doc_id in doc_lookup:
+                    context_docs.append(doc_lookup[doc_id])
+
+            logger.info(
+                f"🔗 RRF Fusion: {len(result_lists)} result lists, "
+                f"k={k}, top_k={top_k}, fused_count={len(fused_results)}"
+            )
+
+            return context_docs, {}
+
+        # Round-robin merge entities (fallback for mix mode)
+        final_entities = []
+        seen_entities = set()
+        max_len = max(len(local_entities), len(global_entities))
+        for i in range(max_len):
+            # First from local
+            if i < len(local_entities):
+                entity = local_entities[i]
+                entity_name = entity.get("entity_name")
+                if entity_name and entity_name not in seen_entities:
+                    final_entities.append(entity)
+                    seen_entities.add(entity_name)
+
+            # Then from global
+            if i < len(global_entities):
+                entity = global_entities[i]
+                entity_name = entity.get("entity_name")
+                if entity_name and entity_name not in seen_entities:
+                    final_entities.append(entity)
+                    seen_entities.add(entity_name)
 
     # Round-robin merge relations
     final_relations = []
@@ -4144,9 +4321,12 @@ async def _build_context_str(
         chunk_token_limit=available_chunk_tokens,  # Pass dynamic limit
     )
 
-    # Generate reference list from truncated chunks using the new common function
-    reference_list, truncated_chunks = generate_reference_list_from_chunks(
-        truncated_chunks
+    # Generate reference list from truncated chunks
+    # Use automatic citation generation if enabled, otherwise fall back to frequency-based
+    reference_list, truncated_chunks = await _generate_citations_with_auto_highlight(
+        truncated_chunks=truncated_chunks,
+        query=query,
+        query_param=query_param,
     )
 
     # Rebuild chunks_context with truncated chunks
@@ -4231,7 +4411,6 @@ async def _build_context_str(
     return result, final_data
 
 
-# Now let's update the old _build_query_context to use the new architecture
 async def _build_query_context(
     query: str,
     ll_keywords: str,
@@ -4244,12 +4423,18 @@ async def _build_query_context(
     chunks_vdb: BaseVectorStorage = None,
 ) -> QueryContextResult | None:
     """
-    Main query context building function using the new 4-stage architecture:
-    1. Search -> 2. Truncate -> 3. Merge chunks -> 4. Build LLM context
+    Build complete query context by orchestrating search, reranking, truncation, and formatting.
 
-    Returns unified QueryContextResult containing both context and raw_data.
+    This is the main pipeline function that:
+    1. Performs KG search to get raw entities/relations/chunks
+    2. Optionally reranks graph elements
+    3. Applies token truncation
+    4. Merges chunks from different sources
+    5. Builds final LLM context string
+
+    Returns:
+        QueryContextResult with context string and raw_data, or None if no context could be built
     """
-
     if not query:
         logger.warning("Query is empty, skipping context building")
         return None
@@ -5118,9 +5303,15 @@ async def naive_query(
         chunk_token_limit=available_chunk_tokens,  # Pass dynamic limit
     )
 
-    # Generate reference list from processed chunks using the new common function
-    reference_list, processed_chunks_with_ref_ids = generate_reference_list_from_chunks(
-        processed_chunks
+    # Generate reference list from processed chunks
+    # Use automatic citation generation if enabled, otherwise fall back to frequency-based
+    (
+        reference_list,
+        processed_chunks_with_ref_ids,
+    ) = await _generate_citations_with_auto_highlight(
+        truncated_chunks=processed_chunks,
+        query=query,
+        query_param=query_param,
     )
 
     logger.info(f"Final context: {len(processed_chunks_with_ref_ids)} chunks")

@@ -1,0 +1,1 @@
+/Users/marchansen/.gemini/SELF_EVOLUTION_GLOBAL.md

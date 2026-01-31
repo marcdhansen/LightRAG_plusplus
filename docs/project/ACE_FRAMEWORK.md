@@ -36,7 +36,7 @@ The effectiveness of the ACE loop is highly dependent on the reasoning capabilit
 - **Generator**: 3B+ models are sufficient for general query generation when guided by high-quality playbooks.
 - **Curator**: 1.5B+ models are acceptable for standard structural repairs like deduplication.
 
-For detailed latency and accuracy metrics, see [MODEL_PROFILING_RESULTS](../MODEL_PROFILING_RESULTS.md).
+For detailed latency and accuracy metrics, see [MODEL_PROFILING_RESULTS](../../MODEL_PROFILING_RESULTS.md).
 
 ## 🛡️ Reasoning Threshold Policy (Review Before Deployment)
 
@@ -53,7 +53,7 @@ Effective from **v0.5.0**, the ACE framework enforces a **Minimum Reasoning Thre
 
 ## 📚 Resources
 
-- [ACE Core Implementation](../lightrag/ace/)
+- [ACE Core Implementation](../../lightrag/ace/)
 - [SOTA Roadmap](SOTA_ROADMAP.md)
 
 ## 🔬 Discoveries

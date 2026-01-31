@@ -91,7 +91,7 @@ export const GraphSearchInput = ({
         onChange(null)
       }
     }
-  }, [queryLabel])
+  }, [queryLabel, onChange, value])
 
   // Create search engine when needed
   useEffect(() => {

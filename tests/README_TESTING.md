@@ -13,10 +13,16 @@ We use the following markers to categorize tests:
 - `@pytest.mark.requires_api`: Sub-category of integration tests that specifically require the LightRAG API server to be running.
 - `@pytest.mark.manual`: Tests intended for manual execution or observation. These are **skipped by default**.
 
+## 📁 Test Data
+
+- **`tests/test_inputs/`**: Centralized repository for test documents, research data, and benchmarking samples. This directory replaces the legacy `docs/project/test_inputs/` location and contains unique, base files with duplicates removed.
+
 ## Running Tests
 
 ### 1. Light Tests (Recommended for CI/local dev)
+
 Run fast tests that cover core logic without external dependencies delays.
+
 ```bash
 ./scripts/test_light.sh
 # OR
@@ -24,32 +30,43 @@ pytest -m light
 ```
 
 ### 2. Heavy Tests (Integration/Full System)
+
 Run comprehensive tests involving databases, LLMs, and API servers.
+
 ```bash
 ./scripts/test_heavy.sh
 # OR
 pytest -m heavy
+# OR (for full matrix of academic benchmarks)
+pytest -m heavy -k academic_full -v
 ```
 
 ### 3. Simple Offline Tests (Fast)
+
 ```bash
 pytest -m offline
 ```
 
 ### 4. Integration Tests (Legacy Flag)
+
 To run tests that require external services, use the `--run-integration` flag:
+
 ```bash
 pytest --run-integration
 ```
 
 ### 5. Manual Tests
+
 To run tests designated for manual verification:
+
 ```bash
 pytest --run-manual
 ```
 
 ### 6. Combining Flags
+
 You can run everything with:
+
 ```bash
 pytest --run-integration --run-manual
 ```
@@ -71,6 +88,7 @@ def test_manual_verification():
 ```
 
 **Note**: To see output and interact with `input()`, always run pytest with the `-s` flag:
+
 ```bash
 pytest --run-manual -s
 ```

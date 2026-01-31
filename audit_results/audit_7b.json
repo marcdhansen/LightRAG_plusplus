@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-01-30T18:46:49.081106",
+  "models_tested": [
+    "qwen2.5-coder:7b"
+  ],
+  "test_cases": [
+    "simple_person_org",
+    "einstein_basic",
+    "dickens_opening"
+  ],
+  "individual_results": [
+    {
+      "case_id": "simple_person_org",
+      "model": "qwen2.5-coder:7b",
+      "yaml_compliant": true,
+      "execution_time": 569.4082663059235,
+      "entity_recall": 1.0,
+      "relation_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "entities_found": 2,
+      "entities_expected": 2,
+      "entities_extracted": 2,
+      "relations_found": 1,
+      "relations_expected": 1
+    },
+    {
+      "case_id": "einstein_basic",
+      "model": "qwen2.5-coder:7b",
+      "yaml_compliant": true,
+      "execution_time": 223.67705702781677,
+      "entity_recall": 1.0,
+      "relation_accuracy": 0.5,
+      "hallucination_rate": 0.0,
+      "entities_found": 4,
+      "entities_expected": 4,
+      "entities_extracted": 4,
+      "relations_found": 2,
+      "relations_expected": 4
+    },
+    {
+      "case_id": "dickens_opening",
+      "model": "qwen2.5-coder:7b",
+      "yaml_compliant": true,
+      "execution_time": 287.0144498348236,
+      "entity_recall": 1.0,
+      "relation_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "entities_found": 6,
+      "entities_expected": 6,
+      "entities_extracted": 6,
+      "relations_found": 0,
+      "relations_expected": 0
+    }
+  ],
+  "model_aggregates": {
+    "qwen2.5-coder:7b": {
+      "avg_entity_recall": 1.0,
+      "avg_relation_accuracy": 0.8333333333333334,
+      "avg_hallucination_rate": 0.0,
+      "avg_execution_time": 360.0332577228546,
+      "yaml_compliance_rate": 1.0
+    }
+  }
+}
