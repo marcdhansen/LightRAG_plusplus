@@ -1,0 +1,25 @@
+{
+  "consolidated": [
+    {
+      "model": "qwen2.5-coder:1.5b",
+      "Variant_A": {"entity_recall": 100, "relation_accuracy": 75, "yaml": true, "avg_time": 101.89},
+      "Variant_B": {"entity_recall": 66.7, "relation_accuracy": 50, "yaml": 66.7, "avg_time": 37.13}
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "Variant_A": {"entity_recall": 100, "relation_accuracy": 91.7, "yaml": true, "avg_time": 51.13},
+      "Variant_B": {"entity_recall": 94.4, "relation_accuracy": 91.7, "yaml": 100, "avg_time": 56.87}
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "Variant_A": {"entity_recall": 100, "relation_accuracy": 91.7, "yaml": true, "avg_time": 119.34},
+      "Variant_B": {"entity_recall": 100, "relation_accuracy": 91.7, "yaml": true, "avg_time": 93.76}
+    }
+  ],
+  "default_strategy": {
+    "1.5b": "A",
+    "3b": "A",
+    "7b": "B"
+  },
+  "notes": "Variant A recommended for recall on 1.5b/3b; Variant B preferred for throughput on 7b. See ab_defaults for weights and default mappings."
+}

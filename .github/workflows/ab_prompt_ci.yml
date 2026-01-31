@@ -1,0 +1,26 @@
+name: AB Prompt Quick Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  ab-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install minimal dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run AB smoke test (default)
+        run: |
+          python3 scripts/ab_smoke_test.py
+      - name: Generate consolidated summary (if present)
+        run: |
+          python3 scripts/ab_consolidator.py || true

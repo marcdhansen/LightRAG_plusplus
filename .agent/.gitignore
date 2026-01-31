@@ -5,3 +5,5 @@
 !.gitignore
 !session_locks/
 !session_locks/.gitkeep
+!skills/FlightDirector/scripts/
+!skills/FlightDirector/scripts/*.py

@@ -23,6 +23,16 @@ def choose_variant(llm_model_name: str) -> str:
     This is a lightweight heuristic: larger models lean toward variant B, smaller
     models toward variant A. If no model name is provided, fall back to 'A'.
     """
+    # First, check for per-model default variant from AB defaults
+    try:
+        from lightrag.ab_defaults import get_default_variant
+
+        default_variant = get_default_variant(llm_model_name)
+        if default_variant:
+            return default_variant
+    except Exception:
+        pass
+
     name = (llm_model_name or "").lower()
     if "7b" in name or name.endswith("b") and len(name) > 0:
         return "B"  # Larger (7B) tends to benefit from a different prompt

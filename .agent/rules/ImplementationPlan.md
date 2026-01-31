@@ -45,6 +45,18 @@ Strengthen the development lifecycle by enhancing automated checks and standardi
 * [x] **Beads Sync Optimization**: Modified `.gitignore` to track `.beads/issues.jsonl`, resolving "operation not permitted" errors (Beads: lightrag-988).
 * [x] **Reflect Skill Formalization**: Updated `reflect` skill with standard mission processes, structured debriefing, and PFC/RTB analysis (Beads: lightrag-982).
 * [x] **Universal SOP Standardization**: Documented cross-IDE/agent compatibility design in `CROSS_COMPATIBILITY.md` and integrated into `GLOBAL_INDEX.md` (Beads: lightrag-989).
+* [x] **Plan-Blocker Implementation** (Beads: lightrag-fd1):
+  * Enhanced `Flight Director` script to enforce a "Plan Approval" check in PFC.
+  * Required marker: `## Approval: [User Sign-off at YYYY-MM-DD HH:MM...]` in `task.md`.
+  * Status: Complete - agent cannot enter IFO without explicit approval marker.
+
+## Agent Mission Protocol (AMP)
+
+To ensure coordination and safety in multi-agent environments, the following gates are enforced:
+
+1. **Pre-Flight Check (PFC)**: Verifies tools, Beads, and planning documents.
+2. **Plan-Blocker Gate**: Prevents implementation from starting until the user has added a `## Approval` marker to the `task.md`.
+3. **Return To Base (RTB)**: Verifies cleanup, linting, and git sync.
 
 ## Phase 6: ACE Optimizer (Current)
 

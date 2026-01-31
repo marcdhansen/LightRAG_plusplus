@@ -17,7 +17,8 @@ Verifies that the "Pre-Flight" conditions are met:
 
 - **Beads Issue**: A Beads issue must be creating/selected for the current task.
 - **Task Artifact**: `task.md` must be initialized.
-- **Plan Artifact**: `implementation_plan.md` must exist if code changes are expected.
+- **Plan Artifact**: `ImplementationPlan.md` and `ROADMAP.md` must exist.
+- **Plan Approval**: `task.md` must contain the `## Approval:` marker showing user sign-off.
 
 **Usage**:
 
