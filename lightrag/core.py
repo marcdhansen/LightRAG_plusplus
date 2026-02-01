@@ -229,6 +229,11 @@ class LightRAG:
         default=get_env_value("EXTRACTION_FORMAT", "standard", str)
     )
 
+    lite_extraction: bool = field(
+        default=get_env_value("LITE_EXTRACTION", "false", str).lower() == "true"
+    )
+    """Use streamlined extraction prompts for resource-constrained environments."""
+
     # Text chunking
     # ---
 

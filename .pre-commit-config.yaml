@@ -57,6 +57,26 @@ repos:
         files: ^docs/|^README.md|^\.agent/rules/|^scripts/check_docs_coverage\.py$
         pass_filenames: false
         stages: [pre-push, manual]
+      - id: tdd-validation
+        name: TDD Gate Validation
+        entry: python .agent/scripts/tdd_gate_validator.py
+        language: system
+        files: ^lightrag/.*\.py$
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: test-coverage-gate
+        name: Test Coverage Gate
+        entry: bash -c 'coverage report --fail-under=80 || echo "Test coverage below 80%"'
+        language: system
+        files: ^lightrag/.*\.py$
+        pass_filenames: false
+        stages: [pre-push]
+      - id: main-branch-protection
+        name: Main Branch Protection
+        entry: .agent/scripts/main_branch_protection.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.50"

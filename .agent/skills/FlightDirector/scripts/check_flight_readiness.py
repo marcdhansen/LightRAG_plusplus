@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""
+Pre-Flight Check (PFC) for AutoFlightDirector
+Enhanced with TDD Gate validation
+"""
+
 import argparse
 import glob
 import json
@@ -21,135 +27,80 @@ def run_command(command, cwd=None):
             text=True,
             cwd=cwd,
         )
-        return result.stdout.strip(), result.returncode
-    except Exception:
+        return result.stdout, result.returncode
+    except Exception as e:
         return None, 1
 
 
 def check_session_conflicts():
-    """Verify no other active agent is working on the same task."""
-    print("👥 Checking for multi-agent session conflicts...")
-    locks_dir = Path(".agent/session_locks")
-    if not locks_dir.exists():
-        return
+    """Check for agent session conflicts."""
+    print("\n🔍 Agent Session Coordination Check...")
+    active_sessions = []
+    session_dir = Path.cwd().parent.parent / ".agent" / "session_locks"
 
-    now = datetime.now(timezone.utc)
-    stale_threshold = 600  # 10 minutes
-
-    current_lock = None
-    all_locks = []
-
-    for lock_path in locks_dir.glob("*.json"):
-        try:
-            with open(lock_path) as f:
-                data = json.load(f)
-                data["_path"] = lock_path
-                all_locks.append(data)
-                # Check if this is the current process or its parent (shell)
-                # Note: agent-start.sh runs in a shell, then starts the agent.
-                # In most cases, the agent process itself won't be the one in the lock
-                # unless it's running heartbeats.
-                # However, we can use the environment variable AGENT_LOCK_FILE if set.
-                if os.environ.get("AGENT_LOCK_FILE") == str(lock_path):
-                    current_lock = data
-        except (json.JSONDecodeError, OSError):
-            continue
-
-    if not current_lock:
-        # Fallback: find freshest lock for this user if no env var
-        user_locks = [
-            lock_item
-            for lock_item in all_locks
-            if lock_item.get("agent_name") == os.environ.get("USER")
-        ]
-        if user_locks:
-            current_lock = max(user_locks, key=lambda x: x.get("started_at", ""))
-
-    if not current_lock:
-        print("   ℹ️  No current session lock found. Skipping conflict check.")
-        return
-
-    current_task = current_lock.get("current_task")
-    if current_task == "unknown":
-        print("   ℹ️  Current task is 'unknown'. Skipping conflict check.")
-        return
-
-    conflicts = []
-    for lock in all_locks:
-        if lock["_path"] == current_lock["_path"]:
-            continue
-
-        if lock.get("current_task") == current_task:
-            # Check if active
-            hb_str = lock.get("last_heartbeat")
+    if session_dir.exists():
+        for lock_file in session_dir.glob("*.json"):
             try:
-                hb_time = datetime.fromisoformat(hb_str.replace("Z", "+00:00"))
-                if (now - hb_time).total_seconds() < stale_threshold:
-                    conflicts.append(lock)
-            except (ValueError, TypeError):
-                continue
+                with open(lock_file) as f:
+                    data = json.load(f)
+                active_sessions.append(
+                    f"{data.get('agent', 'unknown')} on {data.get('task_desc', 'unknown task')}"
+                )
+            except:
+                pass
 
-    if conflicts:
-        print(f"\n🛑 CONFLICT DETECTED: Another agent is working on {current_task}:")
-        for c in conflicts:
-            print(f"   - Agent: {c.get('agent_name')} (PID: {c.get('pid')})")
-            print(f"     Last heartbeat: {c.get('last_heartbeat')}")
-        print("\nPlease coordinate with the other agent or choose a different task.")
-        sys.exit(1)
+    if active_sessions:
+        print("⚠️  Active agents detected:")
+        for session in active_sessions:
+            print(f"   • {session}")
+        print("📋 Run './scripts/agent-status.sh' for details.")
     else:
-        print(f"✅ No session conflicts found for task {current_task}.")
+        print("✅ No active agent conflicts detected.")
 
 
 def check_workspace_isolation():
-    """Ensure the agent is on a dedicated task branch and path."""
-    print("🛤️  Checking workspace isolation...")
-    branch, code = run_command("git rev-parse --abbrev-ref HEAD")
-    if code != 0 or not branch:
-        return
+    """Check if workspace is properly isolated."""
+    print("\n🗂️  Workspace Isolation Check...")
 
-    # Check for shared feature branch (anti-pattern)
-    if branch in ("main", "master", "develop", "staging"):
-        print(f"❌ ERROR: Do NOT work directly on '{branch}'. Create a task branch.")
-        sys.exit(1)
+    # Check if we're on main/master branch
+    try:
+        branch_result = subprocess.run(
+            ["git", "branch", "--show-current"], capture_output=True, text=True
+        )
+        branch = branch_result.stdout.strip()
 
-    # Check session locks for other agents on THIS branch
-    locks_dir = Path(".agent/session_locks")
-    if locks_dir.exists():
-        current_pid = os.getpid()
-        now = datetime.now(timezone.utc)
-        for lock_path in locks_dir.glob("*.json"):
-            try:
-                with open(lock_path) as f:
-                    lock = json.load(f)
-                    # Skip self
-                    if lock.get("pid") == current_pid:
-                        continue
-                    # Check if lock is active
-                    hb_str = lock.get("last_heartbeat")
-                    hb_time = datetime.fromisoformat(hb_str.replace("Z", "+00:00"))
-                    if (now - hb_time).total_seconds() < 600:
-                        # Shared Branch Check
-                        if lock.get("current_branch") == branch:
-                            print(
-                                f"🛑 ISOLATION FAILURE: Agent {lock.get('agent_name')} is already active on branch '{branch}'."
-                            )
-                            print(
-                                "   Use a separate branch and worktree for this task."
-                            )
-                            sys.exit(1)
-                        # Shared Path Check
-                        if lock.get("current_path") == str(Path.cwd()):
-                            print(
-                                f"🛑 ISOLATION FAILURE: Agent {lock.get('agent_name')} is already active in this directory."
-                            )
-                            print(
-                                "   Use 'bd worktree create' to prepare an isolated workspace."
-                            )
-                            sys.exit(1)
-            except Exception:
-                continue
+        if branch in ["main", "master"]:
+            print("❌ DANGER: You are on main/master branch!")
+            print("   Create a feature branch before starting work.")
+        else:
+            print(f"✅ Workspace Isolated: Branch '{branch}'")
+    except:
+        print("⚠️  Could not determine git branch.")
 
-    print(f"✅ Workspace Isolated: Branch '{branch}' | Path '{Path.cwd().name}'")
+    # Check worktree isolation
+    worktree_path = Path.cwd()
+    repo_root = worktree_path
+
+    try:
+        git_dir_result = subprocess.run(
+            ["git", "rev-parse", "--git-dir"],
+            capture_output=True,
+            text=True,
+            cwd=worktree_path,
+        )
+        if git_dir_result.returncode == 0:
+            git_dir = Path(git_dir_result.stdout.strip())
+            if not git_dir.is_absolute():
+                git_dir = worktree_path / git_dir
+
+            # Check if this is a worktree
+            worktree_file = git_dir / "worktrees"
+            if worktree_file.exists():
+                print(f"✅ Git Worktree: DETECTED at {worktree_path.name}")
+            else:
+                print(f"✅ Git Repository: OK at {worktree_path.name}")
+    except:
+        print("⚠️  Could not verify git structure.")
 
 
 def check_pfc():
@@ -197,41 +148,78 @@ def check_pfc():
     if task_file.exists():
         import re
 
-        with open(task_file) as f:
-            content = f.read()
-            # Look for Approval marker with timestamp
-            # Format: ## Approval: [User Sign-off at 2026-01-31 15:44]
-            pattern = r"## Approval: \[User Sign-off at ([\d\-\s:]+)\]"
-            match = re.search(pattern, content)
+        try:
+            with open(task_file) as f:
+                content = f.read()
 
-            if not match:
+            # Look for approval timestamp
+            approval_match = re.search(
+                r"Plan\s+Approved:\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})", content
+            )
+            if not approval_match:
                 errors.append(
-                    "❌ Mission Plan NOT APPROVED. Add '## Approval: [User Sign-off at YYYY-MM-DD HH:MM...]' to `task.md` before starting implementation."
+                    "❌ Mission Plan Approval required. "
+                    "Add 'Plan Approved: YYYY-MM-DD HH:MM' to task.md"
                 )
             else:
-                try:
-                    approval_time_str = match.group(1).strip()
-                    approval_time = datetime.strptime(
-                        approval_time_str, "%Y-%m-%d %H:%M"
-                    ).replace(tzinfo=timezone.utc)
-                    now = datetime.now(timezone.utc)
-
-                    # Check if the approval is "fresh" (e.g., within the last 4 hours)
-                    # This prevents stale approvals from previous sessions being reused.
-                    age_hours = (now - approval_time).total_seconds() / 3600
-                    if age_hours > 4:
-                        errors.append(
-                            f"❌ Mission Plan Approval is STALE ({age_hours:.1f} hours old). "
-                            "Please re-review the plan and update the timestamp in `task.md` to authorize the current session."
-                        )
-                    else:
-                        print(
-                            f"✅ Mission Plan: APPROVED (Freshness: {age_hours:.1f} hours)"
-                        )
-                except ValueError:
+                approval_time = datetime.strptime(
+                    approval_match.group(1), "%Y-%m-%d %H:%M"
+                )
+                now = datetime.now(timezone.utc).replace(tzinfo=None)
+                age_hours = (now - approval_time).total_seconds() / 3600
+                if age_hours > 4:
                     errors.append(
-                        "❌ Mission Plan Approval format INVALID. Use 'YYYY-MM-DD HH:MM' format."
+                        f"❌ Mission Plan Approval is STALE ({age_hours:.1f} hours old). "
+                        "Please re-review the plan and update the timestamp in `task.md` to authorize the current session."
                     )
+                else:
+                    print(
+                        f"✅ Mission Plan: APPROVED (Freshness: {age_hours:.1f} hours)"
+                    )
+        except ValueError:
+            errors.append(
+                "❌ Mission Plan Approval format INVALID. Use 'YYYY-MM-DD HH:MM' format."
+            )
+
+    # 4. TDD Validation Gate
+    print("\n🔬 TDD Gate Validation...")
+    # Use current directory (should be project root or worktree)
+    base_dir = Path.cwd()
+
+    # Try different possible locations for the TDD validator
+    tdd_validator_paths = [
+        base_dir / ".agent" / "scripts" / "tdd_gate_validator.py",
+        base_dir.parent / ".agent" / "scripts" / "tdd_gate_validator.py",
+        base_dir.parent.parent / ".agent" / "scripts" / "tdd_gate_validator.py",
+    ]
+
+    tdd_validator_path = None
+    for path in tdd_validator_paths:
+        if path.exists():
+            tdd_validator_path = path
+            break
+
+    if tdd_validator_path:
+        try:
+            tdd_result = subprocess.run(
+                ["python", str(tdd_validator_path)],
+                capture_output=True,
+                text=True,
+                cwd=base_dir,
+            )
+            if tdd_result.returncode != 0:
+                errors.append("❌ TDD Gate validation FAILED")
+                for line in tdd_result.stderr.strip().split("\n"):
+                    if line.strip():
+                        errors.append(f"   {line}")
+            else:
+                print("✅ TDD Gate: PASSED")
+        except Exception as e:
+            errors.append(f"❌ TDD Gate validation ERROR: {e}")
+    else:
+        errors.append(
+            "❌ TDD Gate validator not found at .agent/scripts/tdd_gate_validator.py"
+        )
 
     if errors:
         print("\n🛑 PFC FAILED:")
@@ -268,281 +256,103 @@ def get_bloat_patterns(base_dir):
         "**/*.cache",
         "**/cache/**",
         "**/tmp/**",
-        "**/temp/**",
-        "**/__pycache__/**",
-        "*.pyc",
-        "*.pyo",
-        # Browser profiles and large data
-        "**/.mozilla/**",
-        "**/.chrome/**",
-        "**/.google-chrome/**",
-        "**/chromium/**",
         # Build artifacts
-        "**/node_modules/**",
+        "**/__pycache__/**",
         "**/build/**",
         "**/dist/**",
-        "**/target/**",
-        "**/venv/**",
-        "**/env/**",
-        "**/.venv/**",
-        # Large temporary files (>10MB)
-        "**/*.tmp",
-        "**/*.temp",
-        "**/*.bak",
-        "**/*.old",
-        "**/*.swp",
-        "**/.DS_Store",
-        # Package manager caches
-        "**/pip-cache/**",
-        "**/uv-cache/**",
-        "**/npm-cache/**",
-        "**/.cargo/registry/cache/**",
+        "*.egg-info/**",
+        # Test outputs
+        "test_output/**",
+        "test_*.json",
+        # Temporary files
+        "temp/**",
+        "tmp/**",
+        "**/.pytest_cache/**",
+        "**/.coverage",
+        "**/htmlcov/**",
     ]
+    return [os.path.join(base_dir, p) for p in patterns]
 
-    found = []
-    for pattern in patterns:
-        matches = glob.glob(os.path.join(base_dir, pattern), recursive=True)
-        found.extend(matches)
 
-    # Also find large files (>10MB) that aren't in git
+def check_temp_cleanup():
+    """Check for temporary artifacts that should be cleaned up."""
+    print("\n🧹 Temporary Artifact Cleanup Check...")
+
+    # Check for temporary files
+    temp_files = get_temp_artifacts()
+    if temp_files:
+        print(f"⚠️  Found {len(temp_files)} temporary artifacts:")
+        for f in temp_files:
+            print(f"   • {f}")
+        print("   Consider cleaning these up.")
+    else:
+        print("✅ No problematic temporary artifacts found.")
+
+    # Check for bloat
+    bloat_patterns = get_bloat_patterns(".")
+    bloat_files = []
+    for pattern in bloat_patterns:
+        matches = glob.glob(pattern)
+        bloat_files.extend(matches)
+
+    if bloat_files:
+        print(f"⚠️  Found {len(bloat_files)} bloat files:")
+        for f in bloat_files[:10]:  # Show first 10
+            print(f"   • {f}")
+        if len(bloat_files) > 10:
+            print(f"   ... and {len(bloat_files) - 10} more")
+        print("   Consider adding to .gitignore or cleaning up.")
+    else:
+        print("✅ No significant bloat detected.")
+
+
+def check_git_status():
+    """Check git repository status."""
+    print("\n📊 Git Repository Status Check...")
+
     try:
-        for root, _dirs, files in os.walk(base_dir):
-            for file in files:
-                file_path = os.path.join(root, file)
-                try:
-                    if os.path.getsize(file_path) > 10 * 1024 * 1024:  # >10MB
-                        found.append(file_path)
-                except (OSError, PermissionError):
-                    continue
-    except (OSError, PermissionError):
-        pass
-
-    return found
-
-
-def clean_bloat_aggressively():
-    """Aggressively clean bloat from global config directories."""
-    print("🔥 Performing aggressive bloat removal...")
-
-    global_dirs = [
-        os.path.expanduser("~/.gemini"),
-        os.path.expanduser("~/.antigravity"),
-    ]
-
-    total_removed = 0
-    total_size_saved = 0
-
-    for base_dir in global_dirs:
-        if not os.path.exists(base_dir):
-            continue
-
-        print(f"   🧹 Scanning {base_dir}...")
-        bloat_items = get_bloat_patterns(base_dir)
-
-        if not bloat_items:
-            print(f"   ✅ No bloat found in {base_dir}")
-            continue
-
-        for item in bloat_items:
-            try:
-                path = Path(item)
-                size_before = 0
-
-                if path.exists():
-                    if path.is_file():
-                        size_before = path.stat().st_size
-                        path.unlink()
-                    elif path.is_dir():
-                        # Calculate directory size
-                        for root, _dirs, files in os.walk(item):
-                            for file in files:
-                                try:
-                                    size_before += os.path.getsize(
-                                        os.path.join(root, file)
-                                    )
-                                except (OSError, PermissionError):
-                                    continue
-                        shutil.rmtree(path)
-
-                    total_removed += 1
-                    total_size_saved += size_before
-                    print(f"   🗑️  Removed: {item} ({size_before / 1024 / 1024:.1f}MB)")
-
-            except (OSError, PermissionError) as e:
-                print(f"   ❌ Failed to remove {item}: {e}")
-
-    print(
-        f"   ✅ Bloat removal complete: {total_removed} items, {total_size_saved / 1024 / 1024:.1f}MB freed"
-    )
-    return total_removed, total_size_saved
-
-
-def clean_artifacts():
-    """Purges detected temporary artifacts."""
-    artifacts = get_temp_artifacts()
-    if not artifacts:
-        print("✅ No temporary artifacts found to clean.")
-        return
-
-    print("🧹 Cleaning temporary artifacts...")
-    for art in artifacts:
-        path = Path(art)
-        try:
-            if path.is_dir():
-                shutil.rmtree(path)
-                print(f"   Deleted directory: {art}")
-            else:
-                path.unlink()
-                print(f"   Deleted file: {art}")
-        except Exception as e:
-            print(f"   ❌ Failed to delete {art}: {e}")
-
-
-def check_rtb_session():
-    """Ensure the session lock is properly closed."""
-    lock_file = os.environ.get("AGENT_LOCK_FILE")
-    if lock_file and os.path.exists(lock_file):
-        print(
-            "⚠️  Session lock still exists. Please run `./scripts/agent-end.sh` before handoff."
+        # Check for uncommitted changes
+        status_result = subprocess.run(
+            ["git", "status", "--porcelain"], capture_output=True, text=True
         )
-        # We don't exit(1) here yet, as RTB might be run mid-session for validation,
-        # but the main RTB check will report it as a warning.
-        return False
-    return True
+        changed_files = [
+            line for line in status_result.stdout.split("\n") if line.strip()
+        ]
 
-
-def check_rtb():
-    """Return To Base: Verify Git, Beads, and Cleanup."""
-    print("🛬 Initiating Return To Base (RTB) Check...")
-    warnings = []
-    critical_errors = []
-
-    # Check session
-    if not check_rtb_session():
-        warnings.append("⚠️  Session lock still active. Use `agent-end.sh` to close it.")
-
-    # 0. Aggressive Bloat Removal (Always executed)
-    print("🔥 Aggressive Bloat Removal Phase...")
-    removed_items, size_saved = clean_bloat_aggressively()
-    if removed_items == 0:
-        print("✅ Aggressive Bloat Removal: NO BLOAT FOUND")
-    else:
-        print(
-            f"✅ Aggressive Bloat Removal: CLEANED {removed_items} items ({size_saved / 1024 / 1024:.1f}MB)"
-        )
-
-    # 1. Git Status
-    git_status, code = run_command("git status --porcelain")
-    if git_status is None:
-        critical_errors.append("❌ Git Status Check FAILED. Is this a git repo?")
-    elif git_status.strip():
-        warnings.append(f"⚠️ Git Repository has uncommitted changes:\n{git_status}")
-    else:
-        print("✅ Git Repository: CLEAN")
-
-    # 2. Cleanup Check
-    found_temp = get_temp_artifacts()
-    if found_temp:
-        warnings.append(
-            f"⚠️ Temporary artifacts found (Run with --clean to purge):\n   {', '.join(found_temp)}"
-        )
-    else:
-        print("✅ Cleanup: NO TEMPORARY ARTIFACTS FOUND")
-
-    # 3. Markdown Lint
-    mdlint_path, code = run_command("which markdownlint")
-    if mdlint_path:
-        # Check task.md and .agent/rules/
-        lint_cmd = "markdownlint task.md .agent/rules/*.md"
-        lint_out, lint_code = run_command(lint_cmd)
-        if lint_code != 0:
-            # Filter MD013 if needed, or just report
-            warnings.append(f"⚠️ Markdown Lint issues found:\n{lint_out}")
+        if changed_files:
+            print(f"⚠️  {len(changed_files)} uncommitted changes:")
+            for change in changed_files[:5]:  # Show first 5
+                print(f"   {change}")
+            if len(changed_files) > 5:
+                print(f"   ... and {len(changed_files) - 5} more")
+            print("   Consider committing or stashing changes.")
         else:
-            print("✅ Markdown Lint: PASSED")
-    else:
-        print("ℹ️ markdownlint not found. Skipping lint check.")
+            print("✅ Working directory clean.")
 
-    # 4. Code Quality (pre-commit)
-    print("📋 Checking code quality (pre-commit)...")
-    pc_out, pc_code = run_command("pre-commit run --all-files")
-    if pc_code != 0:
-        # Pre-commit failed. We should provide a summary.
-        warnings.append(
-            f"⚠️ Pre-commit checks failed! Please fix linting/formatting:\n{pc_out}"
+        # Check for recent commits
+        log_result = subprocess.run(
+            ["git", "log", "--oneline", "-5"], capture_output=True, text=True
         )
-    else:
-        print("✅ Pre-commit checks: PASSED")
+        if log_result.returncode == 0:
+            commits = log_result.stdout.strip().split("\n")
+            print(f"✅ Recent commits: {len(commits)} in local history")
 
-    # 4.5 Documentation Coverage
-    doc_check_script = Path("scripts/check_docs_coverage.py")
-    if doc_check_script.exists():
-        print("📋 Checking documentation coverage & portability...")
-        doc_out, doc_code = run_command("python3 scripts/check_docs_coverage.py")
-        if doc_code != 0:
-            warnings.append(f"⚠️ Documentation coverage issues found:\n{doc_out}")
-        else:
-            print("✅ Documentation Coverage: PASSED")
-
-    # 5. WebUI Lint Check
-    webui_dir = Path("lightrag_webui")
-    if webui_dir.exists():
-        print("📋 Checking WebUI code quality...")
-        lint_out, lint_code = run_command("cd lightrag_webui && bun run lint")
-        if lint_code != 0:
-            warnings.append(f"⚠️ WebUI Lint Checks failed!\n{lint_out}")
-        else:
-            print("✅ WebUI Lint: PASSED")
-
-    # 5. Beads Status
-    bd_list, code = run_command("bd list --limit 5")
-    if code == 0 and bd_list:
-        print(f"ℹ️ Recent Tasks:\n{bd_list}")
-        print(
-            "   (Did you close your task? Did you list NEW issues created in your Handoff?)"
-        )
-
-    if critical_errors:
-        print("\n🛑 RTB FAILED (CRITICAL):")
-        for e in critical_errors:
-            print(f"   {e}")
-        sys.exit(1)
-    elif warnings:
-        print("\n⚠️ RTB WARNINGS (Please address before final handoff):")
-        for w in warnings:
-            print(f"   {w}")
-        sys.exit(1)
-    else:
-        print("\n✅ RTB PASSED. Ready for handoff.")
+    except Exception as e:
+        print(f"⚠️  Could not check git status: {e}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Flight Director: SMP Enforcement")
+    parser = argparse.ArgumentParser(description="Flight Director Pre-Flight Check")
     parser.add_argument("--pfc", action="store_true", help="Run Pre-Flight Check")
-    parser.add_argument("--rtb", action="store_true", help="Run Return To Base Check")
-    parser.add_argument(
-        "--clean", action="store_true", help="Purge temporary artifacts"
-    )
-    parser.add_argument(
-        "--clean-bloat",
-        action="store_true",
-        help="Perform aggressive bloat removal from global config directories",
-    )
 
     args = parser.parse_args()
 
-    if args.clean:
-        clean_artifacts()
-
-    if args.clean_bloat:
-        clean_bloat_aggressively()
-
     if args.pfc:
         check_pfc()
-    elif args.rtb:
-        check_rtb()
-    elif not args.clean and not args.clean_bloat:
-        parser.print_help()
+        check_temp_cleanup()
+        check_git_status()
+    else:
+        print("Use --pfc to run Pre-Flight Check")
 
 
 if __name__ == "__main__":

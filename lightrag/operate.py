@@ -2986,8 +2986,21 @@ async def extract_entities(
     )
 
     extraction_format = global_config.get("extraction_format", "standard")
+    lite_extraction = global_config.get("lite_extraction", False)
 
     if extraction_format == "key_value":
+        # Use lite prompts if enabled
+        if lite_extraction:
+            system_prompt_key = "entity_extraction_key_value_system_prompt_lite"
+            user_prompt_key = "entity_extraction_key_value_user_prompt_lite"
+            continue_prompt_key = (
+                "entity_continue_extraction_key_value_user_prompt_lite"
+            )
+        else:
+            system_prompt_key = "entity_extraction_key_value_system_prompt"
+            user_prompt_key = "entity_extraction_key_value_user_prompt"
+            continue_prompt_key = "entity_continue_extraction_key_value_user_prompt"
+        example_key = "entity_extraction_key_value_examples"
         system_prompt_key = "entity_extraction_key_value_system_prompt"
         user_prompt_key = "entity_extraction_key_value_user_prompt"
         continue_prompt_key = "entity_continue_extraction_key_value_user_prompt"
@@ -3059,12 +3072,22 @@ async def extract_entities(
                             small_model = True
                     except Exception:
                         pass
-            if small_model:
+            # Check if lite extraction is enabled
+            if lite_extraction:
+                system_prompt_key = "entity_extraction_system_prompt_lite"
+            elif small_model:
                 system_prompt_key = "entity_extraction_system_prompt_small"
             else:
                 system_prompt_key = "entity_extraction_system_prompt"
-        user_prompt_key = "entity_extraction_user_prompt"
-        continue_prompt_key = "entity_continue_extraction_user_prompt"
+
+        # Use lite user prompts if enabled and not in key_value mode
+        if lite_extraction and extraction_format != "key_value":
+            user_prompt_key = "entity_extraction_user_prompt_lite"
+            continue_prompt_key = "entity_continue_extraction_user_prompt_lite"
+        else:
+            user_prompt_key = "entity_extraction_user_prompt"
+            continue_prompt_key = "entity_continue_extraction_user_prompt"
+
         example_key = "entity_extraction_examples"
 
         # Adaptive gleaning for small models: bump to at least 2 if a small model is detected

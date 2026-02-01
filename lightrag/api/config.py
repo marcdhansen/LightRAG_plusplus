@@ -448,6 +448,7 @@ def parse_args() -> argparse.Namespace:
         "COSINE_THRESHOLD", DEFAULT_COSINE_THRESHOLD, float
     )
     args.extraction_format = get_env_value("EXTRACTION_FORMAT", "standard")
+    args.lite_extraction = get_env_value("LITE_EXTRACTION", "false").lower() == "true"
     args.related_chunk_number = get_env_value(
         "RELATED_CHUNK_NUMBER", DEFAULT_RELATED_CHUNK_NUMBER, int
     )

@@ -126,6 +126,23 @@ You are a Knowledge Graph Extraction Specialist balancing speed and accuracy for
    - Be concise; balance brevity with enough context to support downstream reasoning.
 """
 
+PROMPTS["entity_extraction_system_prompt_lite"] = """---Role---
+Extract entities and relationships efficiently.
+
+---Instructions---
+1. Entities: Extract meaningful entities. Format per line:
+   entity{tuple_delimiter}name{tuple_delimiter}type{tuple_delimiter}description
+
+2. Relationships: Extract direct relationships. Format per line:
+   relation{tuple_delimiter}source{tuple_delimiter}target{tuple_delimiter}keywords{tuple_delimiter}description
+
+3. Rules:
+   - Use {tuple_delimiter} as field separator only
+   - Language: {language}
+   - End with {completion_delimiter}
+   - Keep names in Title Case
+"""
+
 PROMPTS["entity_extraction_user_prompt"] = """---Task---
 Extract entities and relationships from the input text in Data to be Processed below.
 
@@ -165,6 +182,30 @@ Based on the last extraction task, identify and extract any **missed or incorrec
 <Output>
 """
 
+PROMPTS["entity_extraction_user_prompt_lite"] = """---Task---
+Extract entities and relationships from the text.
+
+Entity Types: [{entity_types}]
+
+Input Text:
+```
+{input_text}
+```
+
+Output entities first, then relationships. End with {completion_delimiter}.
+"""
+
+PROMPTS["entity_continue_extraction_user_prompt_lite"] = """---Task---
+Extract missed or incorrect entities and relationships from the text.
+
+Input Text:
+```
+{input_text}
+```
+
+Output only missed/corrected items. End with {completion_delimiter}.
+"""
+
 PROMPTS["entity_extraction_key_value_system_prompt"] = """---Role---
 You are a Knowledge Graph Specialist responsible for extracting ALL relevant entities and relationships from the input text.
 
@@ -186,6 +227,19 @@ You are a Knowledge Graph Specialist responsible for extracting ALL relevant ent
 
 3.  **OUTPUT FORMAT:**
     *   Return ONLY a valid YAML object with 'entities' and 'relationships' keys.
+
+---Examples---
+{examples}
+"""
+
+PROMPTS["entity_extraction_key_value_system_prompt_lite"] = """---Role---
+Extract entities and relationships in YAML format.
+
+---Instructions---
+1. Extract all meaningful entities (persons, places, organizations, concepts).
+2. Extract relationships between entities.
+3. Entity types: {entity_types}
+4. Return only YAML with entities and relationships lists.
 
 ---Examples---
 {examples}
@@ -229,6 +283,26 @@ relationships: []
 {input_text}
 
 <Output>
+"""
+
+PROMPTS["entity_extraction_key_value_user_prompt_lite"] = """---Task---
+Extract entities and relationships in YAML format.
+
+Entity types: {entity_types}
+
+Input Text:
+{input_text}
+
+Output only YAML with entities and relationships lists.
+"""
+
+PROMPTS["entity_continue_extraction_key_value_user_prompt_lite"] = """---Task---
+Extract missed entities and relationships in YAML.
+
+Input Text:
+{input_text}
+
+Output only YAML with new entities and relationships. If none found, return empty lists.
 """
 
 PROMPTS["entity_extraction_key_value_examples"] = [

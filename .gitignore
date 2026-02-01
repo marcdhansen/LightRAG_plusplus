@@ -79,3 +79,5 @@ global_docs
 # .beads/issues.jsonl (removed to allow tracking)
 # bd worktree
 task-lightrag-nml/
+# bd worktree
+lightrag-1sk/

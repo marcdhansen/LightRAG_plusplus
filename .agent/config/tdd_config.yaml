@@ -1,0 +1,53 @@
+# TDD Gate Configuration for AutoFlightDirector
+# Controls test requirements and quality thresholds
+
+tdd_gates:
+  enabled: true
+  coverage_threshold: 80  # Minimum test coverage percentage
+  unit_tests_required: true
+  integration_tests_for_complex_tasks: true
+  baseline_required_for_performance_tasks: true
+  max_complexity_without_tests: 3
+
+task_complexity_thresholds:
+  simple: 3    # 0-3 complexity score - basic tests only
+  medium: 7    # 4-7 complexity score - unit + integration tests
+  complex: 10  # 8-10 complexity score - comprehensive testing required
+
+performance_task_patterns:
+  - ".*optimization.*"
+  - ".*benchmark.*"
+  - ".*performance.*"
+  - ".*speed.*"
+  - ".*extraction.*prompt.*"
+  - ".*lite.*extraction.*"
+
+test_quality_thresholds:
+  min_assertions_per_test: 2.0
+  min_test_functions_per_file: 3
+  quality_score_threshold: 50
+
+emergency_bypass:
+  enabled: true
+  require_justification: true
+  log_bypasses: true
+
+file_mappings:
+  # Expected test file locations for source files
+  lightrag/core.py: tests/test_core.py
+  lightrag/operate.py: tests/test_operate.py
+  lightrag/prompt.py: tests/test_prompt.py
+
+exemptions:
+  # File patterns that may be exempt from certain TDD requirements
+  documentation_files:
+    - "*.md"
+    - "*.rst"
+    - "docs/**"
+  configuration_files:
+    - "*.yaml"
+    - "*.json"
+    - "*.toml"
+  test_files:
+    - "test_*.py"
+    - "tests/**"
