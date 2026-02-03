@@ -22,6 +22,10 @@ if [ "$ACTION" = "check" ]; then
     # Check if task is already locked
     if [ -f "$LOCK_FILE" ]; then
         LOCKED_AGENT=$(cat "$LOCK_FILE" 2>/dev/null || echo "unknown")
+        if [ "$LOCKED_AGENT" = "$AGENT_ID" ]; then
+            echo "Task $TASK_ID is already locked by you (marchansen)"
+            exit 0
+        fi
         echo "ERROR: Task $TASK_ID is already locked by agent $LOCKED_AGENT"
         exit 1
     else
