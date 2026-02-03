@@ -110,6 +110,7 @@ def test_baseline_framework():
     print("🧪 Testing Baseline Framework...")
 
     try:
+        test_file_path = "tests/test_sample.py"
         result = subprocess.run(
             [
                 "python",

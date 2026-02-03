@@ -225,9 +225,9 @@ def check_pfc():
                             "Please re-review the plan and update the timestamp in `task.md` to authorize the current session."
                         )
                     else:
-                    print(
-                        f"✅ Mission Plan: APPROVED (Freshness: {age_hours:.1f} hours)"
-                    )
+                        print(
+                            f"✅ Mission Plan: APPROVED (Freshness: {age_hours:.1f} hours)"
+                        )
                 except ValueError:
                     errors.append(
                         "❌ Mission Plan Approval format INVALID. Use 'YYYY-MM-DD HH:MM' format."
@@ -235,19 +235,20 @@ def check_pfc():
 
     # 4. TDD Validation Gate
     print("\n🔬 TDD Gate Validation...")
-    tdd_validator_path = Path.cwd().parent.parent / ".agent" / "scripts" / "tdd_gate_validator.py"
+    tdd_validator_path = (
+        Path.cwd().parent.parent / ".agent" / "scripts" / "tdd_gate_validator.py"
+    )
     if tdd_validator_path.exists():
-
         try:
             tdd_result = subprocess.run(
                 ["python", str(tdd_validator_path)],
                 capture_output=True,
                 text=True,
-                cwd=Path.cwd().parent.parent
+                cwd=Path.cwd().parent.parent,
             )
             if tdd_result.returncode != 0:
                 errors.append("❌ TDD Gate validation FAILED")
-                for line in tdd_result.stderr.strip().split('\n'):
+                for line in tdd_result.stderr.strip().split("\n"):
                     if line.strip():
                         errors.append(f"   {line}")
             else:
@@ -255,7 +256,9 @@ def check_pfc():
         except Exception as e:
             errors.append(f"❌ TDD Gate validation ERROR: {e}")
     else:
-        errors.append("❌ TDD Gate validator not found at .agent/scripts/tdd_gate_validator.py")
+        errors.append(
+            "❌ TDD Gate validator not found at .agent/scripts/tdd_gate_validator.py"
+        )
 
     if errors:
         print("\n🛑 PFC FAILED:")

@@ -8,7 +8,6 @@ import argparse
 import glob
 import json
 import os
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -28,7 +27,7 @@ def run_command(command, cwd=None):
             cwd=cwd,
         )
         return result.stdout, result.returncode
-    except Exception as e:
+    except Exception:
         return None, 1
 
 
@@ -46,7 +45,7 @@ def check_session_conflicts():
                 active_sessions.append(
                     f"{data.get('agent', 'unknown')} on {data.get('task_desc', 'unknown task')}"
                 )
-            except:
+            except Exception:
                 pass
 
     if active_sessions:
@@ -74,12 +73,12 @@ def check_workspace_isolation():
             print("   Create a feature branch before starting work.")
         else:
             print(f"✅ Workspace Isolated: Branch '{branch}'")
-    except:
+    except Exception:
         print("⚠️  Could not determine git branch.")
 
     # Check worktree isolation
     worktree_path = Path.cwd()
-    repo_root = worktree_path
+    # repo_root = worktree_path  # Not used
 
     try:
         git_dir_result = subprocess.run(
@@ -99,7 +98,7 @@ def check_workspace_isolation():
                 print(f"✅ Git Worktree: DETECTED at {worktree_path.name}")
             else:
                 print(f"✅ Git Repository: OK at {worktree_path.name}")
-    except:
+    except Exception:
         print("⚠️  Could not verify git structure.")
 
 
