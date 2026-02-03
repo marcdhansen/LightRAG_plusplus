@@ -1,1 +1,1 @@
-/Users/marchansen/.agent/skills/README.md
+/Users/marchansen/antigravity_lightrag/LightRAG/.agent/skills/README.md
