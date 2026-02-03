@@ -15,17 +15,21 @@ class APIStatusError(Exception):
     def __init__(
         self, message: str, *, response: httpx.Response, body: object | None
     ) -> None:
-        super().__init__(message, response.request, body=body)
+        super().__init__(message)
+        self.body = body
         self.response = response
         self.status_code = response.status_code
         self.request_id = response.headers.get("x-request-id")
 
 
 class APIConnectionError(Exception):
+    request: httpx.Request
+
     def __init__(
         self, *, message: str = "Connection error.", request: httpx.Request
     ) -> None:
-        super().__init__(message, request, body=None)
+        super().__init__(message)
+        self.request = request
 
 
 class BadRequestError(APIStatusError):

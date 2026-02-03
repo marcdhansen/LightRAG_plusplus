@@ -5,10 +5,8 @@ Ensures the TDD gate system itself follows TDD principles
 """
 
 import subprocess
-import tempfile
-import json
 import sys
-from pathlib import Path
+import tempfile
 
 
 def test_tdd_gate_validator():
@@ -106,17 +104,6 @@ def test_sample():
         print(f"❌ Missing test validation error: {e}")
         return False
 
-        # Should fail because no test file for our sample
-        if result.returncode != 0 and "No test files found" in result.stdout:
-            print("✅ Validation correctly detects missing test files")
-            return True
-        else:
-            print(f"❌ Unexpected validation result: {result.stdout}")
-            return False
-    except Exception as e:
-        print(f"❌ Validation test error: {e}")
-        return False
-
 
 def test_baseline_framework():
     """Test baseline framework functionality"""
@@ -135,7 +122,7 @@ def test_baseline_framework():
             capture_output=True,
             text=True,
             timeout=10,
-            env={"TEST_FILE_PATH": test_file_path},
+            env={},
         )
 
         if result.returncode == 0 and "baseline_framework.py" in result.stdout:

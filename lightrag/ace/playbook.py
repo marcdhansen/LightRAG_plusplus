@@ -101,13 +101,13 @@ class ContextPlaybook:
 
         return "\n".join(sections)
 
-    def add_lesson(self, lesson: str):
+    def add_lesson(self, lesson: str) -> None:
         """Adds a new lesson and saves."""
         if lesson not in self.content.lessons_learned:
             self.content.lessons_learned.append(lesson)
             self.save()
 
-    def update_strategy(self, name: str, description: str):
+    def update_strategy(self, name: str, description: str) -> None:
         """Updates or adds a strategy and saves."""
         self.content.strategies[name] = description
         self.save()

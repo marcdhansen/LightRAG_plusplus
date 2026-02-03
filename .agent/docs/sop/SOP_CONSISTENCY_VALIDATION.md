@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/docs/sop/SOP_CONSISTENCY_VALIDATION.md

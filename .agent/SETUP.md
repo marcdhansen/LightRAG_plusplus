@@ -70,7 +70,7 @@ docker ps -a | grep -E "(automem|langfuse)"
 - ✅ **Docker Desktop**: Verifies installation or provides installation instructions
 - ✅ **Package Managers**: Installs `uv` (Python), `bd` (Beads), verifies `git`
 - ✅ **Global Memory**: Initializes Beads configuration (`bd init`)
-- ✅ **Skills Installation**: Sets up FlightDirector and other global skills
+- ✅ **Skills Installation**: Sets up flight-director and other global skills
 
 ### Project Environment Setup
 - ✅ **Dependencies**: Installs Python packages with `uv sync`

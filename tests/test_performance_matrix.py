@@ -26,7 +26,9 @@ from lightrag.core import LightRAG
 class TestPerformanceMatrix:
     """Test timing vs score trade-offs for RRF configurations"""
 
-    def __init__(self):
+    @pytest.fixture(autouse=True)
+    def setup_test_environment(self):
+        """Setup test environment before each test"""
         self.test_data_dir = Path("./test_data")
         self.test_storage_dir = Path("./test_storage")
         self.results = []

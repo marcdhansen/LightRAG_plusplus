@@ -1,0 +1,22 @@
+{
+  "doc-c699440e59e34ca585557d5bbd7cb213": {
+    "relation_pairs": [
+      [
+        "Albert Einstein",
+        "Ulm"
+      ],
+      [
+        "Albert Einstein",
+        "Germany"
+      ],
+      [
+        "Albert Einstein",
+        "Theory of Relativity"
+      ]
+    ],
+    "count": 3,
+    "create_time": 1770065895,
+    "update_time": 1770065895,
+    "_id": "doc-c699440e59e34ca585557d5bbd7cb213"
+  }
+}

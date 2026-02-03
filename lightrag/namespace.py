@@ -23,7 +23,7 @@ class NameSpace:
     KEYWORD_STORE = "keyword_store"
 
 
-def is_namespace(namespace: str, base_namespace: str | Iterable[str]):
+def is_namespace(namespace: str, base_namespace: str | Iterable[str]) -> bool:
     if isinstance(base_namespace, str):
         return namespace.endswith(base_namespace)
     return any(is_namespace(namespace, ns) for ns in base_namespace)

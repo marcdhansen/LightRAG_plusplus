@@ -280,7 +280,7 @@ class TDDValidator:
                 result["warnings"].append(
                     f"Low assertion density: {assertions_per_test:.1f} assertions per test"
                 )
-            quality_metrics["quality_score"] = min(100, assertions_per_test * 25)
+            quality_metrics["quality_score"] = int(min(100, assertions_per_test * 25))
 
         result["metrics"]["test_quality"] = quality_metrics
 

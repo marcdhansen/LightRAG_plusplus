@@ -118,7 +118,7 @@ curl -H "Authorization: Bearer test-token" \
 
 ```bash
 # Run Pre-Flight Check
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc
+python ~/.gemini/antigravity/skills/flight-director/scripts/check_flight_readiness.py --pfc
 
 # Discover available tasks
 bd ready

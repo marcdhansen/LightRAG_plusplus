@@ -357,7 +357,7 @@ class BaseVectorStorage(StorageNameSpace, ABC):
         pass
 
     @abstractmethod
-    async def delete(self, ids: list[str]):
+    async def delete(self, ids: list[str]) -> None:
         """Delete vectors with specified IDs
 
         Importance notes for in-memory storage:
@@ -641,7 +641,7 @@ class BaseGraphStorage(StorageNameSpace, ABC):
         """
 
     @abstractmethod
-    async def remove_nodes(self, nodes: list[str]):
+    async def remove_nodes(self, nodes: list[str]) -> None:
         """Delete multiple nodes
 
         Importance notes:
@@ -654,7 +654,7 @@ class BaseGraphStorage(StorageNameSpace, ABC):
         """
 
     @abstractmethod
-    async def remove_edges(self, edges: list[tuple[str, str]]):
+    async def remove_edges(self, edges: list[tuple[str, str]]) -> None:
         """Delete multiple edges
 
         Importance notes:

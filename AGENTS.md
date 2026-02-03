@@ -1,4 +1,4 @@
-# 🤖 AGENTS.md
+# 🤖 LightRAG Project AGENTS.md
 
 Welcome to the LightRAG project. This repository supports **dual agent systems**: the traditional **Standard Mission Protocol (SMP)** and the enhanced **OpenViking** system.
 
@@ -6,8 +6,27 @@ Welcome to the LightRAG project. This repository supports **dual agent systems**
 
 Before you write any code:
 
-1. **Read the Bootstrap Guide**: Open `.agent/BOOTSTRAP.md`.
-2. **Initialize your session**: Run `./scripts/agent-init.sh` in your terminal.
+1. **Read Universal Protocol**: [~/.agent/AGENTS.md](~/.agent/AGENTS.md)
+2. **Project Bootstrap**: Open `.agent/BOOTSTRAP.md` (project-specific setup)
+3. **Initialize Session**: Run `./scripts/agent-init.sh` in your terminal
+
+## 🔗 **Project Navigation**
+
+- **Global Index**: [~/.agent/docs/GLOBAL_INDEX.md](~/.agent/docs/GLOBAL_INDEX.md) ← Master navigation hub
+- **Project Rules**: [.agent/rules/ROADMAP.md](rules/ROADMAP.md) ← LightRAG-specific roadmap
+- **Project Skills**: [.agent/skills/](skills/) ← Symlink to global skills (→ ~/.gemini/antigravity/skills/)
+- **Session Locks**: [.agent/session_locks/](session_locks/) ← Current active sessions
+
+## 🔒 **Project-Specific Protocols**
+
+- **TDD Gates**: Automated test-driven development enforcement
+- **Quality Assurance**: Project-specific validation and linting
+- **Multi-Agent Coordination**: Session locks and branch protection
+- **Integration Testing**: Cross-component validation procedures
+
+---
+
+*Project-specific configuration layered on top of universal protocols.*
 
 ## 🧭 Project Navigation
 
@@ -43,16 +62,33 @@ export OPENAI_API_KEY=your-key-here
 ## 🛡️ Protocol
 
 - Always run a **Pre-Flight Check (PFC)** before starting.
-- Always run a **Return To Base (RTB)** check before finishing.
+- Always run a **Return To Base (RTB)** check before finishing using `/rtb`.
 - Capture your learnings using the `/reflect` skill.
 
 *For global standards and system-wide documentation, see `~/.gemini/GLOBAL_INDEX.md`.*
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending a work session**, use `/rtb` to automate the complete workflow. Work is NOT complete until `git push` succeeds.
 
-**MANDATORY WORKFLOW:**
+**AUTOMATED WORKFLOW:**
+
+```bash
+/rtb
+```
+
+The `/rtb` command automatically handles:
+
+1. **Validation** - Checks git status, beads, quality gates, session locks
+2. **SOP Evaluation** - **MANDATORY**: Evaluates Standard Operating Procedure effectiveness (PFC compliance, process friction) - BLOCKS RTB if failed
+   - **Auto-captures learnings** using reflect system for continuous improvement
+3. **Uncommitted changes** - Handles commit/stash/discard workflows
+4. **Quality gates** - Runs tests, linters, builds (if configured)
+5. **Git operations** - Pull, sync, push with proper verification
+6. **Session cleanup** - Removes locks, temp files, stale branches
+7. **Global memory sync** - Commits and pushes `~/.gemini` changes
+
+**MANUAL STEPS (if needed):**
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
@@ -197,14 +233,14 @@ The `.agent/` directory contains organized documentation for cross-agent collabo
 ├── docs/
 │   ├── sop/                    # Standard Operating Procedures
 │   │   ├── global-configs/     # → ~/.gemini/ (global standards)
-│   │   ├── skills/            # → ../.agent/skills/
+│   │   ├── skills/            # → ~/.gemini/antigravity/skills/
 │   │   └── workspace/         # Workspace-specific docs
 │   ├── workspace/              # Workspace documentation
 │   │   ├── TODO.md            # Current project tasks
 │   │   └── legacy_todo.md     # Historical TODO items
 │   └── troubleshooting/        # Troubleshooting guides
 │       └── beads_sync_issues.md  # Beads sync problems & solutions
-├── skills/                     # Agent capabilities and workflows
+├── skills/                     # Symlink → ~/.gemini/antigravity/skills/
 └── rules/                      # Project rules and roadmaps
 ```
 

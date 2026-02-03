@@ -26,4 +26,6 @@ Verify that optimizations and changes in the current repository do not degrade e
 4. [x] Fix `compare_benchmarks.py` isolation bug by creating `isolated_extract.py`.
 5. [x] Verify extraction prompts for small models (1.5b) via baseline audit.
 6. [ ] Execute full comparison across multiple cases.
-7. [ ] Perform RTB and final debrief.
+7. [ ] Perform RTB and final debrief
+   - Run SOP effectiveness evaluation: `./scripts/evaluate_sop_effectiveness.sh`
+   - BLOCKER: Cannot proceed with RTB if SOP evaluation fails.

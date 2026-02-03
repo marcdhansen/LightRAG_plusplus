@@ -18,7 +18,7 @@ To ensure consistency across VS Code extensions (Roo Code, Cursor, Copilot), ple
 A session is only complete after running the **Return To Base (RTB)** check:
 
 ```bash
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --rtb
+python ~/.gemini/antigravity/skills/flight-director/scripts/check_flight_readiness.py --rtb
 ```
 
 If you encounter permission errors in `~/.gemini`, please refer to the troubleshooting section in `~/.gemini/CROSS_COMPATIBILITY.md`.

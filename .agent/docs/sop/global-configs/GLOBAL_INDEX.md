@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/docs/GLOBAL_INDEX.md

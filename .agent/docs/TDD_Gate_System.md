@@ -1,4 +1,4 @@
-# TDD Gate System for AutoFlightDirector
+# TDD Gate System for auto-flight-director
 
 A comprehensive Test-Driven Development validation system that blocks commits when test requirements are not met, with emergency bypass capability.
 
@@ -33,7 +33,7 @@ python .agent/scripts/tdd_gate_validator.py --bypass-justification "Critical sec
 
 Extended PFC that includes TDD validation:
 ```bash
-python .agent/skills/FlightDirector/scripts/check_flight_readiness.py --pfc
+python .agent/skills/flight-director/scripts/check_flight_readiness.py --pfc
 ```
 
 **Checks performed**:
@@ -198,7 +198,7 @@ The TDD gates integrate with:
 - Pre-commit hooks (local development)
 - GitHub Actions (CI validation)
 - Beads task metadata (project management)
-- AutoFlightDirector coordination
+- auto-flight-director coordination
 
 ## Success Criteria
 

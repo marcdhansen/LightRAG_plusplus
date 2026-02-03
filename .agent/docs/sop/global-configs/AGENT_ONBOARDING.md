@@ -1,1 +1,1 @@
-/Users/marchansen/.agent/docs/sop/AGENT_ONBOARDING.md
+/Users/marchansen/.agent/docs/ONBOARDING.md

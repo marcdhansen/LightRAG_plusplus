@@ -44,12 +44,12 @@ class TokenTracker:
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
         self._initialized = True
         self._metrics: list[TokenMetrics] = []
-        self._enabled = (
+        self._enabled = bool(
             get_env_value("LANGFUSE_ENABLE_TRACE", "false").lower() == "true"
         )
         self._operation_counts: dict[str, int] = {}
