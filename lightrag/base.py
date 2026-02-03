@@ -83,13 +83,16 @@ T = TypeVar("T")
 class QueryParam:
     """Configuration parameters for query execution in LightRAG."""
 
-    mode: Literal["local", "global", "hybrid", "naive", "mix", "rrf", "bypass"] = "mix"
+    mode: Literal[
+        "local", "global", "hybrid", "naive", "mix", "rrf", "bypass", "keyword"
+    ] = "mix"
     """Specifies the retrieval mode:
     - "local": Focuses on context-dependent information.
     - "global": Utilizes global knowledge.
     - "hybrid": Combines local and global retrieval methods.
     - "naive": Performs a basic search without advanced techniques.
     - "mix": Integrates knowledge graph and vector retrieval.
+    - "keyword": Performs keyword-based search using indexed terms.
     """
 
     only_need_context: bool = False
@@ -848,6 +851,77 @@ class DocStatusStorage(BaseKVStorage, ABC):
             dict[str, Any] | None: Document data if found, None otherwise
             Returns the same format as get_by_ids method
         """
+
+
+@dataclass
+class BaseKeywordStorage(StorageNameSpace, ABC):
+    """Base class for keyword storage implementations.
+
+    This abstract class defines the interface for keyword-based search
+    functionality in LightRAG. Implementations should support indexing
+    documents for keyword search and retrieving relevant documents based
+    on keyword matches.
+    """
+
+    @abstractmethod
+    async def index_keywords(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Index keywords for a document.
+
+        Args:
+            doc_id: Unique document identifier
+            keywords: List of extracted keywords
+            content: Document content for context
+        """
+
+    @abstractmethod
+    async def search_keywords(
+        self, keywords: list[str], limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Search for documents containing the given keywords.
+
+        Args:
+            keywords: List of keywords to search for
+            limit: Maximum number of results to return
+
+        Returns:
+            List of matching documents with relevance scores and metadata.
+            Each document should include:
+            - doc_id: Document identifier
+            - content: Relevant content snippet
+            - score: Relevance score
+            - keywords: Matched keywords
+        """
+
+    @abstractmethod
+    async def delete_document(self, doc_id: str) -> None:
+        """Remove a document from the keyword index.
+
+        Args:
+            doc_id: Document identifier to remove
+        """
+
+    @abstractmethod
+    async def update_document(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Update keywords for an existing document.
+
+        Args:
+            doc_id: Document identifier to update
+            keywords: Updated list of keywords
+            content: Updated document content
+        """
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get keyword storage statistics.
+
+        Returns:
+            Dictionary containing storage statistics like document count,
+            total keywords, indexing status, etc.
+        """
+        return {"message": "Stats not implemented for this storage type"}
 
 
 class StoragesStatus(str, Enum):

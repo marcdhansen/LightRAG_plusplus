@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from typing import final
+from typing import Any, final
 
 import pipmaster as pm
 from tenacity import (
@@ -13,7 +13,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from ..base import BaseGraphStorage
+from ..base import BaseGraphStorage, BaseKeywordStorage
 from ..core_types import KnowledgeGraph, KnowledgeGraphEdge, KnowledgeGraphNode
 from ..kg.shared_storage import get_data_init_lock
 from ..utils import logger
@@ -1873,3 +1873,191 @@ class Neo4JStorage(BaseGraphStorage):
                 f"[{self.workspace}] Error dropping Neo4j workspace '{workspace_label}' in database {self._DATABASE}: {e}"
             )
             return {"status": "error", "message": str(e)}
+
+
+@final
+@dataclass
+class Neo4jKeywordStorage(BaseKeywordStorage):
+    """Neo4j-based keyword storage implementation using full-text search."""
+
+    def __post_init__(self):
+        self._driver = None
+        self._DATABASE = None
+
+    async def initialize(self):
+        """Initialize Neo4j keyword storage"""
+        from neo4j.exceptions import ServiceUnavailable
+
+        try:
+            self._driver = self._get_driver()
+            self._DATABASE = self.global_config.get("neo4j_database", "neo4j")
+
+            # Test connection
+            async with self._driver.session() as session:
+                await session.run("RETURN 1")
+
+            logger.info(f"[{self.workspace}] Connected to Neo4j for keyword storage")
+
+            # Create full-text index if it doesn't exist
+            await self._create_keyword_index()
+
+        except ServiceUnavailable as e:
+            logger.error(f"[{self.workspace}] Failed to connect to Neo4j: {e}")
+            raise
+
+    def _get_driver(self):
+        """Get Neo4j driver with proper authentication"""
+        uri = self.global_config.get("NEO4J_URI", "bolt://localhost:7687")
+        username = self.global_config.get("NEO4J_USERNAME", "neo4j")
+        password = self.global_config.get("NEO4J_PASSWORD", "password")
+
+        from neo4j import AsyncDriver
+
+        return AsyncDriver.driver(uri, auth=(username, password))
+
+    async def _create_keyword_index(self):
+        """Create full-text index for keyword search"""
+        try:
+            async with self._driver.session() as session:
+                # Create full-text index on document content if not exists
+                await session.run("""
+                    CREATE FULLTEXT INDEX keyword_content_index IF NOT EXISTS FOR (d:Document) 
+                    ON EACH [d.content, d.keywords]
+                """)
+
+                # Ensure document labels exist
+                await session.run(
+                    "CREATE CONSTRAINT document_id_unique IF NOT EXISTS FOR (d:Document) REQUIRE d.doc_id IS UNIQUE"
+                )
+
+                logger.info(f"[{self.workspace}] Created keyword search indexes")
+        except Exception as e:
+            logger.warning(f"[{self.workspace}] Index creation warning: {e}")
+
+    async def index_done_callback(self) -> None:
+        """Commit the storage operations after indexing"""
+        # Neo4j handles transactions automatically
+        pass
+
+    async def index_keywords(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Index keywords for a document in Neo4j"""
+        try:
+            async with self._driver.session() as session:
+                # Create document node with keywords and content
+                keywords_str = " ".join(keywords)
+
+                await session.run(
+                    """
+                    MERGE (d:Document {doc_id: $doc_id})
+                    ON CREATE SET d.content = $content, 
+                                d.keywords = $keywords,
+                                d.indexed_at = datetime()
+                """,
+                    doc_id=doc_id,
+                    content=content,
+                    keywords=keywords_str,
+                )
+
+                logger.debug(
+                    f"[{self.workspace}] Indexed document {doc_id} with {len(keywords)} keywords"
+                )
+
+        except Exception as e:
+            logger.error(
+                f"[{self.workspace}] Failed to index keywords for {doc_id}: {e}"
+            )
+            raise
+
+    async def search_keywords(
+        self, keywords: list[str], limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Search for documents containing the given keywords"""
+        if not keywords:
+            return []
+
+        try:
+            async with self._driver.session() as session:
+                # Build Lucene query for full-text search
+                # keywords are joined with OR for broad matching
+                lucene_query = " OR ".join([f'"{kw}"' for kw in keywords])
+
+                query = """
+                    CALL db.index.fulltext.queryNodes("keyword_content_index", $query_str) YIELD node, score
+                    RETURN node.doc_id as doc_id, 
+                           node.content as content,
+                           node.keywords as keywords,
+                           score
+                    ORDER BY score DESC
+                    LIMIT $limit
+                """
+
+                result = await session.run(query, query_str=lucene_query, limit=limit)
+                records = [record.data() for record in result]
+
+                logger.debug(
+                    f"[{self.workspace}] Keyword search found {len(records)} results"
+                )
+                return records
+
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Keyword search failed: {e}")
+            return []
+
+    async def delete_document(self, doc_id: str) -> None:
+        """Remove a document from the keyword index."""
+        try:
+            async with self._driver.session() as session:
+                await session.run(
+                    """
+                    MATCH (d:Document {doc_id: $doc_id})
+                    DELETE d
+                """,
+                    doc_id=doc_id,
+                )
+
+                logger.debug(
+                    f"[{self.workspace}] Deleted document {doc_id} from keyword index"
+                )
+
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Failed to delete document {doc_id}: {e}")
+            raise
+
+    async def update_document(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Update keywords for an existing document."""
+        await self.delete_document(doc_id)
+        await self.index_keywords(doc_id, keywords, content)
+
+    async def drop(self) -> dict[str, str]:
+        """Drop all data from storage and clean up resources."""
+        try:
+            if self._driver:
+                async with self._driver.session() as session:
+                    # Delete all document nodes
+                    await session.run("MATCH (d:Document) DELETE d")
+
+                    # Drop indexes
+                    await session.run("DROP INDEX keyword_content_index IF EXISTS")
+                    await session.run("DROP CONSTRAINT document_id_unique IF EXISTS")
+
+                await self._driver.close()
+
+                logger.info(f"[{self.workspace}] Dropped Neo4j keyword storage")
+                return {"status": "success", "message": "data dropped"}
+            else:
+                return {"status": "success", "message": "no connection to drop"}
+
+        except Exception as e:
+            logger.error(
+                f"[{self.workspace}] Error dropping Neo4j keyword storage: {e}"
+            )
+            return {"status": "error", "message": str(e)}
+
+    async def finalize(self):
+        """Finalize the storage"""
+        if self._driver:
+            await self._driver.close()

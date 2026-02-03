@@ -9,7 +9,7 @@ from typing import Any, final
 import numpy as np
 from nano_vectordb import NanoVectorDB
 
-from lightrag.base import BaseVectorStorage
+from lightrag.base import BaseKeywordStorage, BaseVectorStorage
 from lightrag.utils import (
     compute_mdhash_id,
     logger,
@@ -426,4 +426,148 @@ class NanoVectorDBStorage(BaseVectorStorage):
             return {"status": "success", "message": "data dropped"}
         except Exception as e:
             logger.error(f"[{self.workspace}] Error dropping {self.namespace}: {e}")
+            return {"status": "error", "message": str(e)}
+
+
+@final
+@dataclass
+class NanoKeywordStorage(BaseKeywordStorage):
+    """Simple keyword storage implementation using in-memory inverted index."""
+
+    def __post_init__(self):
+        # Initialize basic attributes
+        self._keyword_index = {}  # keyword -> {doc_id: {"content": str, "score": float}}
+        self._storage_lock = None
+
+        working_dir = self.global_config["working_dir"]
+        if self.workspace:
+            workspace_dir = os.path.join(working_dir, self.workspace)
+            self.final_namespace = f"{self.workspace}_{self.namespace}"
+            self._storage_file = os.path.join(
+                workspace_dir, f"{self.final_namespace}_keywords.json"
+            )
+        else:
+            self.final_namespace = self.namespace
+            self._storage_file = os.path.join(
+                working_dir, f"{self.final_namespace}_keywords.json"
+            )
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(self._storage_file), exist_ok=True)
+
+    async def initialize(self):
+        """Initialize the storage"""
+        from .shared_storage import get_namespace_lock
+
+        self._storage_lock = get_namespace_lock(
+            self.namespace, workspace=self.workspace
+        )
+
+        # Load existing keyword index if file exists
+        if os.path.exists(self._storage_file):
+            try:
+                import json
+
+                with open(self._storage_file, "r", encoding="utf-8") as f:
+                    self._keyword_index = json.load(f)
+                logger.info(
+                    f"[{self.workspace}] Loaded keyword index from {self._storage_file}"
+                )
+            except Exception as e:
+                logger.error(f"[{self.workspace}] Failed to load keyword index: {e}")
+                self._keyword_index = {}
+        else:
+            self._keyword_index = {}
+            logger.info(f"[{self.workspace}] Created new keyword index")
+
+    async def finalize(self):
+        """Finalize the storage"""
+        await self._save_index()
+
+    async def index_done_callback(self) -> None:
+        """Commit the storage operations after indexing"""
+        await self._save_index()
+
+    async def _save_index(self):
+        """Save keyword index to disk"""
+        try:
+            import json
+
+            async with self._storage_lock:
+                with open(self._storage_file, "w", encoding="utf-8") as f:
+                    json.dump(self._keyword_index, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Failed to save keyword index: {e}")
+
+    async def index_keywords(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Index keywords for a document."""
+        async with self._storage_lock:
+            for keyword in keywords:
+                if keyword not in self._keyword_index:
+                    self._keyword_index[keyword] = {}
+
+                self._keyword_index[keyword][doc_id] = {
+                    "content": content[:500],  # Store first 500 chars as preview
+                    "score": 1.0,
+                }
+
+    async def search_keywords(
+        self, keywords: list[str], limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Search for documents containing the given keywords."""
+        results = []
+        doc_scores = {}  # doc_id -> total_score
+
+        async with self._storage_lock:
+            for keyword in keywords:
+                if keyword in self._keyword_index:
+                    for doc_id, doc_data in self._keyword_index[keyword].items():
+                        if doc_id not in doc_scores:
+                            doc_scores[doc_id] = {
+                                "doc_id": doc_id,
+                                "content": doc_data["content"],
+                                "score": 0.0,
+                                "keywords": [],
+                            }
+                        doc_scores[doc_id]["score"] += doc_data["score"]
+                        doc_scores[doc_id]["keywords"].append(keyword)
+
+        # Sort by score and limit results
+        sorted_docs = sorted(
+            doc_scores.values(), key=lambda x: x["score"], reverse=True
+        )
+        return sorted_docs[:limit]
+
+    async def delete_document(self, doc_id: str) -> None:
+        """Remove a document from the keyword index."""
+        async with self._storage_lock:
+            for keyword in list(self._keyword_index.keys()):
+                if doc_id in self._keyword_index[keyword]:
+                    del self._keyword_index[keyword][doc_id]
+                # Clean up empty keyword entries
+                if not self._keyword_index[keyword]:
+                    del self._keyword_index[keyword]
+
+    async def update_document(
+        self, doc_id: str, keywords: list[str], content: str
+    ) -> None:
+        """Update keywords for an existing document."""
+        await self.delete_document(doc_id)
+        await self.index_keywords(doc_id, keywords, content)
+
+    async def drop(self) -> dict[str, str]:
+        """Drop all data from storage and clean up resources."""
+        try:
+            async with self._storage_lock:
+                self._keyword_index = {}
+                if os.path.exists(self._storage_file):
+                    os.remove(self._storage_file)
+                logger.info(
+                    f"[{self.workspace}] Dropped keyword storage: {self._storage_file}"
+                )
+                return {"status": "success", "message": "data dropped"}
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Error dropping keyword storage: {e}")
             return {"status": "error", "message": str(e)}

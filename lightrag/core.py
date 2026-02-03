@@ -37,6 +37,7 @@ from lightrag.ace.playbook import ContextPlaybook
 from lightrag.ace.reflector import ACEReflector
 from lightrag.base import (
     BaseGraphStorage,
+    BaseKeywordStorage,
     BaseKVStorage,
     BaseVectorStorage,
     DeletionResult,
@@ -158,6 +159,9 @@ class LightRAG:
 
     doc_status_storage: str = field(default="JsonDocStatusStorage")
     """Storage type for tracking document processing statuses."""
+
+    keyword_storage_backend: str = field(default="NanoKeywordStorage")
+    """Storage backend for keyword-based search."""
 
     # Workspace
     # ---
@@ -663,8 +667,20 @@ class LightRAG:
         self.graph_storage_cls: type[BaseGraphStorage] = self._get_storage_class(
             self.graph_storage
         )  # type: ignore
+        self.keyword_storage_cls: type[BaseKeywordStorage] = self._get_storage_class(
+            self.keyword_storage_backend
+        )  # type: ignore
         self.key_string_value_json_storage_cls = partial(  # type: ignore
             self.key_string_value_json_storage_cls, global_config=global_config
+        )
+        self.vector_db_storage_cls = partial(  # type: ignore
+            self.vector_db_storage_cls, global_config=global_config
+        )
+        self.graph_storage_cls = partial(  # type: ignore
+            self.graph_storage_cls, global_config=global_config
+        )
+        self.keyword_storage_cls = partial(  # type: ignore
+            self.keyword_storage_cls, global_config=global_config
         )
         self.vector_db_storage_cls = partial(  # type: ignore
             self.vector_db_storage_cls, global_config=global_config
@@ -752,6 +768,13 @@ class LightRAG:
             embedding_func=None,
         )
 
+        # Initialize keyword storage
+        self.keyword_storage: BaseKeywordStorage = self.keyword_storage_cls(  # type: ignore
+            namespace=NameSpace.KEYWORD_STORE,
+            workspace=self.workspace,
+            global_config=global_config,
+        )
+
         # Directly use llm_response_cache, don't create a new object
         hashing_kv = self.llm_response_cache
 
@@ -822,6 +845,7 @@ class LightRAG:
                 self.chunk_entity_relation_graph,
                 self.llm_response_cache,
                 self.doc_status,
+                self.keyword_storage,
             ):
                 if storage:
                     # logger.debug(f"Initializing storage: {storage}")
@@ -2775,7 +2799,7 @@ class LightRAG:
 
         query_result = None
 
-        if data_param.mode in ["local", "global", "hybrid", "mix"]:
+        if data_param.mode in ["local", "global", "hybrid", "mix", "keyword"]:
             logger.debug(f"[aquery_data] Using kg_query for mode: {data_param.mode}")
             query_result = await kg_query(
                 query.strip(),
@@ -2788,6 +2812,7 @@ class LightRAG:
                 hashing_kv=self.llm_response_cache,
                 system_prompt=None,
                 chunks_vdb=self.chunks_vdb,
+                keyword_storage=self.keyword_storage,
             )
         elif data_param.mode == "naive":
             logger.debug(f"[aquery_data] Using naive_query for mode: {data_param.mode}")
@@ -2873,18 +2898,20 @@ class LightRAG:
         try:
             query_result = None
 
-            if param.mode in ["local", "global", "hybrid", "mix"]:
+            if param.mode in ["local", "global", "hybrid", "mix", "keyword"]:
+                logger.debug(f"[aquery_data] Using kg_query for mode: {param.mode}")
                 query_result = await kg_query(
                     query.strip(),
                     self.chunk_entity_relation_graph,
                     self.entities_vdb,
                     self.relationships_vdb,
                     self.text_chunks,
-                    param,
+                    param,  # Use data_param with only_need_context=True
                     global_config,
                     hashing_kv=self.llm_response_cache,
-                    system_prompt=system_prompt,
+                    system_prompt=None,
                     chunks_vdb=self.chunks_vdb,
+                    keyword_storage=self.keyword_storage,
                 )
             elif param.mode == "naive":
                 query_result = await naive_query(

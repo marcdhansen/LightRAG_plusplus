@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 from lightrag.base import (
     BaseGraphStorage,
+    BaseKeywordStorage,
     BaseKVStorage,
     BaseVectorStorage,
     QueryContextResult,
@@ -3346,6 +3347,7 @@ async def kg_query(
     hashing_kv: BaseKVStorage | None = None,
     system_prompt: str | None = None,
     chunks_vdb: BaseVectorStorage = None,
+    keyword_storage: BaseKeywordStorage = None,
 ) -> QueryResult | None:
     """
     Execute knowledge graph query and return unified QueryResult object.
@@ -3420,6 +3422,7 @@ async def kg_query(
         text_chunks_db,
         query_param,
         chunks_vdb,
+        keyword_storage,
     )
 
     if context_result is None:
@@ -3755,6 +3758,7 @@ async def _perform_kg_search(
     text_chunks_db: BaseKVStorage,
     query_param: QueryParam,
     chunks_vdb: BaseVectorStorage = None,
+    keyword_storage: BaseKeywordStorage = None,
 ) -> dict[str, Any]:
     """
     Pure search logic that retrieves raw entities, relations, and vector chunks.
@@ -3809,6 +3813,30 @@ async def _perform_kg_search(
             query_param,
         )
 
+    elif query_param.mode == "keyword":
+        # Handle keyword-only search mode
+        # Combine high-level and low-level keywords for search
+        all_keywords = []
+        if hl_keywords:
+            all_keywords.extend(hl_keywords.split())
+        if ll_keywords:
+            all_keywords.extend(ll_keywords.split())
+
+        if all_keywords and keyword_storage:
+            keyword_results, _ = await _get_keyword_data(
+                all_keywords,
+                keyword_storage,
+                query_param,
+            )
+            # Store keyword results in global_entities for consistency
+            global_entities = keyword_results
+            logger.info(f"Keyword mode search found {len(keyword_results)} results")
+        else:
+            global_entities = []
+            logger.warning(
+                "Keyword mode requested but no keywords or keyword storage available"
+            )
+
     else:  # hybrid or mix mode
         if len(ll_keywords) > 0:
             local_entities, local_relations = await _get_node_data(
@@ -3854,15 +3882,30 @@ async def _perform_kg_search(
                 "keyword": 1.0,
             }
 
-            # Get context from all three methods (simulated for now)
-            # In real implementation, these would be actual retrieval calls
+            # Get context from all three methods
             vector_contexts = chunks_vdb or []
             graph_contexts = (
                 local_entities  # Using local_entities as proxy for graph results
             )
-            keyword_contexts = (
-                global_entities  # Using global_entities as proxy for keyword results
-            )
+            # Use real keyword results when keyword storage is available
+            if keyword_storage is not None:
+                # Get keywords from query parameters
+                all_keywords = []
+                if hl_keywords:
+                    all_keywords.extend(hl_keywords.split())
+                if ll_keywords:
+                    all_keywords.extend(ll_keywords.split())
+
+                if all_keywords:
+                    keyword_results, _ = await _get_keyword_data(
+                        all_keywords, keyword_storage, query_param
+                    )
+                    keyword_contexts = keyword_results
+                else:
+                    keyword_contexts = []
+            else:
+                # Fallback to proxy behavior
+                keyword_contexts = global_entities
 
             # Prepare result lists for RRF
             result_lists = [
@@ -4520,6 +4563,7 @@ async def _build_query_context(
     text_chunks_db: BaseKVStorage,
     query_param: QueryParam,
     chunks_vdb: BaseVectorStorage = None,
+    keyword_storage: BaseKeywordStorage = None,
 ) -> QueryContextResult | None:
     """
     Build complete query context by orchestrating search, reranking, truncation, and formatting.
@@ -4549,6 +4593,7 @@ async def _build_query_context(
         text_chunks_db,
         query_param,
         chunks_vdb,
+        keyword_storage,
     )
 
     if not search_result["final_entities"] and not search_result["final_relations"]:
@@ -4664,6 +4709,42 @@ async def _build_query_context(
     )
 
     return QueryContextResult(context=context, raw_data=raw_data)
+
+
+async def _get_keyword_data(
+    keywords: list[str],
+    keyword_storage: BaseKeywordStorage,
+    query_param: QueryParam,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """
+    Retrieve keyword-based search results from keyword storage.
+
+    Args:
+        keywords: List of keywords to search for
+        keyword_storage: Keyword storage implementation
+        query_param: Query parameters including limits and filters
+
+    Returns:
+        Tuple of (keyword_results, empty_list) - Following pattern of _get_node_data
+        where keyword_results contains relevant documents with keyword matches
+    """
+    if not keywords or not keyword_storage:
+        return [], []
+
+    try:
+        logger.debug(f"Searching for keywords: {keywords}")
+
+        # Search for documents matching the keywords
+        keyword_results = await keyword_storage.search_keywords(
+            keywords=keywords, limit=query_param.top_k
+        )
+
+        logger.info(f"Keyword search found {len(keyword_results)} results")
+        return keyword_results, []
+
+    except Exception as e:
+        logger.error(f"Error in keyword search: {e}")
+        return [], []
 
 
 async def _get_node_data(

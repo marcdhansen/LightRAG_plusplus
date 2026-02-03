@@ -40,6 +40,13 @@ STORAGE_IMPLEMENTATIONS = {
         ],
         "required_methods": ["get_docs_by_status"],
     },
+    "KEYWORD_STORAGE": {
+        "implementations": [
+            "NanoKeywordStorage",
+            "Neo4jKeywordStorage",
+        ],
+        "required_methods": ["search_keywords", "index_keywords"],
+    },
 }
 
 # Storage implementation environment variable without default value
@@ -92,6 +99,9 @@ STORAGE_ENV_REQUIREMENTS: dict[str, list[str]] = {
         "MONGO_URI",
         "MONGO_DATABASE",
     ],
+    # Keyword Storage Implementations
+    "NanoKeywordStorage": [],
+    "Neo4jKeywordStorage": ["NEO4J_URI", "NEO4J_USERNAME", "NEO4J_PASSWORD"],
 }
 
 # Storage implementation module mapping
@@ -118,6 +128,7 @@ STORAGES = {
     "QdrantVectorDBStorage": ".kg.qdrant_impl",
     "MemgraphStorage": ".kg.memgraph_impl",
     "MemgraphVectorStorage": ".kg.memgraph_impl",
+    "NanoKeywordStorage": ".kg.nano_vector_db_impl",
 }
 
 

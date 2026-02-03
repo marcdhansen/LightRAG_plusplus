@@ -1,1 +1,0 @@
-/Users/marchansen/.agent/docs/sop/GEMINI.md
