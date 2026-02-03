@@ -7,3 +7,7 @@
 !session_locks/.gitkeep
 !skills/FlightDirector/scripts/
 !skills/FlightDirector/scripts/*.py
+!scripts/
+!scripts/*.sh
+!scripts/*.py
+!scripts/*.yaml
