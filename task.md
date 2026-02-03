@@ -1,28 +1,33 @@
-# Task: lightrag-uc1 - Implement comprehensive A/B testing framework
+# Task: lightrag-nfb - Implement enhanced show-next-task script
 
 ## Objective
 
-Build a production-grade A/B testing system to compare the legacy Standard Mission Protocol (SMP) against the new OpenViking production environment. The framework must provide statistically significant insights into latency, cost, and extraction quality.
+Create a robust Python script to implement the `show-next-task` skill instructions. This script should optimize the agent's cognitive load by providing a pre-formatted, comprehensive view of ready and in-progress tasks.
 
 ## Success Criteria
 
-- [ ] Automated A/B test harness that can run parallel queries across SMP and OpenViking endpoints.
-- [ ] Metric collection for:
-  - Mean/P95 Latency.
-  - Token Usage (Input/Output).
-  - Extraction Quality (Entity/Relation F1 via `eval_metrics.py`).
-- [ ] Statistical analysis module (calculating Lift, Confidence Intervals).
-- [ ] Automated markdown report generator for experiment results.
-- [ ] Integration with existing monitoring (Langfuse/Prometheus if available).
+- [x] Python script `scripts/show_next_tasks.py` implemented.
+- [x] Displays ALL ready tasks (unlimited or high limit).
+- [x] Explicitly identifies and highlights tasks with `status: in_progress`.
+- [x] Groups tasks by priority (P0, P1, P2, etc.).
+- [x] Output is Markdown-formatted for easy AI parsing.
+- [x] Includes total count and breakdown by priority.
+- [x] Verified via `pytest` with mock Beads output.
 
 ## Proposed Strategy
 
-1. **Runner Design**: Create a unified runner script `scripts/ab_test_runner.py` that takes a set of test documents/queries and dispatches them to both "Baseline" (SMP) and "Candidate" (OpenViking).
-2. **Telemetry Management**: Reuse `eval_metrics.py` for quality and add a context manager for timing and token counting.
-3. **Analysis Library**: Use `scipy` or basic math to implement t-tests for latency and recall improvements.
-4. **Reporting**: Generate a dashboard-like markdown file in `audit_results/ab_reports/`.
+1. **Test-First**: Create `tests/test_show_next_tasks.py` with mock Beads data.
+2. **Implementation**:
+    - Use `subprocess` to run `bd list --ready --limit 0 --json`. (Actually, `bd list --status in_progress --json` and `bd ready --json` might be better).
+    - Parse JSON output.
+    - Format into a clean Markdown table/list.
+3. **Integration**: Update the `show-next-task` skill or provide this as a standard tool.
 
 ## Approval
 
-Plan Completed: 2026-02-03 18:29
-A/B testing framework integration and OpenViking slash commands fixed.
+## Plan
+
+- [x] Create failing test case for task categorization.
+- [x] Implement `scripts/show_next_tasks.py` logic.
+- [x] Verify with tests.
+- [x] RTB.
