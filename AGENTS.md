@@ -1,6 +1,6 @@
 # 🤖 LightRAG Project AGENTS.md
 
-Welcome to the LightRAG project. This repository supports **dual agent systems**: the traditional **Standard Mission Protocol (SMP)** and the enhanced **OpenViking** system.
+Welcome to the LightRAG project. This repository uses the **OpenViking** enhanced agent system, which has replaced the legacy Standard Mission Protocol (SMP).
 
 ## 🚀 Getting Started
 
@@ -34,29 +34,26 @@ Before you write any code:
 - **Current Phase**: `.agent/rules/ImplementationPlan.md`
 - **Tasks**: Run `bd ready` to see what needs to be done.
 
-## 🤖 Agent System Selection
+## 🤖 OpenViking Agent System
 
-This project supports **dual agent systems**:
-
-### SMP (Standard Mission Protocol)
-- **Location**: Traditional file-based skills in `.agent/skills/`
-- **Use Case**: Established workflows, maximum compatibility
-- **Integration**: LightRAG on port :9621
+This project uses the **OpenViking** enhanced agent system:
 
 ### OpenViking (Enhanced System)
 - **Location**: AI-powered agent with dynamic skills
 - **Use Case**: Token efficiency, conversation memory, faster responses
 - **Integration**: LightRAG on port :9622
 - **Documentation**: `.agent/skills/openviking/SKILL.md`
+- **API Endpoint**: http://localhost:8000
 
 **Quick Setup**:
 ```bash
-# For OpenViking
-export OPENAI_API_KEY=your-key-here
-./openviking/scripts/manage.sh start
+# OpenViking (default)
+./scripts/agent-init.sh  # Auto-starts OpenViking with Ollama
 
-# For SMP (default)
-./scripts/agent-init.sh
+# Manual service management
+./openviking/scripts/manage.sh start
+./openviking/scripts/manage.sh status
+./openviking/scripts/manage.sh stop
 ```
 
 ## 🛡️ Protocol
