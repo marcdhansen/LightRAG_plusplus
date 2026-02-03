@@ -55,8 +55,10 @@ check_port_conflicts() {
         "3002:Automem FalkorDB Browser"
         "6379:Langfuse Redis"
         "6380:Automem FalkorDB"
+        "8000:OpenViking API"
         "8001:Automem Flask API"
         "9621:LightRAG API"
+        "9622:OpenViking LightRAG"
     )
 
     local conflicts=0
@@ -351,6 +353,33 @@ verify_langfuse_integration() {
     fi
 }
 
+verify_openviking_integration() {
+    log_step "Testing OpenViking API integration..."
+
+    # Test main API health
+    if ! verify_service_health "OpenViking API" "http://localhost:8000/health" "status" "healthy"; then
+        log_error "OpenViking API health check failed"
+        return 1
+    fi
+
+    # Test LightRAG component health
+    if ! verify_service_health "OpenViking LightRAG" "http://localhost:9622/health" "status" "healthy"; then
+        log_warning "OpenViking LightRAG health check failed (optional component)"
+    fi
+
+    # Test slash command integration (Phase 0 check)
+    echo -e "🔍 Testing slash command discovery..."
+    local cmd_response=$(curl -s http://localhost:8000/commands 2>/dev/null)
+    if echo "$cmd_response" | grep -q '"count":'; then
+        local cmd_count=$(echo "$cmd_response" | grep -o '"count":\s*[0-9]*' | grep -o '[0-9]*')
+        log_success "OpenViking slash commands discovered: $cmd_count"
+        return 0
+    else
+        log_warning "OpenViking slash commands endpoint not responding correctly"
+        return 1
+    fi
+}
+
 # ============================================================================
 # ENVIRONMENT VALIDATION
 # ============================================================================
@@ -456,6 +485,14 @@ main() {
     if ! verify_langfuse_integration; then
         log_error "Langfuse integration testing failed"
         errors=$((errors + 1))
+    fi
+
+    # Check OpenViking if enabled
+    if [[ -n "$OPENVIKING_ENABLED" || "$1" == "--openviking" ]]; then
+        if ! verify_openviking_integration; then
+            log_error "OpenViking integration testing failed"
+            errors=$((errors + 1))
+        fi
     fi
 
     # 5. Run original PFC and task discovery

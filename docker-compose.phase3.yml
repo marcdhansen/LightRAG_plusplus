@@ -1,0 +1,153 @@
+# OpenViking Phase 3 Deployment - Gradual Production Rollout
+version: '3.8'
+
+services:
+  # Traffic Router - Smart load balancer for gradual rollout
+  traffic-router:
+    build:
+      context: .
+      dockerfile: Dockerfile.traffic-router
+    container_name: lightrag-traffic-router
+    restart: unless-stopped
+    ports:
+      - "8003:8003"  # Traffic router API endpoint
+    environment:
+      - ROUTER_PORT=8003
+      - SMP_URL=http://lightrag-main:9621
+      - OPENVIKING_URL=http://lightrag-openviking:8002
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - lightrag-deployment
+    depends_on:
+      - lightrag-openviking
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Enhanced OpenViking Server
+  lightrag-openviking:
+    build:
+      context: .
+      dockerfile: Dockerfile.openviking
+    container_name: lightrag-openviking
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      - OPENVIKING_CONFIG_FILE=/app/config/ov.conf
+      - OPENVIKING_STORAGE_PATH=/data/openviking
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      - openviking_data:/data/openviking
+      - ./openviking/config:/app/config:ro
+      - ./logs/openviking:/app/logs
+    networks:
+      - lightrag-deployment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for OpenViking caching and sessions
+  openviking-redis:
+    image: redis:7-alpine
+    container_name: lightrag-openviking-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - openviking_redis_data:/data
+    networks:
+      - lightrag-deployment
+    command: >
+      redis-server
+      --requirepass openviking_redis_secret
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "openviking_redis_secret", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Legacy SMP System (for comparison and fallback)
+  lightrag-main:
+    extends:
+      file: docker-compose.yml
+      service: lightrag
+    container_name: lightrag-main
+    ports:
+      - "9621:9621"
+    environment:
+      - WORKING_DIR=/app/data/rag_storage_main
+      - LOG_LEVEL=INFO
+    volumes:
+      - lightrag_main_data:/app/data
+    networks:
+      - lightrag-deployment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9621/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - main
+
+  # Monitoring Dashboard for Phase 3
+  phase3-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.traffic-router
+    container_name: lightrag-phase3-monitor
+    restart: unless-stopped
+    ports:
+      - "8004:8003"
+    environment:
+      - ROUTER_PORT=8003
+      - MONITOR_MODE=true
+    volumes:
+      - ./monitoring:/app/monitoring
+    networks:
+      - lightrag-deployment
+    command: ["python", "../monitoring/phase3_monitor.py"]
+    profiles:
+      - monitoring
+
+  # Load Testing Service
+  load-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.traffic-router
+    container_name: lightrag-load-tester
+    environment:
+      - TEST_MODE=true
+    volumes:
+      - ./tests:/app/tests
+    networks:
+      - lightrag-deployment
+    profiles:
+      - load-testing
+    command: ["python", "../tests/phase3_load_test.py"]
+
+networks:
+  lightrag-deployment:
+    driver: bridge
+    internal: false
+
+volumes:
+  openviking_data:
+    driver: local
+  
+  openviking_redis_data:
+    driver: local
+  
+  lightrag_main_data:
+    driver: local

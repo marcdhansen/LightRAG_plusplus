@@ -121,6 +121,14 @@ Include a mandatory debrief summary in the final response:
 - Use `enhanced_reflect_system.py --debrief debrief.md` to format the report.
 - Summarize successes, friction points, and strategy evolution.
 
+### 6. OpenViking Integration (Memory Push)
+
+After updating the local memory layer (`~/.agent/memory/learnings/`), synchronize with OpenViking:
+
+1. **Flush Session**: Run `curl -X POST http://localhost:8000/session/flush` to clear ephemeral context.
+2. **Sync Memories**: Use `python openviking/migration/migrate_memories.py` to persist local JSON learnings to OpenViking's global memory.
+3. **Verify**: Use `curl http://localhost:8000/resources?resource_type=applied_learning` to confirm synchronization.
+
 ## 📋 Mission Reflection Template
 
 Use this structure when performing a "/reflect" during or after a mission:

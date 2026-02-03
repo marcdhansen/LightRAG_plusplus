@@ -103,6 +103,26 @@ def check_workspace_isolation():
         print("⚠️  Could not verify git structure.")
 
 
+def check_openviking():
+    """Verify OpenViking services are running if enabled."""
+    if os.getenv("OPENVIKING_ENABLED"):
+        print("\n🧠 Checking OpenViking services...")
+        # Check API health
+        _, code = run_command("curl -sf http://localhost:8000/health")
+        if code == 0:
+            print("✅ OpenViking API: HEALTHY")
+            # Check for session flush endpoint (Phase 1)
+            _, code = run_command("curl -sf -X POST http://localhost:8000/session/flush")
+            if code == 0:
+                print("✅ OpenViking Session Flush: READY")
+            else:
+                print("⚠️  OpenViking Session Flush: NOT RESPONDING")
+        else:
+            print("❌ OpenViking API: UNREACHABLE")
+            return False
+    return True
+
+
 def check_pfc():
     """Pre-Flight Check: Verify Beads issue, Task artifact, and Sessions."""
     print("🛫 Initiating Pre-Flight Check (PFC)...")
@@ -111,6 +131,10 @@ def check_pfc():
     # 1. Multi-Agent Coordination
     check_session_conflicts()
     check_workspace_isolation()
+    
+    # 1.5 OpenViking Check
+    if not check_openviking():
+        errors.append("❌ OpenViking services are NOT healthy.")
 
     # 2. Check Beads
     bd_check, code = run_command("bd ready")
@@ -341,9 +365,64 @@ def check_git_status():
         print(f"⚠️  Could not check git status: {e}")
 
 
+def check_rtb():
+    """Return To Base Check: Verify cleanup and OpenViking flush."""
+    print("🛬 Initiating Return To Base (RTB) Check...")
+    
+    # Check for uncommitted changes
+    check_git_status()
+    
+    # Check for temporary artifacts
+    check_temp_cleanup()
+    
+    # OpenViking Flush Verification
+    if os.getenv("OPENVIKING_ENABLED"):
+        print("\n🧠 Verifying OpenViking session state...")
+        out, code = run_command("curl -sf http://localhost:8000/commands")
+        if code == 0:
+            print("✅ OpenViking: REACHABLE")
+        else:
+            print("⚠️  OpenViking: UNREACHABLE for RTB verification")
+    
+    # PR Lifecycle Check
+    print("\n🔀 PR Lifecycle Check...")
+    
+    # Check if gh CLI is available
+    _, gh_code = run_command("which gh")
+    if gh_code != 0:
+        print("⚠️  GitHub CLI (gh) not found. Install with: brew install gh")
+    else:
+        print("✅ GitHub CLI: AVAILABLE")
+        
+        # Check current branch
+        branch, _ = run_command("git rev-parse --abbrev-ref HEAD")
+        if branch and branch.strip() not in ("main", "master"):
+            print(f"📌 Current branch: {branch.strip()}")
+            
+            # Check for existing PR
+            pr_check, pr_code = run_command(f"gh pr view {branch.strip()} --json state,url 2>/dev/null")
+            if pr_code == 0:
+                import json
+                try:
+                    pr_data = json.loads(pr_check)
+                    print(f"✅ PR exists: {pr_data.get('url', 'unknown')}")
+                    print(f"   State: {pr_data.get('state', 'unknown')}")
+                except:
+                    print("✅ PR exists for this branch")
+            else:
+                print("⚠️  No PR found for this branch. Create one with:")
+                print(f"   gh pr create --fill --base main")
+                print(f"   gh pr merge --auto --squash --delete-branch")
+        else:
+            print(f"✅ On main branch - no PR needed")
+    
+    print("\n✅ RTB Check Complete. Remember to run ./scripts/agent-end.sh")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Flight Director Pre-Flight Check")
     parser.add_argument("--pfc", action="store_true", help="Run Pre-Flight Check")
+    parser.add_argument("--rtb", action="store_true", help="Run Return To Base Check")
 
     args = parser.parse_args()
 
@@ -351,8 +430,10 @@ def main():
         check_pfc()
         check_temp_cleanup()
         check_git_status()
+    elif args.rtb:
+        check_rtb()
     else:
-        print("Use --pfc to run Pre-Flight Check")
+        print("Use --pfc or --rtb to run Flight Director checks")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # 🤖 AGENTS.md
 
-Welcome to the LightRAG project. This repository uses the **Standard Mission Protocol (SMP)** for agentic collaboration.
+Welcome to the LightRAG project. This repository supports **dual agent systems**: the traditional **Standard Mission Protocol (SMP)** and the enhanced **OpenViking** system.
 
 ## 🚀 Getting Started
 
@@ -14,6 +14,31 @@ Before you write any code:
 - **Roadmap**: `.agent/rules/ROADMAP.md`
 - **Current Phase**: `.agent/rules/ImplementationPlan.md`
 - **Tasks**: Run `bd ready` to see what needs to be done.
+
+## 🤖 Agent System Selection
+
+This project supports **dual agent systems**:
+
+### SMP (Standard Mission Protocol)
+- **Location**: Traditional file-based skills in `.agent/skills/`
+- **Use Case**: Established workflows, maximum compatibility
+- **Integration**: LightRAG on port :9621
+
+### OpenViking (Enhanced System)
+- **Location**: AI-powered agent with dynamic skills
+- **Use Case**: Token efficiency, conversation memory, faster responses
+- **Integration**: LightRAG on port :9622
+- **Documentation**: `.agent/skills/openviking/SKILL.md`
+
+**Quick Setup**:
+```bash
+# For OpenViking
+export OPENAI_API_KEY=your-key-here
+./openviking/scripts/manage.sh start
+
+# For SMP (default)
+./scripts/agent-init.sh
+```
 
 ## 🛡️ Protocol
 
@@ -140,6 +165,12 @@ bd close lightrag-993 -r "Done"  # Close the issue
 - Coordinate with them before proceeding
 - Consider picking a different task from `bd ready`
 - Or work on a different branch to avoid conflicts
+
+**Agent System Coordination:**
+- SMP and OpenViking agents can work simultaneously
+- Use different task IDs to prevent conflicts
+- Each system maintains its own session coordination
+- Check both systems' status when available
 
 **If your lock isn't being detected:**
 - Ensure `AGENT_LOCK_FILE` environment variable is set, or

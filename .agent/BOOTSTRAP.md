@@ -1,1 +1,1 @@
-/Users/marchansen/.gemini/AGENT_ONBOARDING.md
+/Users/marchansen/.agent/docs/ONBOARDING.md

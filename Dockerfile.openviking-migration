@@ -1,0 +1,36 @@
+# OpenViking Migration Tool Dockerfile
+# Tool for migrating SMP system to OpenViking
+syntax=docker/dockerfile:1
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.migration.txt .
+RUN pip install --no-cache-dir -r requirements.migration.txt
+
+# Copy migration scripts and utilities
+COPY migration/ ./migration/
+COPY scripts/ ./scripts/
+COPY utils/ ./utils/
+
+# Create necessary directories
+RUN mkdir -p /data/openviking /app/logs
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV OPENVIKING_ENDPOINT=http://openviking-server:8000
+ENV SMP_SOURCE=/data/smp
+ENV GLOBAL_SOURCE=/data/global
+ENV MIGRATION_LOG_LEVEL=INFO
+
+# Default command - run migration
+CMD ["python", "migration/migrate_to_openviking.py"]

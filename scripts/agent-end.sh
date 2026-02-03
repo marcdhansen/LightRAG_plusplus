@@ -105,22 +105,25 @@ show_summary() {
 
 # Function to show usage
 usage() {
-    echo "Usage: $0 [--lock-file <path>] [--silent]"
+    echo "Usage: $0 [--lock-file <path>] [--silent] [--skip-pr]"
     echo ""
     echo "Options:"
     echo "  --lock-file <path>  Explicitly specify lock file to remove"
     echo "  --silent            Don't show session summary"
+    echo "  --skip-pr           Skip PR creation and branch cleanup"
     echo "  --help              Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0"
     echo "  $0 --lock-file .agent/session_locks/agent_xyz_123.json"
     echo "  $0 --silent"
+    echo "  $0 --skip-pr  # For WIP sessions"
 }
 
 # Parse arguments
 EXPLICIT_LOCK_FILE=""
 SILENT=false
+SKIP_PR=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -130,6 +133,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --silent)
             SILENT=true
+            shift
+            ;;
+        --skip-pr)
+            SKIP_PR=true
             shift
             ;;
         --help)
@@ -180,11 +187,59 @@ echo ""
 echo "✅ Session ended successfully"
 echo "   Lock file cleaned up"
 
+# OpenViking Session Flush (if enabled)
+if [ -n "$OPENVIKING_ENABLED" ]; then
+    echo "🧠 Flushing OpenViking session..."
+    curl -sf -X POST http://localhost:8000/session/flush > /dev/null || echo "⚠️  OpenViking flush failed"
+fi
+
 # Update beads if task was set
 if [ -f "$LOCK_FILE.tmp" ]; then  # Check if we saved task info before removal
-    local task=$(grep '"current_task"' "$LOCK_FILE.tmp" | sed 's/.*: "\([^"]*\)".*/\1/')
+    task=$(grep '"current_task"' "$LOCK_FILE.tmp" | sed 's/.*: "\([^"]*\)".*/\1/')
     if [ "$task" != "unknown" ] && [ -n "$task" ]; then
         echo "💡 Remember to update task status with: bd close $task -r 'completion reason'"
     fi
     rm -f "$LOCK_FILE.tmp"
+fi
+
+# PR Lifecycle (unless --skip-pr)
+if [ "$SKIP_PR" = false ]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    
+    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
+        echo ""
+        echo "🔀 PR Lifecycle..."
+        echo "   Current branch: $CURRENT_BRANCH"
+        
+        # Check if gh CLI is available
+        if command -v gh &> /dev/null; then
+            # Check for uncommitted changes
+            if [ -n "$(git status --porcelain)" ]; then
+                echo "⚠️  Uncommitted changes detected. Commit before creating PR."
+            else
+                # Check if PR already exists
+                if gh pr view "$CURRENT_BRANCH" --json state &> /dev/null; then
+                    echo "✅ PR already exists for this branch"
+                    echo "   Run: gh pr merge --auto --squash --delete-branch"
+                else
+                    echo "📝 Creating PR..."
+                    if gh pr create --fill --base main; then
+                        echo "🔄 Enabling auto-merge (squash, delete-branch)..."
+                        gh pr merge --auto --squash --delete-branch || echo "⚠️  Auto-merge setup failed (check branch protection rules)"
+                    fi
+                fi
+                
+                echo ""
+                echo "💡 After PR merges, run:"
+                echo "   git checkout main && git pull"
+                echo "   git branch -d $CURRENT_BRANCH"
+                echo "   git remote prune origin"
+            fi
+        else
+            echo "⚠️  GitHub CLI (gh) not found. Install with: brew install gh"
+            echo "   Manual PR: https://github.com/$(git remote get-url origin | sed 's/.*github.com[:\/]//;s/.git$//')/compare/$CURRENT_BRANCH"
+        fi
+    else
+        echo "✅ On main branch - no PR needed"
+    fi
 fi

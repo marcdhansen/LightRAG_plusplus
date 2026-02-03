@@ -1,0 +1,166 @@
+{
+  "timestamp": "2026-02-03T14:24:02.182170",
+  "openviking": {
+    "health_check": true,
+    "embeddings": [
+      {
+        "text": "React performance optimization...",
+        "response_time_ms": 56.27894401550293,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      },
+      {
+        "text": "Database schema design pattern...",
+        "response_time_ms": 55.51934242248535,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      },
+      {
+        "text": "API authentication best practi...",
+        "response_time_ms": 54.39496040344238,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      }
+    ],
+    "skills_search": [
+      {
+        "query": "React optimization",
+        "response_time_ms": 4.8770904541015625,
+        "skills_found": 2,
+        "success": true
+      },
+      {
+        "query": "security patterns",
+        "response_time_ms": 4.42194938659668,
+        "skills_found": 1,
+        "success": true
+      },
+      {
+        "query": "database design",
+        "response_time_ms": 4.011869430541992,
+        "skills_found": 1,
+        "success": true
+      }
+    ],
+    "conversation": [
+      {
+        "message": "I need help with React optimiz...",
+        "response_time_ms": 5.019903182983398,
+        "context_count": 1,
+        "message_count": 2,
+        "success": true
+      },
+      {
+        "message": "What are the best optimization...",
+        "response_time_ms": 4.863977432250977,
+        "context_count": 3,
+        "message_count": 4,
+        "success": true
+      },
+      {
+        "message": "Can you explain code splitting...",
+        "response_time_ms": 3.551006317138672,
+        "context_count": 3,
+        "message_count": 6,
+        "success": true
+      }
+    ],
+    "conversation_memory": [
+      {
+        "endpoint": "conversation_stats",
+        "response_time_ms": 3.7009716033935547,
+        "session_message_count": 6,
+        "session_age_minutes": 0.00024401666666666667,
+        "success": true
+      }
+    ],
+    "resources": [
+      {
+        "endpoint": "resource_storage",
+        "response_time_ms": 5.189657211303711,
+        "resource_id": "14987569-2e30-4b42-8fcb-608fbbed4e66",
+        "success": true
+      }
+    ],
+    "performance_metrics": [
+      {
+        "endpoint": "performance_dashboard",
+        "response_time_ms": 4.495859146118164,
+        "total_requests": 13,
+        "active_sessions": 2,
+        "cache_size": 3,
+        "success": true
+      }
+    ],
+    "avg_response_times": {
+      "embeddings": 55.397748947143555,
+      "skills": 4.436969757080078,
+      "conversation": 4.478295644124349
+    },
+    "success_rates": {
+      "embeddings": 100.0,
+      "cache_hit_rate": 25.0,
+      "skills": 100.0,
+      "conversation": 100.0,
+      "conversation_memory": 100.0,
+      "resources": 100.0,
+      "performance_metrics": 100.0
+    },
+    "features_tested": [
+      "conversation_memory",
+      "enhanced_embeddings",
+      "skill_search",
+      "performance_monitoring",
+      "resource_management"
+    ]
+  },
+  "smp_baseline": {
+    "health_check": true,
+    "avg_response_times": {
+      "embeddings": 2500,
+      "skills": 2800,
+      "conversation": 3200,
+      "conversation_memory": 0,
+      "resources": 2500,
+      "performance_metrics": 0
+    },
+    "success_rates": {
+      "embeddings": 85,
+      "skills": 75,
+      "conversation": 90,
+      "conversation_memory": 0,
+      "resources": 80,
+      "performance_metrics": 0
+    }
+  },
+  "improvements": {
+    "embedding_speed": 97.78409004211426,
+    "skills_speed": 99.84153679439
+  },
+  "new_features": {
+    "conversation_memory": {
+      "success_rate": 100.0,
+      "exclusive_to_openviking": true
+    },
+    "resources": {
+      "success_rate": 100.0,
+      "exclusive_to_openviking": true
+    },
+    "performance_metrics": {
+      "success_rate": 100.0,
+      "exclusive_to_openviking": true
+    }
+  },
+  "recommendations": [
+    {
+      "action": "DEPLOY_IMMEDIATELY",
+      "reason": "OpenViking shows exceptional performance (+98.8% avg) + 3 new exclusive features",
+      "confidence": "high",
+      "score": 128.81281341825212,
+      "new_features_count": 3
+    }
+  ]
+}

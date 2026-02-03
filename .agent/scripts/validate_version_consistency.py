@@ -236,8 +236,6 @@ def _get_file_version(self, file_path: Path) -> str:
             return "unknown"
         except Exception:
             return "unknown"
-        except Exception:
-            return "unknown"
 
     def _is_major_version_mismatch(self, v1: str, v2: str) -> bool:
         """Check if versions have major differences"""

@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-02-03T05:16:14.381563",
+  "test_summary": {
+    "total_tests": 5,
+    "smp_metrics": 5,
+    "openviking_metrics": 5
+  },
+  "detailed_results": {
+    "smp": [
+      {
+        "system": "smp",
+        "query": "Find skills for React performance optimization",
+        "response_time_ms": 2500.2918243408203,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 850,
+        "response_length": 250
+      },
+      {
+        "system": "smp",
+        "query": "Best practices for API authentication",
+        "response_time_ms": 2500.769853591919,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 850,
+        "response_length": 250
+      },
+      {
+        "system": "smp",
+        "query": "How to implement database migrations",
+        "response_time_ms": 2500.121831893921,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 850,
+        "response_length": 250
+      },
+      {
+        "system": "smp",
+        "query": "Techniques for caching strategies",
+        "response_time_ms": 2500.185966491699,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 850,
+        "response_length": 250
+      },
+      {
+        "system": "smp",
+        "query": "Security patterns for web applications",
+        "response_time_ms": 2500.10085105896,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 850,
+        "response_length": 250
+      }
+    ],
+    "openviking": [
+      {
+        "system": "openviking",
+        "query": "Find skills for React performance optimization",
+        "response_time_ms": 450.41608810424805,
+        "success": true,
+        "skills_found": 1,
+        "token_usage": 300,
+        "response_length": 196
+      },
+      {
+        "system": "openviking",
+        "query": "Best practices for API authentication",
+        "response_time_ms": 63.63105773925781,
+        "success": true,
+        "skills_found": 1,
+        "token_usage": 250,
+        "response_length": 187
+      },
+      {
+        "system": "openviking",
+        "query": "How to implement database migrations",
+        "response_time_ms": 48.73299598693848,
+        "success": true,
+        "skills_found": 1,
+        "token_usage": 250,
+        "response_length": 186
+      },
+      {
+        "system": "openviking",
+        "query": "Techniques for caching strategies",
+        "response_time_ms": 45.408010482788086,
+        "success": true,
+        "skills_found": 1,
+        "token_usage": 200,
+        "response_length": 183
+      },
+      {
+        "system": "openviking",
+        "query": "Security patterns for web applications",
+        "response_time_ms": 31.301021575927734,
+        "success": true,
+        "skills_found": 2,
+        "token_usage": 250,
+        "response_length": 296
+      }
+    ]
+  }
+}

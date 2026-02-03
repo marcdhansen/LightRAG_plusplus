@@ -1,0 +1,116 @@
+{
+  "migration_info": {
+    "start_time": "2026-02-03T14:27:00.516953",
+    "end_time": "2026-02-03T14:27:01.463233",
+    "duration_seconds": 0.94628,
+    "smp_source": ".agent",
+    "openviking_url": "http://localhost:8002"
+  },
+  "results": {
+    "conversations": {
+      "total": 2,
+      "migrated": 0,
+      "failed": 0,
+      "sessions_created": 0
+    },
+    "embeddings": {
+      "total": 1,
+      "migrated": 0,
+      "failed": 0
+    }
+  },
+  "log_entries": [
+    {
+      "timestamp": "2026-02-03T14:27:00.516962",
+      "level": "info",
+      "message": "Starting SMP to OpenViking migration...",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:00.516974",
+      "level": "info",
+      "message": "Creating migration backup...",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:00.905583",
+      "level": "error",
+      "message": "Failed to create backup: [('.agent/docs/sop/skills', 'smp_backup_20260203_142700/docs/sop/skills', \"[Errno 62] Too many levels of symbolic links: '.agent/docs/sop/skills'\")]",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:00.905691",
+      "level": "info",
+      "message": "Scanning SMP data directory...",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:00.917795",
+      "level": "info",
+      "message": "SMP data scan complete",
+      "details": {
+        "conversations": 2,
+        "embeddings": 1,
+        "skills": 0,
+        "sessions": 0,
+        "resources": 0
+      }
+    },
+    {
+      "timestamp": "2026-02-03T14:27:00.917829",
+      "level": "info",
+      "message": "Migrating conversation data...",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.391742",
+      "level": "warning",
+      "message": "No messages found in conversation data",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.391792",
+      "level": "warning",
+      "message": "No messages found in conversation data",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.422474",
+      "level": "success",
+      "message": "Conversation migration complete",
+      "details": {
+        "total": 2,
+        "migrated": 0,
+        "failed": 0,
+        "sessions_created": 0
+      }
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.427825",
+      "level": "info",
+      "message": "Migrating embeddings data...",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.456534",
+      "level": "warning",
+      "message": "No text content found in embedding data",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-02-03T14:27:01.456773",
+      "level": "success",
+      "message": "Embeddings migration complete",
+      "details": {
+        "total": 1,
+        "migrated": 0,
+        "failed": 0
+      }
+    }
+  ],
+  "summary": {
+    "total_items_migrated": 0,
+    "total_items_failed": 0,
+    "success_rate": 0
+  }
+}

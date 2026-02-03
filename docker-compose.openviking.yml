@@ -1,0 +1,176 @@
+# Docker Compose for OpenViking Experiment
+# Parallel deployment with existing LightRAG stack
+
+services:
+  # OpenViking Server - New context management system
+  openviking-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.openviking
+    container_name: lightrag-openviking
+    restart: unless-stopped
+    ports:
+      - "8002:8000"  # OpenViking API endpoint
+    environment:
+      - OPENVIKING_CONFIG_FILE=/app/config/ov-local.conf
+      - OPENVIKING_STORAGE_PATH=/data/openviking
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      - openviking_data:/data/openviking
+      - ./openviking/config:/app/config:ro
+      - ./openviking/logs:/app/logs
+      # Import existing data for migration
+      - ./.agent:/data/smp:ro          # Current SMP system (read-only)
+      - ~/.gemini:/data/global:ro        # Global memory (read-only)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - lightrag-experimental
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - openviking-redis
+
+  # Redis for OpenViking caching and queue
+  openviking-redis:
+    image: redis:7-alpine
+    container_name: lightrag-openviking-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - openviking_redis_data:/data
+    networks:
+      - lightrag-experimental
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: >
+      redis-server
+      --requirepass openviking_redis_secret
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+
+  # Migration Service - One-time data migration
+  openviking-migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.openviking-migration
+    container_name: lightrag-openviking-migration
+    environment:
+      - OPENVIKING_ENDPOINT=http://openviking-server:8000
+      - SMP_SOURCE=/data/smp
+      - GLOBAL_SOURCE=/data/global
+      - MIGRATION_LOG_LEVEL=DEBUG
+    volumes:
+      - openviking_data:/data/openviking
+      - ./.agent:/data/smp:ro          # Source SMP data
+      - ~/.gemini:/data/global:ro        # Source global data
+      - ./openviking/migration:/app/migration
+      - migration_logs:/app/logs
+    networks:
+      - lightrag-experimental
+    depends_on:
+      openviking-server:
+        condition: service_healthy
+    profiles:
+      - migration  # Only start when needed
+    command: ["python", "migrate_to_openviking.py"]
+
+  # LightRAG with OpenViking Integration - Experimental agent
+  lightrag-experimental:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lightrag-experimental
+    restart: unless-stopped
+    ports:
+      - "9622:9621"  # Different port to avoid conflict
+    environment:
+      - WORKING_DIR=/app/data/rag_storage_experimental
+      - INPUT_DIR=/app/data/inputs_experimental
+      - OPENVIKING_ENDPOINT=http://openviking-server:8000
+      - AGENT_COORDINATION_MODE=openviking  # New coordination mode
+      - AGENT_ID=experimental-agent
+      - LOG_LEVEL=DEBUG
+      - PYTHONPATH=/app
+    volumes:
+      - lightrag_experimental_data:/app/data
+      - ./lightrag:/app/lightrag:ro
+      # Mount OpenViking socket/volume for agent integration
+      - openviking_data:/shared/openviking:ro
+    networks:
+      - lightrag-experimental
+    depends_on:
+      openviking-server:
+        condition: service_healthy
+    profiles:
+      - experimental
+
+  # Performance Comparison Service - A/B testing
+  performance-comparison:
+    build:
+      context: .
+      dockerfile: Dockerfile.comparison
+    container_name: lightrag-performance-comparison
+    environment:
+      - SMP_AGENT_URL=http://lightrag-main:9621
+      - OPENVIKING_AGENT_URL=http://lightrag-experimental:9622
+      - COMPARISON_RESULTS_DIR=/data/results
+      - TEST_SCENARIOS_FILE=/app/scenarios/test_scenarios.json
+    volumes:
+      - comparison_results:/data/results
+      - ./openviking/comparison:/app/comparison
+      - ./openviking/test_scenarios:/app/scenarios
+    networks:
+      - lightrag-experimental
+      - lightrag-main  # Connect to main network
+    depends_on:
+      - lightrag-main
+      - lightrag-experimental
+    profiles:
+      - comparison
+    command: ["python", "run_comparison.py"]
+
+  # Existing LightRAG Main - Reference implementation
+  lightrag-main:
+    extends:
+      file: docker-compose.yml
+      service: lightrag  # Reference existing service
+    container_name: lightrag-main
+    networks:
+      - lightrag-main  # Separate network for isolation
+    profiles:
+      - main
+
+networks:
+  lightrag-experimental:
+    driver: bridge
+    internal: false
+  lightrag-main:
+    driver: bridge
+    internal: false
+
+volumes:
+  # OpenViking persistent storage
+  openviking_data:
+    driver: local
+  
+  openviking_redis_data:
+    driver: local
+  
+  migration_logs:
+    driver: local
+  
+  comparison_results:
+    driver: local
+  
+  lightrag_experimental_data:
+    driver: local

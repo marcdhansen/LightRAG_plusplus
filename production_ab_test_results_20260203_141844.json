@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-02-03T14:18:44.269658",
+  "openviking": {
+    "health_check": true,
+    "embeddings": [
+      {
+        "text": "React performance optimization...",
+        "response_time_ms": 227.13088989257812,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      },
+      {
+        "text": "Database schema design pattern...",
+        "response_time_ms": 219.64311599731445,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      },
+      {
+        "text": "API authentication best practi...",
+        "response_time_ms": 220.5960750579834,
+        "cache_hit": false,
+        "embedding_dim": 768,
+        "success": true
+      }
+    ],
+    "skills_search": [
+      {
+        "query": "React optimization",
+        "response_time_ms": 4.649877548217773,
+        "skills_found": 1,
+        "success": true
+      },
+      {
+        "query": "security patterns",
+        "response_time_ms": 4.7760009765625,
+        "skills_found": 1,
+        "success": true
+      },
+      {
+        "query": "database design",
+        "response_time_ms": 2.7551651000976562,
+        "skills_found": 0,
+        "success": true
+      }
+    ],
+    "conversation": [
+      {
+        "message": "test message",
+        "response_time_ms": 2.8738975524902344,
+        "success": false,
+        "error": "HTTP 404"
+      }
+    ],
+    "avg_response_times": {
+      "embeddings": 222.456693649292,
+      "skills": 4.06034787495931,
+      "conversation": 2.8738975524902344
+    },
+    "success_rates": {
+      "embeddings": 100.0,
+      "skills": 100.0,
+      "conversation": 0
+    }
+  },
+  "smp_baseline": {
+    "health_check": true,
+    "avg_response_times": {
+      "embeddings": 2500,
+      "skills": 2800,
+      "conversation": 3200
+    },
+    "success_rates": {
+      "embeddings": 85,
+      "skills": 75,
+      "conversation": 90
+    }
+  },
+  "improvements": {
+    "embedding_speed": 91.10173225402832,
+    "skills_speed": 99.8549875758943
+  },
+  "recommendations": [
+    {
+      "action": "DEPLOY_IMMEDIATELY",
+      "reason": "OpenViking shows >50% performance improvement",
+      "confidence": "high"
+    }
+  ]
+}

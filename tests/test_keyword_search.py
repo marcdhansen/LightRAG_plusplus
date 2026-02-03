@@ -342,9 +342,7 @@ class TestKeywordSearch:
         )
 
         # Verify keyword results are included
-        assert "keyword_contexts" in result, (
-            "Result should include keyword contexts"
-        )
+        assert "keyword_contexts" in result, "Result should include keyword contexts"
         assert len(result["keyword_contexts"]) == 2, (
             "Should include both keyword results"
         )
@@ -400,4 +398,5 @@ class TestKeywordSearch:
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__])

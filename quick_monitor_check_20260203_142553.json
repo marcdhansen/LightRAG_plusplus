@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-02-03T14:25:53.164434",
+  "uptime_seconds": 0.308655,
+  "health": {
+    "status": "healthy",
+    "timestamp": "2026-02-03T14:25:53.062387",
+    "version": "2.0.0-enhanced",
+    "features": [
+      "conversation_memory",
+      "enhanced_embeddings",
+      "skill_search",
+      "performance_monitoring",
+      "resource_management"
+    ],
+    "response_time_ms": 20.612
+  },
+  "endpoints": {
+    "embeddings": {
+      "success": true,
+      "response_time_ms": 61.553239822387695,
+      "status_code": 200
+    },
+    "skills": {
+      "success": false,
+      "response_time_ms": 5.063056945800781,
+      "status_code": 404
+    },
+    "conversation": {
+      "success": true,
+      "response_time_ms": 8.821964263916016,
+      "status_code": 200
+    }
+  },
+  "metrics": {
+    "timestamp": "2026-02-03T14:25:53.161541",
+    "systems": {
+      "openviking": {
+        "averages": {
+          "embedding_generation_time": {
+            "average": 51.26852989196777,
+            "min": 50.7969856262207,
+            "max": 51.80239677429199,
+            "count": 5
+          },
+          "skill_search_time": {
+            "average": 0.013642840915256076,
+            "min": 0.009298324584960938,
+            "max": 0.019311904907226562,
+            "count": 9
+          },
+          "conversation_time": {
+            "average": 0.037054220835367836,
+            "min": 0.021219253540039062,
+            "max": 0.09632110595703125,
+            "count": 12
+          },
+          "resource_storage_time": {
+            "average": 0.04124641418457031,
+            "min": 0.04124641418457031,
+            "max": 0.04124641418457031,
+            "count": 1
+          }
+        },
+        "total_requests": 33
+      }
+    },
+    "summary": {
+      "total_requests": 33,
+      "active_sessions": 9,
+      "cache_size": 5
+    }
+  },
+  "summary": {
+    "overall_status": "healthy",
+    "endpasses_working": 2,
+    "total_endpoints": 3,
+    "avg_response_time": 23.458401362101238
+  }
+}

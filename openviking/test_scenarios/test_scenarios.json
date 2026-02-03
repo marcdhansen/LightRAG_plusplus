@@ -1,0 +1,132 @@
+{
+  "scenarios": [
+    {
+      "name": "Skill Discovery - Complex",
+      "description": "Test ability to find and combine multiple skills for complex tasks",
+      "queries": [
+        "I need to optimize a React application that's slow. What skills can help me?",
+        "How do I migrate from monolith to microservices architecture?",
+        "Best approach for implementing real-time features in a web application",
+        "I want to set up a complete CI/CD pipeline for a Node.js project",
+        "How to handle authentication and authorization in a modern web app?"
+      ],
+      "category": "skill_discovery",
+      "expected_skills": ["PerformanceOptimizer", "Architect", "DevOpsExpert", "SecurityExpert"],
+      "metrics_weight": {
+        "response_time": 0.3,
+        "token_efficiency": 0.3,
+        "skill_discovery": 0.4
+      }
+    },
+    {
+      "name": "Token Efficiency - Long Context",
+      "description": "Test token usage efficiency with complex, multi-part queries",
+      "queries": [
+        "I'm building a comprehensive e-commerce platform with user authentication using JWT, product catalog with PostgreSQL, shopping cart with Redis, payment processing with Stripe, order management with microservices, inventory tracking with Elasticsearch, and admin dashboard with React. What's the best architecture and implementation strategy?",
+        "We need to design a scalable social media application that handles user profiles and relationships, real-time messaging with WebSockets, content feed with ranking algorithms, media storage with CDN, notifications system with push notifications, analytics with event tracking, and mobile apps for iOS and Android. What technologies and patterns should we use?",
+        "I need to migrate a large monolithic application to microservices. The current system handles user management with LDAP authentication, business logic with complex workflows, data processing with batch jobs, reporting with Business Intelligence tools, REST APIs with OAuth2, and a MySQL database with complex schema. How should I approach this migration?"
+      ],
+      "category": "token_efficiency",
+      "context_length": "long",
+      "metrics_weight": {
+        "token_efficiency": 0.6,
+        "response_time": 0.2,
+        "accuracy": 0.2
+      }
+    },
+    {
+      "name": "Response Quality - Technical",
+      "description": "Test technical accuracy and depth of responses",
+      "queries": [
+        "Explain the CAP theorem and its implications for distributed database design",
+        "What are the key differences between GraphQL and REST APIs, and when should I use each?",
+        "How does Kubernetes handle service discovery and load balancing internally?",
+        "What strategies can I use to optimize database performance for high-traffic applications?",
+        "Compare and contrast different architectural patterns: Monolith, Microservices, Serverless, and Event-driven systems"
+      ],
+      "category": "response_quality",
+      "expected_quality": "high",
+      "metrics_weight": {
+        "accuracy": 0.5,
+        "completeness": 0.3,
+        "response_time": 0.2
+      }
+    },
+    {
+      "name": "Speed - Simple Queries",
+      "description": "Test response time for common, straightforward queries",
+      "queries": [
+        "How do I create a Python virtual environment?",
+        "What's the difference between npm install and npm ci?",
+        "Git command to see commit history",
+        "How to stop a Docker container?",
+        "Basic HTTP status codes and their meanings"
+      ],
+      "category": "response_speed",
+      "expected_response_time": "<2000ms",
+      "metrics_weight": {
+        "response_time": 0.7,
+        "accuracy": 0.2,
+        "conciseness": 0.1
+      }
+    },
+    {
+      "name": "Skill Discovery - Domain Specific",
+      "description": "Test domain-specific skill discovery capabilities",
+      "queries": [
+        "I need to implement machine learning model deployment pipeline",
+        "How to optimize database queries for data warehouse workloads?",
+        "Best practices for mobile app security and data protection",
+        "I want to set up a data lake with ETL processes",
+        "How to implement zero-trust security architecture?"
+      ],
+      "category": "skill_discovery",
+      "expected_skills": ["MLExpert", "DatabaseExpert", "SecurityExpert", "DataEngineer"],
+      "metrics_weight": {
+        "skill_discovery": 0.4,
+        "response_time": 0.3,
+        "token_efficiency": 0.3
+      }
+    },
+    {
+      "name": "Multi-turn Conversation",
+      "description": "Test ability to maintain context across multiple interactions",
+      "queries": [
+        "I'm building a web application. First, what database should I use?",
+        "Based on your answer, how do I set up user authentication?",
+        "Now I need to add file upload functionality. What's the best approach?",
+        "How can I optimize performance for this application?",
+        "Finally, how should I deploy this application?"
+      ],
+      "category": "conversation",
+      "context_required": true,
+      "metrics_weight": {
+        "context_maintenance": 0.4,
+        "consistency": 0.3,
+        "response_time": 0.3
+      }
+    }
+  ],
+  "configuration": {
+    "max_concurrent_queries": 3,
+    "timeout_per_query": 60,
+    "retry_count": 2,
+    "warmup_queries": 2,
+    "metric_collection": {
+      "include_token_breakdown": true,
+      "include_skill_usage": true,
+      "include_context_metrics": true,
+      "include_performance_breakdown": true
+    },
+    "reporting": {
+      "generate_charts": true,
+      "include_statistical_tests": true,
+      "export_raw_data": true,
+      "success_criteria": {
+        "response_time_improvement": ">10%",
+        "token_efficiency_improvement": ">15%",
+        "success_rate_threshold": ">95%"
+      }
+    }
+  }
+}

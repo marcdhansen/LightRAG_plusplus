@@ -1,0 +1,35 @@
+# Performance Comparison Dockerfile
+# A/B testing framework for SMP vs OpenViking
+syntax=docker/dockerfile:1
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.comparison.txt .
+RUN pip install --no-cache-dir -r requirements.comparison.txt
+
+# Copy comparison framework
+COPY comparison/ ./comparison/
+COPY test_scenarios/ ./test_scenarios/
+COPY utils/ ./utils/
+
+# Create results directory
+RUN mkdir -p /data/results
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV SMP_AGENT_URL=http://lightrag-main:9621
+ENV OPENVIKING_AGENT_URL=http://lightrag-experimental:9622
+ENV COMPARISON_RESULTS_DIR=/data/results
+
+# Default command - run comparison tests
+CMD ["python", "comparison/run_comparison.py"]
