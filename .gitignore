@@ -81,3 +81,6 @@ global_docs
 task-lightrag-nml/
 # bd worktree
 lightrag-1sk/
+
+# Worktrees
+worktrees/
