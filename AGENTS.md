@@ -56,8 +56,9 @@ export OPENAI_API_KEY=your-key-here
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+3. **Verify markdown integrity** - Check and remove duplicate markdown files using hashes
+4. **Update issue status** - Close finished work, update in-progress items
+5. **PUSH TO REMOTE** - This is MANDATORY:
 
    ```bash
    # LightRAG repository
@@ -72,9 +73,9 @@ export OPENAI_API_KEY=your-key-here
    cd ~/.gemini && git push
    ```
 
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+6. **Clean up** - Clear stashes, prune remote branches
+7. **Verify** - All changes committed AND pushed
+8. **Hand off** - Provide context for next session
 
 ## 👥 Multi-Agent Coordination
 
@@ -235,9 +236,41 @@ Alternatively, ensure the Beads daemon (`bd daemon start`) is running with prope
 
 ---
 
+## 📝 Markdown Integrity Verification
+
+**MANDATORY:** All agents must verify markdown file integrity before ending a session. This prevents duplicate documentation and confusion.
+
+### How It Works
+
+The RTB workflow automatically runs `.agent/scripts/verify_markdown_duplicates.sh` which:
+
+1. **Calculates SHA-256 hashes** for all `.md` files (excluding `.git`, `node_modules`, `venv`)
+2. **Groups identical files** by hash value
+3. **Keeps the shortest path** file in each duplicate group
+4. **Removes duplicates** automatically or interactively
+
+### Manual Usage
+
+```bash
+# Auto-remove duplicates (keeps shortest path files)
+.agent/scripts/verify_markdown_duplicates.sh
+
+# Interactive review before removal
+.agent/scripts/verify_markdown_duplicates.sh --interactive
+```
+
+### Blocking Behavior
+
+- **RTB will fail** if duplicate markdown files are detected
+- **Session cannot end** until duplicates are resolved
+- **Auto-removal is safe** - keeps the most accessible file (shortest path)
+
+---
+
 **CRITICAL RULES:**
 
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+- **RTB is BLOCKED** by duplicate markdown files - must resolve before session end
