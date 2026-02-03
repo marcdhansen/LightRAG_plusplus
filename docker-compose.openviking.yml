@@ -23,6 +23,8 @@ services:
       # Import existing data for migration
       - ./.agent:/data/smp:ro          # Current SMP system (read-only)
       - ~/.gemini:/data/global:ro        # Global memory (read-only)
+      # Mount commands directory for slash commands
+      - ~/.agent:/root/.agent:ro        # Commands directory for slash commands
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
