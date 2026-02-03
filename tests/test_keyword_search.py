@@ -318,6 +318,14 @@ class TestKeywordSearch:
 
             keyword_storage = MockKeywordStorage()
 
+        # Mock other storage components
+        graph_inst = None
+        entities_vdb = None
+        relationships_vdb = None
+        text_chunks_db = None
+        chunks_vdb = None
+        keyword_storage = MockStorage.keyword_storage
+
         # Test RRF with keyword mode
         query_param = QueryParam(
             mode="rrf",

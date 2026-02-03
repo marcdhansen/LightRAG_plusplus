@@ -28,14 +28,14 @@ print_header() {
 # Check service status
 check_status() {
     print_header "LightRAG Services Status"
-    
+
     echo "🐋 Colima:"
     if colima status >/dev/null 2>&1; then
         echo "  ✅ Running"
     else
         echo "  ❌ Not running"
     fi
-    
+
     echo ""
     echo "🧠 OpenViking:"
     if curl -sf http://localhost:8002/health >/dev/null 2>&1; then
@@ -43,7 +43,7 @@ check_status() {
     else
         echo "  ❌ Not running"
     fi
-    
+
     echo ""
     echo "🐰 Ollama:"
     if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
@@ -56,7 +56,7 @@ check_status() {
 # Start services
 start_services() {
     print_header "Starting LightRAG Services"
-    
+
     # Start Colima
     if ! colima status >/dev/null 2>&1; then
         print_status "Starting Colima..."
@@ -70,13 +70,13 @@ start_services() {
     else
         print_status "Colima already running"
     fi
-    
+
     # Set Docker host for Colima
     if [ -S "$HOME/.colima/docker.sock" ]; then
         export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
         print_status "Docker host set to Colima"
     fi
-    
+
     # Start OpenViking
     if ! curl -sf http://localhost:8002/health >/dev/null 2>&1; then
         print_status "Starting OpenViking..."
@@ -90,7 +90,7 @@ start_services() {
     else
         print_status "OpenViking already running"
     fi
-    
+
     # Start Ollama
     if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
         print_status "Starting Ollama..."
@@ -100,7 +100,7 @@ start_services() {
     else
         print_status "Ollama already running"
     fi
-    
+
     print_status "All services started!"
     echo ""
     check_status
@@ -109,14 +109,14 @@ start_services() {
 # Stop services
 stop_services() {
     print_header "Stopping LightRAG Services"
-    
+
     print_status "Stopping OpenViking..."
     cd "$LIGHTTRAG_DIR"
     ./openviking/scripts/manage.sh stop >/dev/null 2>&1
-    
+
     print_status "Stopping Colima..."
     colima stop
-    
+
     print_status "Services stopped"
 }
 

@@ -45,7 +45,7 @@ async def demo_openviking():
         cache_hit_2 = response2.json().get("cache_hit", False)
         print(f"   Second request cache hit: {cache_hit_2}")
 
-        caching_works = cache_hit_1 == False and cache_hit_2 == True
+        caching_works = not cache_hit_1 and cache_hit_2
         print(f"   🚀 Caching working: {'✅ YES' if caching_works else '❌ NO'}")
 
         # Test 3: Skill Search

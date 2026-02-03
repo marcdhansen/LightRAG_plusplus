@@ -1,7 +1,7 @@
 # 🔗 Complete Symlink Ecosystem Reference
 
-**Purpose**: Comprehensive technical reference for LightRAG symlink architecture.  
-**Target**: System administrators, advanced troubleshooting, and ecosystem maintenance.  
+**Purpose**: Comprehensive technical reference for LightRAG symlink architecture.
+**Target**: System administrators, advanced troubleshooting, and ecosystem maintenance.
 **Ecosystem Tier**: Tier 3 - Complete Technical Reference
 
 ---
@@ -9,12 +9,12 @@
 ## 🏗️ **System Architecture Overview**
 
 ### **Core Principle: Symlink Exception**
-**Standard Rule**: `.agent/` directory is single source of truth  
+**Standard Rule**: `.agent/` directory is single source of truth
 **Exception**: Skills and commands use `~/.gemini/antigravity/` as universal source
 
 ### **Why This Architecture?**
 1. **Prevents Antigravity Breakage**: `~/.gemini` with symlinks causes system failures
-2. **Universal Resource Sharing**: Multiple tools access same capabilities  
+2. **Universal Resource Sharing**: Multiple tools access same capabilities
 3. **Cross-Project Compatibility**: Consistent access across all workspaces
 4. **Tool-Specific Integration**: Different IDEs have different access patterns
 
@@ -26,7 +26,7 @@
 ```
 ~/.gemini/antigravity/skills/                    ← UNIVERSAL SOURCE OF TRUTH
 ├── reflect/                                     # Session reflection
-├── return-to-base/                              # RTB procedures  
+├── return-to-base/                              # RTB procedures
 ├── show-next-task/                              # Task discovery
 ├── openviking/                                  # Enhanced agent system
 ├── process/                                     # Process management
@@ -77,7 +77,7 @@ BOOTSTRAP.md → ~/.agent/docs/ONBOARDING.md        # Project bootstrap guide
 ### **Source Directories (Write Access)**
 ```bash
 ~/.gemini/antigravity/skills/           # Skills source of truth
-~/.gemini/antigravity/global_workflows/  # Global commands source of truth (Antigravity naming)  
+~/.gemini/antigravity/global_workflows/  # Global commands source of truth (Antigravity naming)
 ~/.agent/                               # Global configuration source
 ```
 
@@ -139,7 +139,7 @@ mkdir -p ~/.agent/docs/
 ln -sf ~/.gemini/antigravity/skills/ .agent/skills/
 ln -sf ~/.gemini/antigravity/skills/ ~/.config/opencode/skills/
 
-# 3. Create commands symlinks  
+# 3. Create commands symlinks
 ln -sf ~/.gemini/antigravity/global_workflows/ ~/.agent/commands/
 ln -sf ~/.gemini/antigravity/global_workflows/ ~/.config/opencode/commands/
 
@@ -158,29 +158,29 @@ ln -sf ~/.agent/docs/ONBOARDING.md BOOTSTRAP.md
 # Validate all critical symlinks
 function validate_symlinks() {
     local errors=0
-    
+
     # Skills symlinks
     if [[ ! -L ".agent/skills" ]] || [[ "$(readlink .agent/skills)" != "$(echo ~/.gemini/antigravity/skills/)" ]]; then
         echo "❌ BROKEN: .agent/skills symlink"
         ((errors++))
     fi
-    
+
     if [[ ! -L "~/.config/opencode/skills" ]] || [[ "$(readlink ~/.config/opencode/skills)" != "$(echo ~/.gemini/antigravity/skills/)" ]]; then
         echo "❌ BROKEN: ~/.config/opencode/skills symlink"
         ((errors++))
     fi
-    
+
     # Commands symlinks
     if [[ ! -L "~/.agent/commands" ]] || [[ "$(readlink ~/.agent/commands)" != "$(echo ~/.gemini/antigravity/global_workflows/)" ]]; then
         echo "❌ BROKEN: ~/.agent/commands symlink"
         ((errors++))
     fi
-    
+
     if [[ ! -L "~/.config/opencode/commands" ]] || [[ "$(readlink ~/.config/opencode/commands)" != "$(echo ~/.gemini/antigravity/global_workflows/)" ]]; then
         echo "❌ BROKEN: ~/.config/opencode/commands symlink"
         ((errors++))
     fi
-    
+
     return $errors
 }
 
@@ -198,30 +198,30 @@ fi
 # Broken skills symlink repair
 function repair_skills_symlinks() {
     echo "🔧 Repairing skills symlinks..."
-    
+
     # Remove broken symlinks
     [[ -L ".agent/skills" ]] && rm .agent/skills
     [[ -L "~/.config/opencode/skills" ]] && rm ~/.config/opencode/skills
-    
+
     # Recreate correct symlinks
     ln -sf ~/.gemini/antigravity/skills/ .agent/skills/
     ln -sf ~/.gemini/antigravity/skills/ ~/.config/opencode/skills/
-    
+
     echo "✅ Skills symlinks repaired"
 }
 
 # Broken commands symlink repair
 function repair_commands_symlinks() {
     echo "🔧 Repairing commands symlinks..."
-    
+
     # Remove broken symlinks
     [[ -L "~/.agent/commands" ]] && rm ~/.agent/commands
     [[ -L "~/.config/opencode/commands" ]] && rm ~/.config/opencode/commands
-    
+
     # Recreate correct symlinks
     ln -sf ~/.gemini/antigravity/global_workflows/ ~/.agent/commands/
     ln -sf ~/.gemini/antigravity/global_workflows/ ~/.config/opencode/commands/
-    
+
     echo "✅ Commands symlinks repaired"
 }
 ```
@@ -279,7 +279,7 @@ ln -sf /full/path/to/.gemini/antigravity/skills/ .agent/skills/
 function audit_symlink_ecosystem() {
     echo "🔍 SYMLINK ECOSYSTEM AUDIT"
     echo "=========================="
-    
+
     # Check source directories
     echo "📁 Source Directories:"
     for dir in "skills" "global_workflows"; do
@@ -291,7 +291,7 @@ function audit_symlink_ecosystem() {
             echo "❌ $path MISSING"
         fi
     done
-    
+
     # Check symlinks
     echo -e "\n🔗 Symlink Access Points:"
     declare -A symlinks=(
@@ -300,7 +300,7 @@ function audit_symlink_ecosystem() {
         ["~/.agent/commands"]="~/.gemini/antigravity/global_workflows/"
         ["~/.config/opencode/commands"]="~/.gemini/antigravity/global_workflows/"
     )
-    
+
     for link in "${!symlinks[@]}"; do
         if [[ -L "$link" ]]; then
             local target=$(readlink "$link")
@@ -395,7 +395,7 @@ jobs:
 
 ### **Tier Navigation**
 - **⬇️ Down**: [**Quick Reference**](../workspace/QUICK_REFERENCE.md) - Daily usage
-- **⬇️ Down**: [**Skills Ecosystem Guide**](./SKILLS_ECOSYSTEM.md) - Skills details  
+- **⬇️ Down**: [**Skills Ecosystem Guide**](./SKILLS_ECOSYSTEM.md) - Skills details
 - **⬇️ Down**: [**Commands Ecosystem Guide**](./COMMANDS_ECOSYSTEM.md) - Commands details
 
 ### **System Integration**
@@ -405,6 +405,6 @@ jobs:
 
 ---
 
-**Last Updated**: 2026-02-03  
-**Part of**: LightRAG Three-Tier Documentation System (Tier 3 - Complete Technical Reference)  
+**Last Updated**: 2026-02-03
+**Part of**: LightRAG Three-Tier Documentation System (Tier 3 - Complete Technical Reference)
 **Scope**: Universal Symlink Architecture (cross-project, cross-tool compatibility)

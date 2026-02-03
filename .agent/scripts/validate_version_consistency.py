@@ -5,13 +5,11 @@ Version Consistency Validator
 Ensures global and project versions stay aligned and detects drift
 """
 
-import os
 import json
 import subprocess
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -19,8 +17,8 @@ class VersionConflict:
     """Represents a version conflict between sources"""
 
     file_path: str
-    global_version: Optional[str]
-    project_version: Optional[str]
+    global_version: str | None
+    project_version: str | None
     conflict_type: str  # 'missing', 'outdated', 'format_mismatch'
     severity: str  # 'high', 'medium', 'low'
 
@@ -31,9 +29,9 @@ class VersionValidator:
     def __init__(self):
         self.agent_global = Path.home() / ".agent"
         self.project_agent = Path(".agent")
-        self.conflicts: List[VersionConflict] = []
+        self.conflicts: list[VersionConflict] = []
 
-    def validate_all(self) -> List[VersionConflict]:
+    def validate_all(self) -> list[VersionConflict]:
         """Validate all version consistency checks"""
         print("🔍 Checking version consistency...")
         print("==================================")
@@ -126,7 +124,7 @@ class VersionValidator:
             )
 
             if result.returncode == 0:
-                with open("/tmp/skill_registry.json", "r") as f:
+                with open("/tmp/skill_registry.json") as f:
                     registry = json.load(f)
 
                 for name, skill in registry["skills"].items():
@@ -203,13 +201,13 @@ class VersionValidator:
                 )
                 print(f"      ⚠️  Missing documentation: {doc}")
 
-def _get_file_version(self, file_path: Path) -> str:
+    def _get_file_version(self, file_path: Path) -> str:
         """Extract version from file (simple heuristics)"""
         if not file_path.exists():
             return ""
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             # Look for version in frontmatter or common patterns
@@ -222,10 +220,10 @@ def _get_file_version(self, file_path: Path) -> str:
 
             # Common version patterns
             version_patterns = [
-                r'version[:\s*([0-9]+\.[0-9]+)',
-                r'v([0-9]+\.[0-9]+)',
-                r'Updated:[\s*([0-9]+-[0-9]+-[0-9]+)',
-                r'Last Updated:[\s*([0-9]+-[0-9]+-[0-9]+)'
+                r"version[:\s*([0-9]+\.[0-9]+)",
+                r"v([0-9]+\.[0-9]+)",
+                r"Updated:[\s*([0-9]+-[0-9]+-[0-9]+)",
+                r"Last Updated:[\s*([0-9]+-[0-9]+-[0-9]+)",
             ]
 
             for pattern in version_patterns:
@@ -243,7 +241,7 @@ def _get_file_version(self, file_path: Path) -> str:
             major1 = v1.split(".")[0] if "." in v1 else v1
             major2 = v2.split(".")[0] if "." in v2 else v2
             return major1 != major2
-        except:
+        except Exception:
             return False
 
     def generate_report(self, output_path: Path):
@@ -284,7 +282,7 @@ def _get_file_version(self, file_path: Path) -> str:
 
     def print_summary(self):
         """Print validation summary"""
-        print(f"\n📊 Version Consistency Summary:")
+        print("\n📊 Version Consistency Summary:")
         print("=" * 40)
         print(f"Total conflicts: {len(self.conflicts)}")
 
@@ -300,7 +298,7 @@ def _get_file_version(self, file_path: Path) -> str:
                 if count > 0:
                     print(f"   {severity.title()} severity: {count}")
 
-            print(f"\n🔧 Suggested actions:")
+            print("\n🔧 Suggested actions:")
             print("   1. Update project files to match global versions")
             print("   2. Use symlinks instead of copies")
             print("   3. Run regular consistency checks")

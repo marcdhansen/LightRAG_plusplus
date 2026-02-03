@@ -98,14 +98,14 @@ fi
 echo -e "\n🚀 Starting OpenViking services..."
 if ./openviking/scripts/manage.sh start >/dev/null 2>&1; then
     echo -e "  ✅ OpenViking services started successfully"
-    
+
     # Verify OpenViking health
     if curl -sf http://localhost:8002/health >/dev/null 2>&1; then
         echo -e "  ✅ OpenViking API healthy (port 8002)"
     else
         echo -e "  ⚠️  OpenViking API not responding - check logs"
     fi
-    
+
     # Sync OpenViking commands for local workflows
     if python3 openviking/commands.py --sync .agent/workflows >/dev/null 2>&1; then
         echo -e "  ✅ OpenViking commands synced to .agent/workflows/"

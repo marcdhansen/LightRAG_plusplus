@@ -56,7 +56,6 @@ async def test_keyword_end_to_end():
             async def search_keywords(
                 self, keywords: list[str], limit: int = 50
             ) -> list[dict[str, Any]]:
-                results = []
                 doc_scores = {}
                 for keyword in keywords:
                     if keyword in self.keyword_index:

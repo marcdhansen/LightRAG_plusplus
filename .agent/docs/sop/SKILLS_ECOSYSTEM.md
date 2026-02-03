@@ -1,7 +1,7 @@
 # 🧠 Skills Ecosystem Guide
 
-**Purpose**: Complete documentation of the LightRAG skills system and access points.  
-**Target**: Advanced users needing comprehensive skills understanding.  
+**Purpose**: Complete documentation of the LightRAG skills system and access points.
+**Target**: Advanced users needing comprehensive skills understanding.
 **Ecosystem Tier**: Tier 2 - Detailed Guide (separate ecosystem document)
 
 ---
@@ -33,7 +33,7 @@ Claude Compatible:   ~/.claude/skills/ → ~/.gemini/antigravity/skills/ (legacy
 ### **🔍 Core Skills**
 
 #### **`reflect/` - Session Reflection & Learning**
-**Purpose**: Capture session learnings to prevent repeating mistakes  
+**Purpose**: Capture session learnings to prevent repeating mistakes
 **Usage**: End-of-session analysis and continuous improvement
 
 **Structure**:
@@ -58,7 +58,7 @@ reflect/
 ---
 
 #### **`return-to-base/` - RTB Procedures**
-**Purpose**: Complete Return To Base workflow with validation  
+**Purpose**: Complete Return To Base workflow with validation
 **Usage**: End-of-session validation and cleanup
 
 **Structure**:
@@ -83,7 +83,7 @@ return-to-base/
 ---
 
 #### **`show-next-task/` - Task Discovery**
-**Purpose**: Discover available tasks and current priorities  
+**Purpose**: Discover available tasks and current priorities
 **Usage**: Task assignment and workflow navigation
 
 **Structure**:
@@ -104,7 +104,7 @@ show-next-task/
 ### **⚙️ System Skills**
 
 #### **`openviking/` - Enhanced Agent System**
-**Purpose**: OpenViking enhanced agent capabilities  
+**Purpose**: OpenViking enhanced agent capabilities
 **Usage**: Advanced agent operations and optimization
 
 **Structure**:
@@ -124,7 +124,7 @@ openviking/
 ---
 
 #### **`process/` - Process Management**
-**Purpose**: Workflow and process automation  
+**Purpose**: Workflow and process automation
 **Usage**: Complex workflow coordination
 
 **Structure**:
@@ -145,7 +145,7 @@ process/
 ### **🧪 Development Skills**
 
 #### **`testing/` - Testing Protocols**
-**Purpose**: Comprehensive testing strategies  
+**Purpose**: Comprehensive testing strategies
 **Usage**: Test planning, execution, and validation
 
 **Structure**:
@@ -165,7 +165,7 @@ testing/
 ---
 
 #### **`ui/` - UI Operations**
-**Purpose**: User interface testing and validation  
+**Purpose**: User interface testing and validation
 **Usage**: Frontend testing and browser automation
 
 **Structure**:
@@ -192,7 +192,7 @@ ui/
 
 # Examples:
 /skill reflect
-/skill return-to-base  
+/skill return-to-base
 /skill show-next-task
 ```
 
@@ -256,7 +256,7 @@ ls ~/.claude/skills/  # → symlinked to global skills
 2. **Create SKILL.md**:
    ```markdown
    # New Skill
-   
+
    **Purpose**: Brief description
    **Usage**: How to invoke
    **Structure**: Directory layout
@@ -384,6 +384,6 @@ python ~/.agent/scripts/test_all_skills.py
 
 ---
 
-**Last Updated**: 2026-02-03  
-**Part of**: LightRAG Three-Tier Documentation System (Tier 2 - Skills Ecosystem)  
+**Last Updated**: 2026-02-03
+**Part of**: LightRAG Three-Tier Documentation System (Tier 2 - Skills Ecosystem)
 **Scope**: Universal Skills Documentation (cross-project compatibility)

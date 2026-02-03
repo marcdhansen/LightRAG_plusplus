@@ -243,7 +243,7 @@ class PerformanceComparator:
 
         scenario_name = scenario["name"]
         queries = scenario["queries"]
-        category = scenario.get("category", "general")
+        scenario.get("category", "general")
 
         self.log.info(
             "Running scenario comparison", scenario=scenario_name, queries=len(queries)
@@ -366,7 +366,7 @@ class PerformanceComparator:
         # Overall winner
         openviking_wins = sum(1 for r in self.results if r.winner == "openviking")
         smp_wins = sum(1 for r in self.results if r.winner == "smp")
-        ties = sum(1 for r in self.results if r.winner == "tie")
+        sum(1 for r in self.results if r.winner == "tie")
 
         if openviking_wins > smp_wins:
             report += "🏆 **OpenViking shows overall better performance**\n\n"
@@ -566,9 +566,6 @@ class PerformanceComparator:
         table.add_column("Winner", style="bold")
 
         for result in self.results:
-            improvement_style = (
-                "green" if result.response_time_improvement > 0 else "red"
-            )
             winner_style = {"smp": "blue", "openviking": "green", "tie": "yellow"}.get(
                 result.winner, "white"
             )

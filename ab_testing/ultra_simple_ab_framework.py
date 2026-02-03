@@ -15,7 +15,6 @@ class UltraMinimalABTestRunner:
 
     async def run_tests(self) -> dict[str, Any]:
         """Run ultra-minimal A/B tests"""
-        test_queries = ["React optimization", "API authentication"]
 
         results = {}
 
@@ -51,12 +50,8 @@ class UltraMinimalABTestRunner:
             openviking_results["avg_response_time_ms"]
             < smp_results["avg_response_time_ms"]
         ):
-            winner = "OpenViking"
-            winner_emoji = "🏆"
             print("   🚀 OpenViking significantly outperforms SMP!")
         else:
-            winner = "SMP"
-            winner_emoji = "🚖️"
             print("   🚖️ SMP maintains performance edge")
 
         return results
@@ -67,7 +62,7 @@ async def main():
     runner = UltraMinimalABTestRunner()
 
     try:
-        results = await runner.run_tests()
+        await runner.run_tests()
         return 0
     except Exception as e:
         print(f"\n❌ A/B testing failed: {e}")

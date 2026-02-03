@@ -1,7 +1,7 @@
 # ⚡ Commands & Workflows Ecosystem Guide
 
-**Purpose**: Complete documentation of LightRAG slash commands and workflow system.  
-**Target**: Advanced users needing comprehensive command understanding.  
+**Purpose**: Complete documentation of LightRAG slash commands and workflow system.
+**Target**: Advanced users needing comprehensive command understanding.
 **Ecosystem Tier**: Tier 2 - Detailed Guide (separate ecosystem document)
 
 ---
@@ -24,7 +24,7 @@ Project OpenCode:    .opencode/commands/ → Project-specific commands (if exist
 
 ### **Why This Structure?**
 - **Prevents Breakage**: Antigravity breaks if `~/.gemini` contains symlinks
-- **Single Source**: Global workflows maintained in one location  
+- **Single Source**: Global workflows maintained in one location
 - **Multi-Tool Access**: Different IDEs/tools access same commands via symlinks
 - **Workspace Flexibility**: Projects can have local workflow customizations
 
@@ -36,7 +36,7 @@ Project OpenCode:    .opencode/commands/ → Project-specific commands (if exist
 ```bash
 ~/.gemini/antigravity/global_workflows/
 ├── rtb.md              # Return To Base workflow
-├── next.md             # Task discovery workflow  
+├── next.md             # Task discovery workflow
 ├── reflect.md          # Session reflection workflow
 └── [other-workflows].md # Additional global workflows
 ```
@@ -57,7 +57,7 @@ Project OpenCode:    .opencode/commands/ → Project-specific commands (if exist
 ├── next.md → ~/.gemini/antigravity/global_workflows/next.md
 └── reflect.md → ~/.gemini/antigravity/global_workflows/reflect.md
 
-# Agent Global Access  
+# Agent Global Access
 ~/.agent/commands/
 ├── rtb.md → ~/.gemini/antigravity/global_workflows/rtb.md
 ├── next.md → ~/.gemini/antigravity/global_workflows/next.md
@@ -71,7 +71,7 @@ Project OpenCode:    .opencode/commands/ → Project-specific commands (if exist
 ### **🛬 Core System Commands**
 
 #### **`/rtb` - Return To Base**
-**Purpose**: Complete Return To Base workflow with validation  
+**Purpose**: Complete Return To Base workflow with validation
 **Usage**: End-of-session validation and cleanup (MANDATORY)
 
 **Access Points**:
@@ -89,7 +89,7 @@ model: any
 ---
 
 1. Validate git status and commits
-2. Run quality gates (linters, tests)  
+2. Run quality gates (linters, tests)
 3. Check markdown integrity
 4. Complete session workflow
 5. Push changes and cleanup
@@ -111,7 +111,7 @@ model: any
 ---
 
 #### **`/next` - Task Discovery**
-**Purpose**: Discover available tasks and current priorities  
+**Purpose**: Discover available tasks and current priorities
 **Usage**: Task assignment and workflow navigation
 
 **Access Points**:
@@ -124,7 +124,7 @@ model: any
 ```markdown
 ---
 description: Task discovery and assignment
-agent: any  
+agent: any
 model: any
 ---
 
@@ -145,12 +145,12 @@ model: any
 ---
 
 #### **`/reflect` - Session Reflection**
-**Purpose**: Capture session learnings and continuous improvement  
+**Purpose**: Capture session learnings and continuous improvement
 **Usage**: End-of-session analysis and learning capture
 
 **Access Points**:
 ```bash
-/reflect                # Direct invocation  
+/reflect                # Direct invocation
 # Available through all access points
 ```
 
@@ -181,7 +181,7 @@ model: any
 ### **🔧 Development Commands**
 
 #### **`/test` - Test Execution**
-**Purpose**: Comprehensive test execution and reporting  
+**Purpose**: Comprehensive test execution and reporting
 **Usage**: Run tests with coverage and validation
 
 **Access Points**:
@@ -210,7 +210,7 @@ model: any
 ---
 
 #### **`/build` - Build System**
-**Purpose**: Build and package the project  
+**Purpose**: Build and package the project
 **Usage**: Compile, bundle, and validate build
 
 **Access Points**:
@@ -225,7 +225,7 @@ build clean            # Clean build artifacts
 ```markdown
 ---
 description: Project build and packaging
-agent: build  
+agent: build
 model: any
 ---
 
@@ -239,7 +239,7 @@ model: any
 ---
 
 #### **`/lint` - Code Quality**
-**Purpose**: Run linting and code quality checks  
+**Purpose**: Run linting and code quality checks
 **Usage**: Validate code style and quality standards
 
 **Access Points**:
@@ -269,7 +269,7 @@ model: any
 ### **📊 Project Management Commands**
 
 #### **`/status` - Project Status**
-**Purpose**: Show current project status and health  
+**Purpose**: Show current project status and health
 **Usage**: Quick project overview and health check
 
 **Access Points**:
@@ -297,7 +297,7 @@ model: any
 ---
 
 #### **`/plan` - Planning Mode**
-**Purpose**: Enter planning mode for new features  
+**Purpose**: Enter planning mode for new features
 **Usage**: Structured planning and specification
 
 **Access Points**:
@@ -333,7 +333,7 @@ model: any
 /next
 /reflect
 
-# With parameters  
+# With parameters
 /test coverage
 /build release
 /lint fix
@@ -394,7 +394,7 @@ ls .agent/workflows/  # → workspace-specific workflows
 
 # Usage in Antigravity context
 /rtb    # Direct availability
-/next   # Direct availability  
+/next   # Direct availability
 /reflect # Direct availability
 ```
 
@@ -402,7 +402,7 @@ ls .agent/workflows/  # → workspace-specific workflows
 ```yaml
 # .agent/workflows/rtb.md (→ global)
 ---
-description: Complete Return To Base workflow  
+description: Complete Return To Base workflow
 agent: any
 model: any
 ---
@@ -439,7 +439,7 @@ ls ~/.agent/commands/  # → global workflows
    agent: appropriate-agent-type
    model: any/specific-model
    ---
-   
+
    # Command workflow steps
    1. Step one
    2. Step two
@@ -465,7 +465,7 @@ ls ~/.agent/commands/  # → global workflows
    agent: any
    model: any
    ---
-   
+
    # Project-specific workflow
    1. Project step one
    2. Project step two
@@ -476,8 +476,8 @@ ls ~/.agent/commands/  # → global workflows
    ```bash
    # Global commands
    vim ~/.gemini/antigravity/global_workflows/existing-command.md
-   
-   # Workspace commands  
+
+   # Workspace commands
    vim .agent/workflows/project-command.md
    ```
 
@@ -501,7 +501,7 @@ ls ~/.agent/commands/  # → global workflows
 ```bash
 # Check all command access points
 ls -la ~/.agent/commands/
-ls -la ~/.config/opencode/commands/  
+ls -la ~/.config/opencode/commands/
 ls -la .agent/workflows/
 
 # Fix broken agent global symlink
@@ -608,13 +608,13 @@ python ~/.agent/scripts/test_all_commands.py
 - **⬆️ Up**: [**Complete Symlink Ecosystem**](./COMPLETE_SYMLINK_ECOSYSTEM.md) - Technical reference
 - **↔️ Related**: [**Skills Ecosystem Guide**](./SKILLS_ECOSYSTEM.md) - Skills and capabilities
 
-### **Project Integration**  
+### **Project Integration**
 - **[Project Roadmap](../../rules/ROADMAP.md)** - Current project objectives
 - **[Implementation Plan](../../rules/ImplementationPlan.md)** - Technical execution plan
 - **[SOP Validation](./SOP_CONSISTENCY_VALIDATION.md)** - Compliance validation
 
 ---
 
-**Last Updated**: 2026-02-03  
-**Part of**: LightRAG Three-Tier Documentation System (Tier 2 - Commands Ecosystem)  
+**Last Updated**: 2026-02-03
+**Part of**: LightRAG Three-Tier Documentation System (Tier 2 - Commands Ecosystem)
 **Scope**: Universal Commands Documentation (cross-project compatibility)

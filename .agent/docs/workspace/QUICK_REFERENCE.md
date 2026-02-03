@@ -1,6 +1,6 @@
 # 🚀 LightRAG Quick Reference
 
-**Purpose**: Essential skills and commands for daily productive work.  
+**Purpose**: Essential skills and commands for daily productive work.
 **Target**: Immediate access to most commonly used capabilities.
 
 ---
@@ -8,15 +8,15 @@
 ## 🛠️ **Essential Skills (Daily Use)**
 
 ### **🧠 `/reflect` - Session Learning**
-**Use When**: Ending work session or encountering new patterns  
+**Use When**: Ending work session or encountering new patterns
 **Purpose**: Capture learnings to prevent repeating mistakes
 
 ```bash
 /reflect
 ```
 
-### **🛬 `/rtb` - Return To Base** 
-**Use When**: Finishing work (MANDATORY)  
+### **🛬 `/rtb` - Return To Base**
+**Use When**: Finishing work (MANDATORY)
 **Purpose**: Complete session workflow with validation
 
 ```bash
@@ -24,7 +24,7 @@
 ```
 
 ### **📋 `/next` - Task Discovery**
-**Use When**: Starting work or needing next objective  
+**Use When**: Starting work or needing next objective
 **Purpose**: Find available tasks and current priorities
 
 ```bash
@@ -47,7 +47,7 @@ bd ready
 # (your implementation here)
 ```
 
-### **End Work Session**  
+### **End Work Session**
 ```bash
 # 1. Complete work
 # (finish coding, testing, etc.)
@@ -159,11 +159,11 @@ bd ready
 
 ## 📚 **Need More Detail?**
 
-→ **[Skills Ecosystem Guide](./sop/SKILLS_ECOSYSTEM.md)** - Complete skills documentation  
-→ **[Commands Ecosystem Guide](./sop/COMMANDS_ECOSYSTEM.md)** - Complete command reference  
-→ **[Complete Symlink Ecosystem](./sop/COMPLETE_SYMLINK_ECOSYSTEM.md)** - Technical reference  
+→ **[Skills Ecosystem Guide](./sop/SKILLS_ECOSYSTEM.md)** - Complete skills documentation
+→ **[Commands Ecosystem Guide](./sop/COMMANDS_ECOSYSTEM.md)** - Complete command reference
+→ **[Complete Symlink Ecosystem](./sop/COMPLETE_SYMLINK_ECOSYSTEM.md)** - Technical reference
 
 ---
 
-**Last Updated**: 2026-02-03  
+**Last Updated**: 2026-02-03
 **Part of**: LightRAG Three-Tier Documentation System (Tier 1 - Quick Reference)

@@ -36,8 +36,8 @@ Access Points:
 ```
 
 ### **Documentation**
-→ **[Quick Reference](../workspace/QUICK_REFERENCE.md)** - Daily essential skills & commands  
-→ **[Skills Ecosystem Guide](./SKILLS_ECOSYSTEM.md)** - Complete skills documentation  
+→ **[Quick Reference](../workspace/QUICK_REFERENCE.md)** - Daily essential skills & commands
+→ **[Skills Ecosystem Guide](./SKILLS_ECOSYSTEM.md)** - Complete skills documentation
 → **[Commands Ecosystem Guide](./COMMANDS_ECOSYSTEM.md)** - Complete command reference
 
 ## Purpose

@@ -56,5 +56,5 @@ For detailed troubleshooting, see [**Skills Ecosystem Guide**](../docs/sop/SKILL
 
 ---
 
-**Last Updated**: 2026-02-03  
+**Last Updated**: 2026-02-03
 **Part of**: LightRAG Symlink Ecosystem

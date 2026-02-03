@@ -7,11 +7,9 @@ Validates internal documentation references and links
 
 import json
 import re
-import functools
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -155,7 +153,7 @@ class ReferenceChecker:
         link_target: str,
         line_num: int,
         line: str,
-    ) -> Optional[ReferenceIssue]:
+    ) -> ReferenceIssue | None:
         """Check if a reference is valid"""
 
         # Skip external URLs
