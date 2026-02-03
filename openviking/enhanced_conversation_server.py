@@ -5,19 +5,18 @@ Production-ready implementation with multi-turn conversation support
 """
 
 import asyncio
-import json
-import time
 import hashlib
 import logging
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
-from collections import defaultdict, deque
+import time
 import uuid
-import httpx
-from fastapi import FastAPI, HTTPException, Header
+from collections import defaultdict, deque
+from datetime import datetime, timedelta
+from typing import Any
+
+import uvicorn
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import uvicorn
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +42,7 @@ class ConversationMemory:
         self.timeout_minutes = 30
 
     def add_message(
-        self, session_id: str, role: str, content: str, metadata: Dict = None
+        self, session_id: str, role: str, content: str, metadata: dict = None
     ):
         if session_id not in self.sessions:
             self.sessions[session_id] = {
@@ -64,7 +63,7 @@ class ConversationMemory:
         )
         session["last_activity"] = datetime.now()
 
-    def get_context(self, session_id: str, last_n: int = 3) -> List[Dict]:
+    def get_context(self, session_id: str, last_n: int = 3) -> list[dict]:
         if session_id not in self.sessions:
             return []
 
@@ -84,7 +83,7 @@ class ConversationMemory:
         for sid in expired_sessions:
             del self.sessions[sid]
 
-    def get_session_stats(self, session_id: str) -> Dict:
+    def get_session_stats(self, session_id: str) -> dict:
         if session_id not in self.sessions:
             return {}
 
@@ -141,7 +140,7 @@ class PerformanceMonitor:
         self.metrics = {}
 
     def record_metric(
-        self, system: str, metric_type: str, value: float, metadata: Dict = None
+        self, system: str, metric_type: str, value: float, metadata: dict = None
     ):
         timestamp = datetime.now().isoformat()
 
@@ -170,16 +169,16 @@ class HealthResponse(BaseModel):
     status: str
     timestamp: str
     version: str
-    features: List[str]
+    features: list[str]
 
 
 class EmbeddingRequest(BaseModel):
     text: str
-    cache_key: Optional[str] = None
+    cache_key: str | None = None
 
 
 class EmbeddingResponse(BaseModel):
-    embedding: List[float]
+    embedding: list[float]
     dimension: int
     model: str
     cached: bool = False
@@ -189,11 +188,11 @@ class EmbeddingResponse(BaseModel):
 class SkillSearchRequest(BaseModel):
     query: str
     max_results: int = 10
-    category: Optional[str] = None
+    category: str | None = None
 
 
 class SkillResponse(BaseModel):
-    skills: List[Dict[str, Any]]
+    skills: list[dict[str, Any]]
     query: str
     found_count: int
     search_time_ms: float
@@ -209,23 +208,23 @@ class ConversationRequest(BaseModel):
 class ConversationResponse(BaseModel):
     session_id: str
     response: str
-    context_messages: List[Dict[str, Any]]
+    context_messages: list[dict[str, Any]]
     message_count: int
-    session_stats: Dict[str, Any]
+    session_stats: dict[str, Any]
 
 
 class ResourceRequest(BaseModel):
     content: str
     target_uri: str
     resource_type: str = "memory"
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 class ResourceResponse(BaseModel):
     success: bool
     resource_id: str
     message: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 # Simple embedding cache

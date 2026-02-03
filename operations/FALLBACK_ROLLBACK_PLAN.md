@@ -124,10 +124,10 @@ fi
    ```bash
    # OpenViking status
    curl -s http://localhost:8002/health | jq '.status'
-   
+
    # Resource usage
    docker stats lightrag-openviking --no-stream
-   
+
    # Error logs
    docker logs lightrag-openviking --tail 50
    ```
@@ -136,7 +136,7 @@ fi
    ```bash
    # SMP health
    curl -s http://localhost:9621/health | jq '.status'
-   
+
    # SMP response time
    time curl -s http://localhost:9621/status
    ```
@@ -145,7 +145,7 @@ fi
    ```bash
    # Check recent errors
    grep -i error /var/log/openviking/*.log | tail -20
-   
+
    # Check database integrity
    docker exec lightrag-openviking-redis redis-cli ping
    ```
@@ -156,7 +156,7 @@ fi
    ```bash
    # Update load balancer
    kubectl patch service openviking -p '{"spec":{"selector":{"version":"backup"}}}'
-   
+
    # Or update nginx
    sudo sed -i 's/server localhost:8002/# server localhost:8002/g' /etc/nginx/nginx.conf
    sudo nginx -s reload
@@ -166,10 +166,10 @@ fi
    ```bash
    # Create data snapshot
    docker exec lightrag-openviking-redis redis-cli BGSAVE
-   
+
    # Export configurations
    docker-compose -f docker-compose.openviking.yml config > openviking_config_backup.yml
-   
+
    # Archive logs
    tar -czf openviking_logs_$(date +%Y%m%d_%H%M%S).tar.gz /var/log/openviking/
    ```
@@ -180,7 +180,7 @@ fi
    ```bash
    # Ensure SMP is primary
    docker-compose -f docker-compose.yml up -d lightrag
-   
+
    # Update DNS/load balancer
    kubectl patch service frontend -p '{"spec":{"externalIPs":["192.168.1.100"]}}'
    ```
@@ -189,7 +189,7 @@ fi
    ```bash
    # Increase SMP capacity if needed
    docker-compose -f docker-compose.yml up -d --scale lightrag=3
-   
+
    # Verify SMP performance
    python monitoring/smp_health_check.py
    ```
@@ -200,7 +200,7 @@ fi
    ```bash
    # Test core functionality
    python tests/smp_integration_test.py
-   
+
    # Load testing
    python tests/smp_load_test.py --concurrent 100 --duration 60
    ```
@@ -209,7 +209,7 @@ fi
    ```bash
    # Watch for issues
    watch -n 5 'curl -s http://localhost:9621/health | jq .'
-   
+
    # Check error rates
    tail -f /var/log/smp/application.log | grep ERROR
    ```
@@ -224,7 +224,7 @@ fi
    ```bash
    # Collect diagnostic information
    ./scripts/collect_diagnostics.sh
-   
+
    # Generate incident report
    python tools/generate_incident_report.py \
      --rollback-time "$(date -Iseconds)" \
@@ -237,7 +237,7 @@ fi
    python tools/analyze_performance_degradation.py \
      --start-time "2026-02-03T14:00:00" \
      --end-time "2026-02-03T14:30:00"
-   
+
    # Check for resource exhaustion
    docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" > resource_usage.log
    ```
@@ -253,10 +253,10 @@ fi
    ```bash
    # Deploy to staging first
    docker-compose -f docker-compose.staging.yml up -d
-   
+
    # Run comprehensive tests
    python tests/full_regression_suite.py
-   
+
    # Gradual production rollout
    kubectl patch deployment openviking -p '{"spec":{"replicas":1}}'
    sleep 300

@@ -1921,7 +1921,7 @@ class Neo4jKeywordStorage(BaseKeywordStorage):
             async with self._driver.session() as session:
                 # Create full-text index on document content if not exists
                 await session.run("""
-                    CREATE FULLTEXT INDEX keyword_content_index IF NOT EXISTS FOR (d:Document) 
+                    CREATE FULLTEXT INDEX keyword_content_index IF NOT EXISTS FOR (d:Document)
                     ON EACH [d.content, d.keywords]
                 """)
 
@@ -1951,7 +1951,7 @@ class Neo4jKeywordStorage(BaseKeywordStorage):
                 await session.run(
                     """
                     MERGE (d:Document {doc_id: $doc_id})
-                    ON CREATE SET d.content = $content, 
+                    ON CREATE SET d.content = $content,
                                 d.keywords = $keywords,
                                 d.indexed_at = datetime()
                 """,
@@ -1985,7 +1985,7 @@ class Neo4jKeywordStorage(BaseKeywordStorage):
 
                 query = """
                     CALL db.index.fulltext.queryNodes("keyword_content_index", $query_str) YIELD node, score
-                    RETURN node.doc_id as doc_id, 
+                    RETURN node.doc_id as doc_id,
                            node.content as content,
                            node.keywords as keywords,
                            score

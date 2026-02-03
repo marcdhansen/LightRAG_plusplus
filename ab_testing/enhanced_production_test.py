@@ -6,11 +6,12 @@ Comprehensive testing of enhanced OpenViking vs SMP baseline
 
 import asyncio
 import json
-import time
 import statistics
-import httpx
+import time
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
+
+import httpx
 from rich.console import Console
 
 
@@ -19,7 +20,7 @@ class EnhancedProductionABTest:
         self.console = Console()
         self.openviking_url = "http://localhost:8002"
 
-    async def test_enhanced_openviking(self) -> Dict[str, Any]:
+    async def test_enhanced_openviking(self) -> dict[str, Any]:
         """Test all enhanced OpenViking endpoints"""
         results = {
             "health_check": False,
@@ -443,7 +444,7 @@ class EnhancedProductionABTest:
 
         return results
 
-    def simulate_smp_baseline(self) -> Dict[str, Any]:
+    def simulate_smp_baseline(self) -> dict[str, Any]:
         """Simulate SMP baseline performance"""
         return {
             "health_check": True,
@@ -466,8 +467,8 @@ class EnhancedProductionABTest:
         }
 
     def generate_enhanced_comparison_report(
-        self, openviking_results: Dict, smp_results: Dict
-    ) -> Dict[str, Any]:
+        self, openviking_results: dict, smp_results: dict
+    ) -> dict[str, Any]:
         """Generate detailed comparison report for enhanced features"""
         self.console.print(
             "\n📊 [bold blue]Enhanced OpenViking Performance Comparison[/bold blue]"
@@ -489,7 +490,7 @@ class EnhancedProductionABTest:
             improvement = ((smp_time - ov_time) / smp_time) * 100
             comparison["improvements"]["embedding_speed"] = improvement
 
-            self.console.print(f"\n🔹 [bold]Embedding Performance:[/bold]")
+            self.console.print("\n🔹 [bold]Embedding Performance:[/bold]")
             self.console.print(f"   OpenViking: {ov_time:.0f}ms")
             self.console.print(f"   SMP Baseline: {smp_time:.0f}ms")
             self.console.print(f"   Improvement: {improvement:+.1f}%")
@@ -503,7 +504,7 @@ class EnhancedProductionABTest:
             improvement = ((smp_time - ov_time) / smp_time) * 100
             comparison["improvements"]["skills_speed"] = improvement
 
-            self.console.print(f"\n🔹 [bold]Skill Search Performance:[/bold]")
+            self.console.print("\n🔹 [bold]Skill Search Performance:[/bold]")
             self.console.print(f"   OpenViking: {ov_time:.0f}ms")
             self.console.print(f"   SMP Baseline: {smp_time:.0f}ms")
             self.console.print(f"   Improvement: {improvement:+.1f}%")
@@ -520,7 +521,7 @@ class EnhancedProductionABTest:
             }
 
             self.console.print(
-                f"\n🆕 [bold green]Conversation Memory (Exclusive Feature):[/bold green]"
+                "\n🆕 [bold green]Conversation Memory (Exclusive Feature):[/bold green]"
             )
             self.console.print(f"   Success Rate: {conv_success:.1f}%")
             self.console.print(

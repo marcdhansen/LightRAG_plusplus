@@ -57,7 +57,7 @@ This document defines the measurable success criteria for the OpenViking integra
 ### A/B Test Design
 - **Duration**: Minimum 48 hours of continuous testing
 - **Queries**: 500+ standardized test queries
-- **Categories**: 
+- **Categories**:
   - Simple Q&A (20%)
   - Complex multi-skill tasks (40%)
   - Long context queries (20%)

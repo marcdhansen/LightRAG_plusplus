@@ -8,7 +8,7 @@ This document provides a complete guide for executing the OpenViking integration
 
 ### Prerequisites
 1. **Git checkpoint created**: `lightrag-0qp.0-pre-experiment` ✅
-2. **Docker environment ready**: Complete with management scripts ✅  
+2. **Docker environment ready**: Complete with management scripts ✅
 3. **Migration tooling built**: Comprehensive migration scripts ✅
 4. **A/B testing framework**: Performance comparison system ✅
 5. **Documentation complete**: Success criteria and rollback procedures ✅
@@ -190,7 +190,7 @@ watch -n 30 'grep "tokens" /data/results/latest_metrics.json 2>/dev/null || echo
 ### Alert Thresholds
 
 - **Response time**: >3x baseline for 5+ minutes
-- **Error rate**: >5% sustained for 10+ minutes  
+- **Error rate**: >5% sustained for 10+ minutes
 - **Memory usage**: >500MB sustained
 - **Container crashes**: Any container restart
 
@@ -250,7 +250,7 @@ Is any primary metric failing?
 4. **Training**: Team training on OpenViking
 5. **Monitoring**: Enhanced monitoring for production
 
-### If Unsuccessful  
+### If Unsuccessful
 1. **Rollback**: Execute rollback procedures
 2. **Analysis**: Document root causes
 3. **Learning**: Update experiment design
@@ -312,5 +312,5 @@ ls -la ~/.gemini/
 **Risk Level**: Medium (with rollback plan)
 **Expected Outcome**: Data-driven decision on OpenViking adoption
 
-**Document Version**: 1.0  
+**Document Version**: 1.0
 **Last Updated**: 2026-02-03

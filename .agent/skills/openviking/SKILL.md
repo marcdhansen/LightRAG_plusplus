@@ -34,7 +34,7 @@ curl -f http://localhost:9622/health
 ### Feature Comparison
 
 | Feature | SMP | OpenViking |
-|---------|-----|------------|
+| :--- | :--- | :--- |
 | Skill Discovery | Manual file-based | Dynamic AI-powered |
 | Token Efficiency | Standard (850 avg) | Optimized (≤680 target) |
 | Conversation Memory | Limited | Enhanced multi-turn |
@@ -65,6 +65,18 @@ curl http://localhost:8000/commands/rtb
 
 # Search commands
 curl http://localhost:8000/commands/search/beads
+```
+
+### Slash Command Synchronization
+
+To use these commands directly in your agent terminal/chat (e.g., typing `/next`), they must be synchronized to the project's workflow directory:
+
+```bash
+# Manual synchronization
+python3 openviking/commands.py --sync .agent/workflows/
+
+# Automated synchronization
+# Automatically handled by ./scripts/agent-init.sh and ./scripts/enhanced-agent-init.sh
 ```
 
 **Available Endpoints:**
@@ -123,7 +135,7 @@ curl -s http://localhost:8000/migration/status
 
 ### Service Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐
 │   OpenViking    │    │  LightRAG App   │
 │   Agent Engine  │    │   (Client)      │
@@ -262,6 +274,6 @@ cd ~/.gemini && git add -A && git commit -m "OpenViking session learnings" && gi
 
 ---
 
-**Skill Version**: 1.0  
-**Last Updated**: 2026-02-03  
+**Skill Version**: 1.0
+**Last Updated**: 2026-02-03
 **Compatible**: LightRAG v2.0+ with OpenViking integration

@@ -6,11 +6,12 @@ Tests the actual deployed OpenViking server against simulated SMP baseline
 
 import asyncio
 import json
-import time
 import statistics
-import httpx
+import time
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
+
+import httpx
 from rich.console import Console
 
 
@@ -19,7 +20,7 @@ class ProductionABTest:
         self.console = Console()
         self.openviking_url = "http://localhost:8002"
 
-    async def test_openviking_endpoints(self) -> Dict[str, Any]:
+    async def test_openviking_endpoints(self) -> dict[str, Any]:
         """Test all OpenViking endpoints"""
         results = {
             "health_check": False,
@@ -222,7 +223,7 @@ class ProductionABTest:
 
         return results
 
-    def simulate_smp_baseline(self) -> Dict[str, Any]:
+    def simulate_smp_baseline(self) -> dict[str, Any]:
         """Simulate SMP baseline performance"""
         return {
             "health_check": True,
@@ -235,8 +236,8 @@ class ProductionABTest:
         }
 
     def generate_comparison_report(
-        self, openviking_results: Dict, smp_results: Dict
-    ) -> Dict[str, Any]:
+        self, openviking_results: dict, smp_results: dict
+    ) -> dict[str, Any]:
         """Generate detailed comparison report"""
         self.console.print("\n📊 [bold blue]Performance Comparison Report[/bold blue]")
 
@@ -255,7 +256,7 @@ class ProductionABTest:
             improvement = ((smp_time - ov_time) / smp_time) * 100
             comparison["improvements"]["embedding_speed"] = improvement
 
-            self.console.print(f"\n🔹 [bold]Embedding Performance:[/bold]")
+            self.console.print("\n🔹 [bold]Embedding Performance:[/bold]")
             self.console.print(f"   OpenViking: {ov_time:.0f}ms")
             self.console.print(f"   SMP Baseline: {smp_time:.0f}ms")
             self.console.print(f"   Improvement: {improvement:+.1f}%")
@@ -267,7 +268,7 @@ class ProductionABTest:
             improvement = ((smp_time - ov_time) / smp_time) * 100
             comparison["improvements"]["skills_speed"] = improvement
 
-            self.console.print(f"\n🔹 [bold]Skill Search Performance:[/bold]")
+            self.console.print("\n🔹 [bold]Skill Search Performance:[/bold]")
             self.console.print(f"   OpenViking: {ov_time:.0f}ms")
             self.console.print(f"   SMP Baseline: {smp_time:.0f}ms")
             self.console.print(f"   Improvement: {improvement:+.1f}%")

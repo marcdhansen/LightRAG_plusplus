@@ -6,12 +6,9 @@ Compares OpenViking vs SMP performance with comprehensive monitoring and analyti
 
 import asyncio
 import json
-import time
-import statistics
-import httpx
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from datetime import datetime
+from typing import Any
+
 from rich.console import Console
 from rich.table import Table
 
@@ -28,7 +25,7 @@ class ABDashboard:
         test_type: str,
         metric: str,
         value: float,
-        metadata: Dict = None,
+        metadata: dict = None,
     ):
         """Log individual test result"""
         result = {
@@ -52,8 +49,8 @@ class ABTestSuite:
 
     def compare_performance(
         self,
-        openviking_results: Dict[str, Any],
-        smp_results: Optional[Dict[str, Any]] = None,
+        openviking_results: dict[str, Any],
+        smp_results: dict[str, Any] | None = None,
     ):
         """Compare performance between OpenViking and SMP"""
         comparison = {
@@ -128,10 +125,10 @@ class ABTestSuite:
 
     def generate_comprehensive_report(
         self,
-        openviking_results: Dict[str, Any],
-        smp_results: Optional[Dict[str, Any]],
-        comparison: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        openviking_results: dict[str, Any],
+        smp_results: dict[str, Any] | None,
+        comparison: dict[str, Any],
+    ) -> dict[str, Any]:
         """Generate comprehensive A/B test report"""
         self.console.print("📊 Generating Comprehensive Report")
 
@@ -234,7 +231,7 @@ class ABTestSuite:
         test_type: str,
         metric: str,
         value: float,
-        metadata: Dict = None,
+        metadata: dict = None,
     ):
         """Log individual test result"""
         result = {
@@ -291,7 +288,7 @@ class ABTestRunner:
         self.test_suite = ABTestSuite()
         self.smp_client = SMPSimulator()
 
-    async def run_production_tests(self) -> Dict[str, Any]:
+    async def run_production_tests(self) -> dict[str, Any]:
         """Run production-ready A/B tests"""
         test_queries = [
             "React performance optimization",

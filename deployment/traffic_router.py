@@ -5,18 +5,18 @@ Smart load balancer for gradual traffic routing between SMP and OpenViking
 """
 
 import asyncio
-import json
-import time
+import logging
 import random
 import statistics
+import time
+from datetime import datetime
+from typing import Any
+
 import httpx
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-from fastapi import FastAPI, HTTPException, Header
+import uvicorn
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import uvicorn
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -100,8 +100,8 @@ class TrafficRouter:
         system: str,
         endpoint: str,
         method: str,
-        body: Dict = None,
-        headers: Dict = None,
+        body: dict = None,
+        headers: dict = None,
     ):
         """Proxy request to selected system"""
         url = self.smp_url if system == "smp" else self.openviking_url
@@ -197,7 +197,7 @@ class TrafficRouter:
             f"Traffic split updated: SMP={self.traffic_split['smp']}%, OpenViking={self.traffic_split['openviking']}%"
         )
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get performance summary for both systems"""
         summary = {}
 
@@ -237,7 +237,7 @@ router = TrafficRouter()
 # Pydantic models
 class TrafficSplitRequest(BaseModel):
     openviking_percentage: int
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class RoutingConfigRequest(BaseModel):
@@ -249,8 +249,8 @@ class RoutingConfigRequest(BaseModel):
 class ProxyRequest(BaseModel):
     endpoint: str
     method: str = "POST"
-    body: Optional[Dict] = None
-    headers: Optional[Dict] = None
+    body: dict | None = None
+    headers: dict | None = None
 
 
 # API endpoints
@@ -378,7 +378,7 @@ if __name__ == "__main__":
     print("   • Health monitoring and automatic failover")
     print("   • Performance tracking and optimization")
     print("   • Gradual rollout support")
-    print(f"\n📊 Current Configuration:")
+    print("\n📊 Current Configuration:")
     print(f"   • SMP: {router.smp_url}")
     print(f"   • OpenViking: {router.openviking_url}")
     print(

@@ -22,7 +22,7 @@ heartbeat() {
             echo "Session file disappeared, stopping heartbeat"
             exit 0
         fi
-        
+
         sleep $HEARTBEAT_INTERVAL
     done
 }

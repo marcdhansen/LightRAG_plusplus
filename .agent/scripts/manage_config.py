@@ -5,13 +5,13 @@ Centralized Configuration Management System
 Provides unified configuration management across agent environments
 """
 
-import os
 import json
-import yaml
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -23,7 +23,7 @@ class ConfigItem:
     source: str  # 'global', 'project', 'user', 'default'
     description: str
     category: str
-    last_modified: Optional[str] = None
+    last_modified: str | None = None
 
 
 class ConfigManager:
@@ -42,9 +42,9 @@ class ConfigManager:
             ("user", "User-specific overrides"),
         ]
 
-        self.config: Dict[str, ConfigItem] = {}
+        self.config: dict[str, ConfigItem] = {}
 
-    def load_all_configs(self) -> Dict[str, ConfigItem]:
+    def load_all_configs(self) -> dict[str, ConfigItem]:
         """Load all configuration from all sources"""
         print("🔧 Loading configuration from all sources...")
 
@@ -107,7 +107,7 @@ class ConfigManager:
         config_file = config_dir / "agent.yaml"
         if config_file.exists():
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     data = yaml.safe_load(f) or {}
 
                 for key, value in data.items():
@@ -128,7 +128,7 @@ class ConfigManager:
         config_file = self.project_agent / "config" / "project.yaml"
         if config_file.exists():
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     data = yaml.safe_load(f) or {}
 
                 for key, value in data.items():
@@ -149,7 +149,7 @@ class ConfigManager:
         config_file = self.user_config / "agent.yaml"
         if config_file.exists():
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     data = yaml.safe_load(f) or {}
 
                 for key, value in data.items():
@@ -194,7 +194,7 @@ class ConfigManager:
         existing = {}
         if config_file.exists():
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     existing = yaml.safe_load(f) or {}
             except Exception:
                 existing = {}
@@ -218,15 +218,15 @@ class ConfigManager:
             key, ConfigItem(key, "", "default", "default", "")
         ).source
 
-    def list_by_category(self, category: str) -> List[ConfigItem]:
+    def list_by_category(self, category: str) -> list[ConfigItem]:
         """List all configuration items in a category"""
         return [item for item in self.config.values() if item.category == category]
 
-    def list_by_source(self, source: str) -> List[ConfigItem]:
+    def list_by_source(self, source: str) -> list[ConfigItem]:
         """List all configuration items from a source"""
         return [item for item in self.config.values() if item.source == source]
 
-    def validate_dependencies(self) -> List[str]:
+    def validate_dependencies(self) -> list[str]:
         """Validate that all required configurations are present"""
         print("🔍 Validating configuration dependencies...")
 
@@ -243,7 +243,7 @@ class ConfigManager:
                 missing.append(f"{description}: {path}")
 
         if missing:
-            print(f"❌ Missing required items:")
+            print("❌ Missing required items:")
             for item in missing:
                 print(f"   {item}")
         else:

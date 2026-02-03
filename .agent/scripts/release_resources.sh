@@ -30,7 +30,7 @@ fi
 if [ -f "$RESOURCE_FILE" ]; then
     # Try to read from backup if main file was removed
     echo "   Checking for processes using allocated ports..."
-    
+
     # Common port cleanup
     for port in 9620 9621 9622 3000 3001 3002 8000 8001 8002; do
         PID=$(lsof -ti:$port 2>/dev/null)

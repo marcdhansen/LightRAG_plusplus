@@ -1,19 +1,19 @@
 # Production A/B Testing Framework Requirements
 # For running comprehensive OpenViking vs SMP performance tests
 
+asyncio-migrate>=0.17.0
 # Core framework
 fastapi>=0.128.0
 httpx>=0.28.1
-pydantic>=2.12.5
-rich>=13.0.0
 pandas>=2.0.0
-asyncio-migrate>=0.17.0
+
+# Optional monitoring and analytics
+prometheus-client>=0.17.0
+pydantic>=2.12.5
 
 # Testing utilities
 pytest>=7.0.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.0.0
-
-# Optional monitoring and analytics
-prometheus-client>=0.17.0
+rich>=13.0.0
 structlog>=23.0.0

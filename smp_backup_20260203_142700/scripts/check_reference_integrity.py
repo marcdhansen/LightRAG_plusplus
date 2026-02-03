@@ -5,12 +5,11 @@ Cross-Reference Integrity Checker
 Validates internal documentation references and links
 """
 
-import re
 import json
-from pathlib import Path
-from typing import Dict, List, Tuple, Set
+import re
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -31,13 +30,13 @@ class ReferenceChecker:
     def __init__(self):
         self.agent_global = Path.home() / ".agent"
         self.project_agent = Path(".agent")
-        self.issues: List[ReferenceIssue] = []
+        self.issues: list[ReferenceIssue] = []
 
         # Common patterns for different issue types
         self.link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
         self.url_pattern = re.compile(r"https?://[^\s\)]+")
 
-    def check_all_references(self) -> List[ReferenceIssue]:
+    def check_all_references(self) -> list[ReferenceIssue]:
         """Check all documentation references"""
         print("🔗 Checking cross-reference integrity...")
         print("====================================")
@@ -53,7 +52,7 @@ class ReferenceChecker:
         print(f"📊 Found {len(self.issues)} reference issues")
         return self.issues
 
-    def _find_markdown_files(self) -> List[Path]:
+    def _find_markdown_files(self) -> list[Path]:
         """Find all markdown files in project"""
         md_files = []
 
@@ -67,7 +66,7 @@ class ReferenceChecker:
     def _check_file_references(self, file_path: Path):
         """Check references in a single file"""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
                 lines = content.split("\n")
 
@@ -210,7 +209,7 @@ class ReferenceChecker:
 
     def print_summary(self):
         """Print validation summary"""
-        print(f"\n📋 Reference Integrity Summary:")
+        print("\n📋 Reference Integrity Summary:")
         print("=" * 50)
         print(f"Total issues: {len(self.issues)}")
 
@@ -224,19 +223,19 @@ class ReferenceChecker:
                 )
                 type_counts[issue.issue_type] = type_counts.get(issue.issue_type, 0) + 1
 
-            print(f"\n🚨 Issues by Severity:")
+            print("\n🚨 Issues by Severity:")
             for severity in ["high", "medium", "low"]:
                 count = severity_counts.get(severity, 0)
                 if count > 0:
                     print(f"   {severity.title()}: {count}")
 
-            print(f"\n📋 Issues by Type:")
+            print("\n📋 Issues by Type:")
             for issue_type in type_counts:
                 count = type_counts[issue_type]
                 if count > 0:
                     print(f"   {issue_type}: {count}")
 
-            print(f"\n🔧 Suggested fixes:")
+            print("\n🔧 Suggested fixes:")
             print("   1. Update broken links with correct targets")
             print("   2. Remove circular references")
             print("   3. Use relative paths for internal references")

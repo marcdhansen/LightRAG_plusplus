@@ -5,8 +5,7 @@ Simple end-to-end test for keyword search mode
 
 import asyncio
 import tempfile
-import os
-from lightrag.kg.nano_vector_db_impl import NanoKeywordStorage
+
 from lightrag.base import QueryParam
 from lightrag.operate import _get_keyword_data
 
@@ -19,10 +18,10 @@ async def test_keyword_end_to_end():
         print(f"📁 Using temp directory: {temp_dir}")
 
         # Test keyword storage directly without shared storage system
-        from lightrag.base import BaseKeywordStorage
         from dataclasses import dataclass
-        from typing import Any, List
-        import json
+        from typing import Any
+
+        from lightrag.base import BaseKeywordStorage
 
         @dataclass
         class SimpleKeywordStorage(BaseKeywordStorage):

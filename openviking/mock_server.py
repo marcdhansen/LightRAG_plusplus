@@ -5,15 +5,14 @@ Simple implementation for demonstration and testing
 """
 
 import asyncio
-import json
 import logging
-from typing import Dict, List, Any
 from datetime import datetime
-import httpx
-from fastapi import FastAPI, HTTPException
+from typing import Any
+
+import uvicorn
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import uvicorn
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,7 +70,7 @@ class EmbeddingRequest(BaseModel):
 
 
 class EmbeddingResponse(BaseModel):
-    embedding: List[float]
+    embedding: list[float]
     dimension: int
     model: str
     cached: bool = False
@@ -84,7 +83,7 @@ class SkillSearchRequest(BaseModel):
 
 
 class SkillResponse(BaseModel):
-    skills: List[Dict[str, Any]]
+    skills: list[dict[str, Any]]
     query: str
     found_count: int
 

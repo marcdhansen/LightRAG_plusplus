@@ -7,9 +7,10 @@ Lightweight monitoring for production deployment
 import asyncio
 import json
 import time
+from datetime import datetime
+from typing import Any
+
 import httpx
-from datetime import datetime, timedelta
-from typing import Dict, List, Any
 
 
 class SimpleMonitor:
@@ -17,7 +18,7 @@ class SimpleMonitor:
         self.openviking_url = openviking_url
         self.start_time = datetime.now()
 
-    async def check_health(self) -> Dict[str, Any]:
+    async def check_health(self) -> dict[str, Any]:
         """Check system health"""
         try:
             async with httpx.AsyncClient() as client:
@@ -38,7 +39,7 @@ class SimpleMonitor:
         except Exception as e:
             return {"status": "error", "error": str(e)}
 
-    async def test_endpoints(self) -> Dict[str, Any]:
+    async def test_endpoints(self) -> dict[str, Any]:
         """Test key endpoints"""
         endpoints = {
             "embeddings": {"method": "POST", "payload": {"text": "test query"}},
@@ -80,7 +81,7 @@ class SimpleMonitor:
 
         return results
 
-    async def get_metrics(self) -> Dict[str, Any]:
+    async def get_metrics(self) -> dict[str, Any]:
         """Get performance metrics"""
         try:
             async with httpx.AsyncClient() as client:
@@ -93,7 +94,7 @@ class SimpleMonitor:
             pass
         return {}
 
-    async def run_quick_check(self) -> Dict[str, Any]:
+    async def run_quick_check(self) -> dict[str, Any]:
         """Run a quick health and performance check"""
         health = await self.check_health()
         endpoints = await self.test_endpoints()
@@ -152,7 +153,7 @@ async def main():
 
         if result.get("metrics", {}).get("summary"):
             summary = result["metrics"]["summary"]
-            print(f"\n📋 System Metrics:")
+            print("\n📋 System Metrics:")
             print(f"  Total Requests: {summary.get('total_requests', 0):,}")
             print(f"  Active Sessions: {summary.get('active_sessions', 0):,}")
             print(f"  Cache Size: {summary.get('cache_size', 0):,}")

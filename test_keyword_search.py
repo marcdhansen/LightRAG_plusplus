@@ -5,9 +5,9 @@ Quick test for keyword search functionality
 
 import asyncio
 import tempfile
-import os
-from lightrag.kg.nano_vector_db_impl import NanoKeywordStorage
+
 from lightrag.base import QueryParam
+from lightrag.kg.nano_vector_db_impl import NanoKeywordStorage
 
 
 async def test_keyword_search():

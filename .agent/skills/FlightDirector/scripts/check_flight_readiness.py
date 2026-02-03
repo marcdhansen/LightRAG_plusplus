@@ -111,14 +111,58 @@ def check_openviking():
         if code == 0:
             print("✅ OpenViking API: HEALTHY")
             # Check for session flush endpoint (Phase 1)
-            _, code = run_command("curl -sf -X POST http://localhost:8000/session/flush")
+            _, code = run_command(
+                "curl -sf -X POST http://localhost:8000/session/flush"
+            )
             if code == 0:
                 print("✅ OpenViking Session Flush: READY")
             else:
                 print("⚠️  OpenViking Session Flush: NOT RESPONDING")
         else:
-            print("❌ OpenViking API: UNREACHABLE")
-            return False
+            print("❌ OpenViking API: UNREACHABLE - Starting OpenViking...")
+            # Check if Ollama is available (OpenViking uses Ollama, not OpenAI)
+            ollama_check, ollama_code = run_command(
+                "curl -sf http://localhost:11434/api/tags"
+            )
+            if ollama_code != 0:
+                print("❌ Ollama required - start with: ollama serve")
+                print("   Or ensure Ollama is running on http://localhost:11434")
+                return False
+            print("✅ Ollama: AVAILABLE")
+
+            # Try to start OpenViking
+            manage_script = "./openviking/scripts/manage.sh"
+            if os.path.exists(manage_script):
+                print("🚀 Starting OpenViking services...")
+                _, start_code = run_command(f"{manage_script} start")
+                if start_code == 0:
+                    # Give it a moment to start up
+                    import time
+
+                    time.sleep(3)
+                    # Verify it's now healthy
+                    _, verify_code = run_command(
+                        "curl -sf http://localhost:8000/health"
+                    )
+                    if verify_code == 0:
+                        print("✅ OpenViking: STARTED and HEALTHY")
+                    else:
+                        print("❌ OpenViking: Started but not responding")
+                        return False
+                else:
+                    print("❌ OpenViking: Failed to start")
+                    # Check if Docker is the issue
+                    _, docker_code = run_command("docker --version")
+                    if docker_code != 0:
+                        print("   Docker not available - install or start Docker")
+                    else:
+                        _, daemon_code = run_command("docker info")
+                        if daemon_code != 0:
+                            print("   Docker daemon not running - start Docker Desktop")
+                    return False
+            else:
+                print("❌ OpenViking manage script not found")
+                return False
     return True
 
 
@@ -130,7 +174,7 @@ def check_pfc():
     # 1. Multi-Agent Coordination
     check_session_conflicts()
     check_workspace_isolation()
-    
+
     # 1.5 OpenViking Check
     if not check_openviking():
         errors.append("❌ OpenViking services are NOT healthy.")
@@ -367,13 +411,13 @@ def check_git_status():
 def check_rtb():
     """Return To Base Check: Verify cleanup and OpenViking flush."""
     print("🛬 Initiating Return To Base (RTB) Check...")
-    
+
     # Check for uncommitted changes
     check_git_status()
-    
+
     # Check for temporary artifacts
     check_temp_cleanup()
-    
+
     # OpenViking Flush Verification
     if os.getenv("OPENVIKING_ENABLED"):
         print("\n🧠 Verifying OpenViking session state...")
@@ -382,39 +426,45 @@ def check_rtb():
             print("✅ OpenViking: REACHABLE")
         else:
             print("⚠️  OpenViking: UNREACHABLE for RTB verification")
-    
+
     # PR Lifecycle Check
     print("\n🔀 PR Lifecycle Check...")
-    
+
     # Check if gh CLI is available
     _, gh_code = run_command("which gh")
     if gh_code != 0:
         print("⚠️  GitHub CLI (gh) not found. Install with: brew install gh")
     else:
         print("✅ GitHub CLI: AVAILABLE")
-        
+
         # Check current branch
         branch, _ = run_command("git rev-parse --abbrev-ref HEAD")
         if branch and branch.strip() not in ("main", "master"):
             print(f"📌 Current branch: {branch.strip()}")
-            
+
             # Check for existing PR
-            pr_check, pr_code = run_command(f"gh pr view {branch.strip()} --json state,url 2>/dev/null")
+            pr_check, pr_code = run_command(
+                f"gh pr view {branch.strip()} --json state,url 2>/dev/null"
+            )
             if pr_code == 0:
                 import json
+
                 try:
-                    pr_data = json.loads(pr_check)
-                    print(f"✅ PR exists: {pr_data.get('url', 'unknown')}")
-                    print(f"   State: {pr_data.get('state', 'unknown')}")
+                    if pr_check:
+                        pr_data = json.loads(pr_check)
+                        print(f"✅ PR exists: {pr_data.get('url', 'unknown')}")
+                        print(f"   State: {pr_data.get('state', 'unknown')}")
+                    else:
+                        print("✅ PR exists for this branch")
                 except:
                     print("✅ PR exists for this branch")
             else:
                 print("⚠️  No PR found for this branch. Create one with:")
-                print(f"   gh pr create --fill --base main")
-                print(f"   gh pr merge --auto --squash --delete-branch")
+                print("   gh pr create --fill --base main")
+                print("   gh pr merge --auto --squash --delete-branch")
         else:
-            print(f"✅ On main branch - no PR needed")
-    
+            print("✅ On main branch - no PR needed")
+
     print("\n✅ RTB Check Complete. Remember to run ./scripts/agent-end.sh")
 
 

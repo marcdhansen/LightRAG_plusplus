@@ -8,6 +8,15 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Enable OpenViking by default if Ollama is available
+if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+    export OPENVIKING_ENABLED=1
+    echo -e "${BLUE}🧠 OpenViking enabled (Ollama detected)${NC}"
+else
+    echo -e "${YELLOW}⚠️  Ollama not detected - OpenViking disabled${NC}"
+    echo -e "   Start Ollama with: ollama serve"
+fi
+
 echo -e "${BLUE}🛫 Initiating Standard Mission Protocol (SMP) Bootstrap...${NC}"
 
 # 1. Verify environment
@@ -61,5 +70,13 @@ fi
 # 5. Discover Ready Tasks
 echo -e "\n🐚 Discovering Ready Tasks (Beads)..."
 bd ready
+
+# 6. Sync Slash Commands (OpenViking Integration)
+echo -e "\n🔄 Synchronizing Slash Commands..."
+if python3 openviking/commands.py --sync .agent/workflows >/dev/null 2>&1; then
+    echo -e "  ✅ Synced OpenViking commands to .agent/workflows/"
+else
+    echo -e "  ⚠️  Failed to sync OpenViking commands"
+fi
 
 echo -e "\n${GREEN}✅ Bootstrap Complete. You are clear for takeoff.${NC}"

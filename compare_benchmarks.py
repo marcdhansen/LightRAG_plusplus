@@ -24,8 +24,14 @@ sys.path.insert(0, "/Users/marchansen/GitHub/HKUDS/LightRAG")
 from tests.benchmarks.eval_metrics import (
     calculate_extraction_quality_score,
 )
-from tests.benchmarks.fewnerd.full_dataset import get_fewnerd_full_dataset, convert_fewnerd_to_lightrag
-from tests.benchmarks.text2kgbench.full_dataset import get_text2kgbench_full_dataset, convert_text2kgbench_to_lightrag
+from tests.benchmarks.fewnerd.full_dataset import (
+    convert_fewnerd_to_lightrag,
+    get_fewnerd_full_dataset,
+)
+from tests.benchmarks.text2kgbench.full_dataset import (
+    convert_text2kgbench_to_lightrag,
+    get_text2kgbench_full_dataset,
+)
 
 try:
     from lightrag import LightRAG

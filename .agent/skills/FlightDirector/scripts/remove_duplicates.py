@@ -6,14 +6,10 @@ Safely removes all duplicate markdown files across the system.
 Uses SHA256 hashing to verify identical files and keeps the most recent copy.
 """
 
-import os
-import sys
-import json
 import argparse
 import hashlib
+import sys
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-from collections import defaultdict
 
 
 class DuplicateRemover:
@@ -28,7 +24,7 @@ class DuplicateRemover:
         except Exception:
             return "ERROR"
 
-    def find_all_duplicates(self) -> Dict[str, List[Path]]:
+    def find_all_duplicates(self) -> dict[str, list[Path]]:
         """Find ALL duplicate markdown files across key directories."""
         print("🔍 Scanning for duplicate markdown files...")
 
@@ -86,7 +82,7 @@ class DuplicateRemover:
         return dict(duplicates)
 
     def remove_duplicates_safely(
-        self, duplicates: Dict[str, List[Path]], dry_run: bool = False
+        self, duplicates: dict[str, list[Path]], dry_run: bool = False
     ) -> int:
         """Safely remove duplicate files, keeping the most recent copy."""
         removed_count = 0
@@ -151,7 +147,7 @@ class DuplicateRemover:
         removed_count, errors = self.remove_duplicates_safely(all_duplicates, dry_run)
 
         # Summary
-        print(f"\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print("📋 CLEANUP SUMMARY")
         print("=" * 60)
         print(f"🗑️ Files removed: {removed_count}")
@@ -167,7 +163,7 @@ class DuplicateRemover:
         else:
             print("\n✅ No cleanup needed (verified no critical duplicates)")
 
-        print(f"\n💡 VERIFICATION:")
+        print("\n💡 VERIFICATION:")
         print("   Run again to verify all duplicates are resolved")
 
 

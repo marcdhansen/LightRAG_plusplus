@@ -5,15 +5,12 @@ Enhanced Document Reachability Validator with Auto-Fix
 Validates and fixes document reachability issues automatically.
 """
 
+import argparse
 import os
 import re
 import sys
-import json
-import argparse
 from pathlib import Path
-from typing import Set, Dict, List, Tuple, Optional
 from urllib.parse import urlparse
-import time
 
 
 class EnhancedDocumentValidator:
@@ -51,10 +48,10 @@ class EnhancedDocumentValidator:
             f"GLOBAL_INDEX.md not found in any of these locations: {candidates}"
         )
 
-    def _extract_links(self, file_path: Path) -> List[Tuple[str, str]]:
+    def _extract_links(self, file_path: Path) -> list[tuple[str, str]]:
         """Extract markdown links from a file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             print(f"Warning: Could not read {file_path}: {e}")
@@ -64,7 +61,7 @@ class EnhancedDocumentValidator:
         pattern = r"\[([^\]]+)\]\(([^)]+)\)"
         return re.findall(pattern, content)
 
-    def _resolve_path(self, link_target: str, source_file: Path) -> Optional[Path]:
+    def _resolve_path(self, link_target: str, source_file: Path) -> Path | None:
         """Resolve a link target relative to source file."""
         # Skip external URLs
         if urlparse(link_target).scheme:
@@ -80,7 +77,7 @@ class EnhancedDocumentValidator:
         # Handle relative paths
         return (source_file.parent / link_target).resolve()
 
-    def _find_target_file(self, link_target: str) -> Optional[Path]:
+    def _find_target_file(self, link_target: str) -> Path | None:
         """Try to find a file matching the link target using various strategies."""
         # Extract filename from path
         filename = Path(link_target).name
@@ -119,7 +116,7 @@ class EnhancedDocumentValidator:
 
     def _suggest_path_fix(
         self, source_file: Path, broken_link: str, resolved_path: Path
-    ) -> Optional[str]:
+    ) -> str | None:
         """Suggest a fix for a broken link."""
         # Try to find the actual file
         target_file = self._find_target_file(broken_link)
@@ -135,7 +132,7 @@ class EnhancedDocumentValidator:
 
         return None
 
-    def _validate_and_fix_links(self, file_path: Path) -> List[Dict]:
+    def _validate_and_fix_links(self, file_path: Path) -> list[dict]:
         """Validate links in a file and suggest fixes."""
         links = self._extract_links(file_path)
         issues = []
@@ -162,13 +159,13 @@ class EnhancedDocumentValidator:
 
         return issues
 
-    def _fix_file_links(self, file_path: Path, issues: List[Dict]) -> bool:
+    def _fix_file_links(self, file_path: Path, issues: list[dict]) -> bool:
         """Fix broken links in a file."""
         if not self.auto_fix:
             return False
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Apply fixes
@@ -191,7 +188,7 @@ class EnhancedDocumentValidator:
             print(f"Error fixing {file_path}: {e}")
             return False
 
-    def _check_duplicates(self) -> List[str]:
+    def _check_duplicates(self) -> list[str]:
         """Check for duplicate GLOBAL_INDEX.md files."""
         search_paths = [
             str(Path.home() / ".agent"),

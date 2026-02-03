@@ -5,9 +5,8 @@ Demonstrates core functionality without complex syntax
 """
 
 import asyncio
+
 import httpx
-import json
-from datetime import datetime
 
 
 async def demo_openviking():

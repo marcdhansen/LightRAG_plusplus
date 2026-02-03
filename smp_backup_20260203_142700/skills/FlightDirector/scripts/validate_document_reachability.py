@@ -9,15 +9,13 @@ Usage:
     python validate_document_reachability.py [--workspace-dir PATH] [--verbose] [--fix]
 """
 
-import os
+import argparse
+import json
 import re
 import sys
-import json
-import argparse
-from pathlib import Path
-from typing import Set, Dict, List, Tuple
-from urllib.parse import urlparse
 import time
+from pathlib import Path
+from urllib.parse import urlparse
 
 
 class DocumentReachabilityValidator:
@@ -52,14 +50,14 @@ class DocumentReachabilityValidator:
             f"GLOBAL_INDEX.md not found in any of these locations: {candidates}"
         )
 
-    def _extract_markdown_links(self, file_path: Path) -> List[Tuple[str, str]]:
+    def _extract_markdown_links(self, file_path: Path) -> list[tuple[str, str]]:
         """Extract all markdown links from a file.
 
         Returns:
             List of tuples (link_text, link_target)
         """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             self.issues.append(f"Failed to read {file_path}: {e}")
@@ -100,7 +98,7 @@ class DocumentReachabilityValidator:
         # Handle relative paths
         return (source_file.parent / link_target).resolve()
 
-    def _discover_all_markdown_files(self, start_dir: Path) -> Set[Path]:
+    def _discover_all_markdown_files(self, start_dir: Path) -> set[Path]:
         """Discover all markdown files in the workspace."""
         markdown_files = set()
         visited_dirs = set()
@@ -166,8 +164,8 @@ class DocumentReachabilityValidator:
         return markdown_files
 
     def _crawl_reachable_documents(
-        self, start_path: Path, visited: Set[Path] | None = None, depth: int = 0
-    ) -> Set[Path]:
+        self, start_path: Path, visited: set[Path] | None = None, depth: int = 0
+    ) -> set[Path]:
         """Recursively crawl all documents reachable from the starting document."""
         if visited is None:
             visited = set()
@@ -299,7 +297,7 @@ class DocumentReachabilityValidator:
             self.issues.append(f"Validation failed: {e}")
             return False
 
-    def generate_report(self) -> Dict:
+    def generate_report(self) -> dict:
         """Generate a detailed validation report."""
         unreachable_docs = self.all_docs - self.reachable_docs
 

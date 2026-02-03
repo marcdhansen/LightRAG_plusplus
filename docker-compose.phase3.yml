@@ -145,9 +145,9 @@ networks:
 volumes:
   openviking_data:
     driver: local
-  
+
   openviking_redis_data:
     driver: local
-  
+
   lightrag_main_data:
     driver: local

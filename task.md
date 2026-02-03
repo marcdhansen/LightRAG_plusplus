@@ -1,24 +1,28 @@
-# Task: lightrag-0o1 - Stabilize SMP baseline for fair comparison
+# Task: lightrag-uc1 - Implement comprehensive A/B testing framework
 
 ## Objective
 
-Establish a rock-solid, reproducible baseline for the existing Standard Mission Protocol (SMP) to enable fair A/B testing against the new OpenViking system. This involves fixing environmental inconsistencies, documenting current performance metrics, and ensuring the baseline code is immutable during the experiment.
+Build a production-grade A/B testing system to compare the legacy Standard Mission Protocol (SMP) against the new OpenViking production environment. The framework must provide statistically significant insights into latency, cost, and extraction quality.
 
 ## Success Criteria
 
-- [x] Baseline repository hangs are resolved or bypassed for benchmarking.
-- [x] Automated baseline benchmark script produces consistent results across 3 runs.
-- [x] Metrics (latency, token efficiency, extraction quality) are recorded in `audit_results/smp_baseline_report.md`.
-- [x] Environment variables for SMP are isolated from OpenViking.
+- [ ] Automated A/B test harness that can run parallel queries across SMP and OpenViking endpoints.
+- [ ] Metric collection for:
+  - Mean/P95 Latency.
+  - Token Usage (Input/Output).
+  - Extraction Quality (Entity/Relation F1 via `eval_metrics.py`).
+- [ ] Statistical analysis module (calculating Lift, Confidence Intervals).
+- [ ] Automated markdown report generator for experiment results.
+- [ ] Integration with existing monitoring (Langfuse/Prometheus if available).
 
 ## Proposed Strategy
 
-1. **Environment Isolation**: Create a dedicated `.env.smp` for the baseline.
-2. **Benchmark Execution**: Run the existing `compare_benchmarks.py` or similar to capture current state.
-3. **Hang Mitigation**: If the original repo still hangs (as seen in `lightrag-o9j`), identify the minimum guardrails needed to complete the benchmark without data loss.
-4. **Documentation**: formalize the "State of the SMP" report.
+1. **Runner Design**: Create a unified runner script `scripts/ab_test_runner.py` that takes a set of test documents/queries and dispatches them to both "Baseline" (SMP) and "Candidate" (OpenViking).
+2. **Telemetry Management**: Reuse `eval_metrics.py` for quality and add a context manager for timing and token counting.
+3. **Analysis Library**: Use `scipy` or basic math to implement t-tests for latency and recall improvements.
+4. **Reporting**: Generate a dashboard-like markdown file in `audit_results/ab_reports/`.
 
 ## Approval
 
-Plan Approved: 2026-02-03 16:51
-Approved to stabilize baseline.
+Plan Approved: 2026-02-03 17:42
+Approved to implement A/B testing framework.

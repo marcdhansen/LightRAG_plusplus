@@ -9,20 +9,19 @@ between the current SMP system and OpenViking integration.
 
 import asyncio
 import json
-import time
-import statistics
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from datetime import datetime
 import logging
+import statistics
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 import httpx
-import pandas as pd
-from rich.console import Console
-from rich.progress import Progress, TaskID
-from rich.table import Table
 import structlog
+from rich.console import Console
+from rich.progress import Progress
+from rich.table import Table
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +38,7 @@ class PerformanceMetric:
     response_time_ms: float
     token_usage: int
     success: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     response_length: int = 0
     skill_discovery_time_ms: float = 0.0
     skills_found: int = 0
@@ -76,8 +75,8 @@ class PerformanceComparator:
         )
         self.results_dir = Path(os.getenv("COMPARISON_RESULTS_DIR", "/data/results"))
 
-        self.metrics: List[PerformanceMetric] = []
-        self.results: List[ComparisonResult] = []
+        self.metrics: list[PerformanceMetric] = []
+        self.results: list[ComparisonResult] = []
 
         # Ensure results directory exists
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -103,7 +102,7 @@ class PerformanceComparator:
         )
         self.log = structlog.get_logger()
 
-    def load_test_scenarios(self) -> List[Dict[str, Any]]:
+    def load_test_scenarios(self) -> list[dict[str, Any]]:
         """Load test scenarios from configuration file"""
         scenarios_file = Path("/app/scenarios/test_scenarios.json")
 
@@ -112,13 +111,13 @@ class PerformanceComparator:
             return self.get_default_scenarios()
 
         try:
-            with open(scenarios_file, "r") as f:
+            with open(scenarios_file) as f:
                 return json.load(f)
         except Exception as e:
             self.log.error("Failed to load scenarios", error=str(e))
             return self.get_default_scenarios()
 
-    def get_default_scenarios(self) -> List[Dict[str, Any]]:
+    def get_default_scenarios(self) -> list[dict[str, Any]]:
         """Default test scenarios for comparison"""
         return [
             {
@@ -238,7 +237,7 @@ class PerformanceComparator:
             )
 
     async def run_scenario_comparison(
-        self, scenario: Dict[str, Any]
+        self, scenario: dict[str, Any]
     ) -> ComparisonResult:
         """Run comparison for a single scenario"""
 
@@ -280,8 +279,8 @@ class PerformanceComparator:
     def calculate_comparison_results(
         self,
         scenario: str,
-        smp_metrics: List[PerformanceMetric],
-        openviking_metrics: List[PerformanceMetric],
+        smp_metrics: list[PerformanceMetric],
+        openviking_metrics: list[PerformanceMetric],
     ) -> ComparisonResult:
         """Calculate aggregated comparison results"""
 
@@ -407,7 +406,7 @@ class PerformanceComparator:
                 (avg_smp_time - avg_openviking_time) / avg_smp_time * 100
             )
 
-            report += f"### Response Time Performance\n"
+            report += "### Response Time Performance\n"
             report += f"- **SMP Average**: {avg_smp_time:.1f}ms\n"
             report += f"- **OpenViking Average**: {avg_openviking_time:.1f}ms\n"
             report += f"- **Overall Improvement**: {overall_improvement:+.1f}%\n\n"
@@ -426,7 +425,7 @@ class PerformanceComparator:
                 (avg_smp_tokens - avg_openviking_tokens) / avg_smp_tokens * 100
             )
 
-            report += f"### Token Efficiency\n"
+            report += "### Token Efficiency\n"
             report += f"- **SMP Average**: {int(avg_smp_tokens)} tokens\n"
             report += f"- **OpenViking Average**: {int(avg_openviking_tokens)} tokens\n"
             report += f"- **Overall Improvement**: {token_improvement:+.1f}%\n\n"
@@ -437,7 +436,7 @@ class PerformanceComparator:
             [r.openviking_success_rate for r in self.results]
         )
 
-        report += f"### Success Rate\n"
+        report += "### Success Rate\n"
         report += f"- **SMP Success Rate**: {smp_success:.1f}%\n"
         report += f"- **OpenViking Success Rate**: {openviking_success:.1f}%\n\n"
 
@@ -461,7 +460,7 @@ class PerformanceComparator:
             report += "🤔 **Performance equivalent** - Consider other factors like maintainability\n"
 
         report += "\n## Technical Details\n\n"
-        report += f"- **Test Environment**: Docker containers\n"
+        report += "- **Test Environment**: Docker containers\n"
         report += f"- **SMP Endpoint**: {self.smp_url}\n"
         report += f"- **OpenViking Endpoint**: {self.openviking_url}\n"
         report += f"- **Total Queries Tested**: {len(self.metrics) // 2}\n"

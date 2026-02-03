@@ -7,14 +7,15 @@ Real-time monitoring and alerting for OpenViking production deployment
 import asyncio
 import json
 import time
-import httpx
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Any
+
+import httpx
 from rich.console import Console
-from rich.table import Table
 from rich.layout import Layout
-from rich.panel import Panel
 from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 
@@ -26,7 +27,7 @@ class OpenVikingMonitor:
         self.metrics_history = []
         self.start_time = datetime.now()
 
-    async def check_health(self) -> Dict[str, Any]:
+    async def check_health(self) -> dict[str, Any]:
         """Check system health status"""
         try:
             async with httpx.AsyncClient() as client:
@@ -51,7 +52,7 @@ class OpenVikingMonitor:
         except Exception as e:
             return {"status": "down", "error": str(e), "response_time_ms": 0}
 
-    async def get_performance_metrics(self) -> Dict[str, Any]:
+    async def get_performance_metrics(self) -> dict[str, Any]:
         """Get detailed performance metrics"""
         try:
             async with httpx.AsyncClient() as client:
@@ -71,7 +72,7 @@ class OpenVikingMonitor:
         except Exception as e:
             return {"error": str(e)}
 
-    async def test_endpoint_performance(self) -> Dict[str, Any]:
+    async def test_endpoint_performance(self) -> dict[str, Any]:
         """Test key endpoints performance"""
         endpoints = {
             "embeddings": {
@@ -130,7 +131,7 @@ class OpenVikingMonitor:
 
         return results
 
-    def check_alerts(self, health: Dict, metrics: Dict, endpoints: Dict) -> List[Dict]:
+    def check_alerts(self, health: dict, metrics: dict, endpoints: dict) -> list[dict]:
         """Check for alerts based on thresholds"""
         alerts = []
         current_time = datetime.now()
@@ -198,7 +199,7 @@ class OpenVikingMonitor:
         return alerts
 
     def create_dashboard(
-        self, health: Dict, metrics: Dict, endpoints: Dict, alerts: List
+        self, health: dict, metrics: dict, endpoints: dict, alerts: list
     ) -> Layout:
         """Create the monitoring dashboard layout"""
         layout = Layout()

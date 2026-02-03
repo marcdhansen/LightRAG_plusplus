@@ -23,11 +23,11 @@ check_symlink() {
     local link_path="$1"
     local expected_target="$2"
     local description="$3"
-    
+
     TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
-    
+
     echo "   🔗 Checking: $description"
-    
+
     if [ -L "$link_path" ]; then
         local actual_target=$(readlink "$link_path")
         if [ "$actual_target" = "$expected_target" ]; then
@@ -56,11 +56,11 @@ check_symlink() {
 check_global_source() {
     local source_path="$1"
     local description="$2"
-    
+
     TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
-    
+
     echo "   📁 Checking: $description"
-    
+
     if [ -e "$source_path" ]; then
         echo "   ✅ $description: Source exists"
         return 0
@@ -96,7 +96,7 @@ echo "Issues found: $ISSUES_FOUND"
 if [ $ISSUES_FOUND -eq 0 ]; then
     echo "✅ All symlink validations passed!"
     echo "🎯 Cross-agent structure is healthy"
-    
+
     # Log successful validation
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Symlink validation: PASSED (0 issues)" >> "$VALIDATION_LOG"
     exit 0
@@ -106,7 +106,7 @@ else
     echo "   1. Fix broken symlinks: ln -s <target> <link_path>"
     echo "   2. Replace copies with symlinks"
     echo "   3. Run 'ln -sf ~/.agent/AGENTS.md .agent/docs/sop/global-configs/AGENTS.md'"
-    
+
     # Log failed validation
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Symlink validation: FAILED ($ISSUES_FOUND issues)" >> "$VALIDATION_LOG"
     exit 1

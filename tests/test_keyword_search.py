@@ -4,16 +4,12 @@ Comprehensive test suite for keyword search functionality in LightRAG
 Tests all aspects of keyword search including integration with LightRAG pipeline.
 """
 
-import asyncio
 import tempfile
-import os
-import pytest
-from typing import List
 
-from lightrag.core import LightRAG
+import pytest
+
 from lightrag.base import QueryParam
-from lightrag.kg.nano_vector_db_impl import NanoKeywordStorage
-from lightrag.kg.neo4j_impl import Neo4jKeywordStorage
+from lightrag.core import LightRAG
 from lightrag.utils import EmbeddingFunc
 
 
@@ -24,6 +20,7 @@ class TestKeywordSearch:
     async def keyword_storage(self):
         """Fixture providing a simple keyword storage for testing"""
         from dataclasses import dataclass
+
         from lightrag.base import BaseKeywordStorage
 
         @dataclass
@@ -42,13 +39,13 @@ class TestKeywordSearch:
                 pass
 
             async def index_keywords(
-                self, doc_id: str, keywords: List[str], content: str
+                self, doc_id: str, keywords: list[str], content: str
             ) -> None:
                 self.indexed_docs[doc_id] = {"content": content, "keywords": keywords}
 
             async def search_keywords(
-                self, keywords: List[str], limit: int = 50
-            ) -> List[dict]:
+                self, keywords: list[str], limit: int = 50
+            ) -> list[dict]:
                 results = []
                 for doc_id, doc_data in self.indexed_docs.items():
                     # Check if any keywords match
@@ -72,7 +69,7 @@ class TestKeywordSearch:
                     del self.indexed_docs[doc_id]
 
             async def update_document(
-                self, doc_id: str, keywords: List[str], content: str
+                self, doc_id: str, keywords: list[str], content: str
             ) -> None:
                 await self.delete_document(doc_id)
                 await self.index_keywords(doc_id, keywords, content)
@@ -125,10 +122,10 @@ class TestKeywordSearch:
     @pytest.mark.asyncio
     async def test_keyword_data_function(self):
         """Test _get_keyword_data function"""
-        from lightrag.operate import _get_keyword_data
-        from lightrag.base import BaseKeywordStorage
         from dataclasses import dataclass
-        from typing import List
+
+        from lightrag.base import BaseKeywordStorage
+        from lightrag.operate import _get_keyword_data
 
         @dataclass
         class TestStorage(BaseKeywordStorage):
@@ -146,13 +143,13 @@ class TestKeywordSearch:
                 pass
 
             async def index_keywords(
-                self, doc_id: str, keywords: List[str], content: str
+                self, doc_id: str, keywords: list[str], content: str
             ) -> None:
                 pass
 
             async def search_keywords(
-                self, keywords: List[str], limit: int = 50
-            ) -> List[dict]:
+                self, keywords: list[str], limit: int = 50
+            ) -> list[dict]:
                 self.searched_keywords = keywords
                 self.searched_limit = limit
 
@@ -171,7 +168,7 @@ class TestKeywordSearch:
                 pass
 
             async def update_document(
-                self, doc_id: str, keywords: List[str], content: str
+                self, doc_id: str, keywords: list[str], content: str
             ) -> None:
                 pass
 
@@ -258,9 +255,9 @@ class TestKeywordSearch:
     @pytest.mark.asyncio
     async def test_rrf_keyword_integration(self):
         """Test RRF integration with keyword results"""
-        from lightrag.operate import _perform_kg_search
         from dataclasses import dataclass
-        from typing import List
+
+        from lightrag.operate import _perform_kg_search
 
         @dataclass
         class MockStorage:
@@ -299,7 +296,7 @@ class TestKeywordSearch:
                     pass
 
                 async def index_keywords(
-                    self, doc_id: str, keywords: List[str], content: str
+                    self, doc_id: str, keywords: list[str], content: str
                 ) -> None:
                     pass
 
@@ -307,7 +304,7 @@ class TestKeywordSearch:
                     pass
 
                 async def update_document(
-                    self, doc_id: str, keywords: List[str], content: str
+                    self, doc_id: str, keywords: list[str], content: str
                 ) -> None:
                     pass
 
@@ -315,8 +312,8 @@ class TestKeywordSearch:
                     pass
 
                 async def search_keywords(
-                    self, keywords: List[str], limit: int = 50
-                ) -> List[dict]:
+                    self, keywords: list[str], limit: int = 50
+                ) -> list[dict]:
                     return MockStorage.keyword_results
 
             keyword_storage = MockKeywordStorage()

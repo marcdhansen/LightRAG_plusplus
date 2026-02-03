@@ -5,13 +5,12 @@ Dynamic Skill Discovery System
 Automatically discovers and registers skills from multiple sources for cross-agent compatibility
 """
 
-import os
 import json
-import yaml
-from pathlib import Path
-from typing import Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 
 @dataclass
@@ -22,8 +21,8 @@ class SkillInfo:
     path: str
     source: str  # 'global', 'project', 'provider'
     description: str
-    version: Optional[str] = None
-    dependencies: Optional[List[str]] = None
+    version: str | None = None
+    dependencies: list[str] | None = None
     skill_type: str = "unknown"  # 'command', 'library', 'workflow'
 
 
@@ -36,9 +35,9 @@ class SkillDiscovery:
         self.provider_configs = Path.home() / ".gemini"
 
         # Initialize registry
-        self.registry: Dict[str, SkillInfo] = {}
+        self.registry: dict[str, SkillInfo] = {}
 
-    def discover_skills(self) -> Dict[str, SkillInfo]:
+    def discover_skills(self) -> dict[str, SkillInfo]:
         """Discover skills from all sources"""
         print("🔍 Discovering skills from multiple sources...")
 
@@ -69,9 +68,7 @@ class SkillDiscovery:
                 if skill_info:
                     self.registry[skill_info.name] = skill_info
 
-    def _parse_skill_directory(
-        self, skill_path: Path, source: str
-    ) -> Optional[SkillInfo]:
+    def _parse_skill_directory(self, skill_path: Path, source: str) -> SkillInfo | None:
         """Parse a skill directory and extract information"""
         skill_file = skill_path / "SKILL.md"
 
@@ -80,7 +77,7 @@ class SkillDiscovery:
             return None
 
         try:
-            with open(skill_file, "r") as f:
+            with open(skill_file) as f:
                 content = f.read()
 
             # Parse YAML frontmatter
@@ -124,7 +121,7 @@ class SkillDiscovery:
                 if skills_dir.exists():
                     self._discover_from_directory(skills_dir, "provider")
 
-    def get_skill(self, name: str) -> Optional[SkillInfo]:
+    def get_skill(self, name: str) -> SkillInfo | None:
         """Get skill by name (supports kebab-case/camelCase conversion)"""
         # Try exact match first
         if name in self.registry:
@@ -142,14 +139,14 @@ class SkillDiscovery:
 
         return None
 
-    def list_skills(self, source: Optional[str] = None) -> List[SkillInfo]:
+    def list_skills(self, source: str | None = None) -> list[SkillInfo]:
         """List skills, optionally filtered by source"""
         skills = list(self.registry.values())
         if source:
             skills = [s for s in skills if s.source == source]
         return sorted(skills, key=lambda x: x.name)
 
-    def validate_dependencies(self) -> Dict[str, List[str]]:
+    def validate_dependencies(self) -> dict[str, list[str]]:
         """Validate that all skill dependencies are available"""
         print("🔗 Validating skill dependencies...")
 
@@ -164,7 +161,7 @@ class SkillDiscovery:
                     missing_deps[name] = missing
 
         if missing_deps:
-            print(f"❌ Missing dependencies found:")
+            print("❌ Missing dependencies found:")
             for skill_name, deps in missing_deps.items():
                 print(f"   {skill_name}: {', '.join(deps)}")
         else:

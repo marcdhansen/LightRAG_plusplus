@@ -24,7 +24,7 @@
 
 ### Scalability Analysis
 - **Small Dataset** (10 docs): < 0.1s indexing, < 0.05s search
-- **Medium Dataset** (100 docs): 2.34s indexing, 0.15-0.45s search  
+- **Medium Dataset** (100 docs): 2.34s indexing, 0.15-0.45s search
 - **Large Dataset** (1K docs): Estimated ~23s indexing, 1.2-1.8s search
 
 ### Storage Backend Performance
@@ -50,7 +50,7 @@
 - **Search**: Exact keyword matching with relevance scoring
 - **Caching**: L1 cache for frequent queries
 
-### For Production Use  
+### For Production Use
 - **Backend**: `Neo4jKeywordStorage`
 - **Indexing**: Batch processing with async queues
 - **Search**: Full-text search with ranking
@@ -71,7 +71,7 @@
 
 ### Performance Improvement
 - **Query Speed**: 40-75% faster
-- **Relevance**: 25-35% improvement  
+- **Relevance**: 25-35% improvement
 - **User Satisfaction**: +60% (finding exact matches)
 
 ## Hardware Requirements
@@ -142,7 +142,7 @@
 2. **Index Tuning**: Optimize keyword extraction and weighting
 3. **Performance Monitoring**: Real-time metrics and alerting
 
-### Medium-term (3-6 months)  
+### Medium-term (3-6 months)
 1. **Machine Learning**: Learn optimal keyword matching strategies
 2. **Distributed Search**: Scale horizontally for load balancing
 3. **Advanced Indexing**: Hierarchical and faceted search capabilities

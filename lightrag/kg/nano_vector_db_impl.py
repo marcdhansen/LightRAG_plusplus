@@ -468,7 +468,7 @@ class NanoKeywordStorage(BaseKeywordStorage):
             try:
                 import json
 
-                with open(self._storage_file, "r", encoding="utf-8") as f:
+                with open(self._storage_file, encoding="utf-8") as f:
                     self._keyword_index = json.load(f)
                 logger.info(
                     f"[{self.workspace}] Loaded keyword index from {self._storage_file}"

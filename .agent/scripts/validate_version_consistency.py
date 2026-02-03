@@ -207,19 +207,19 @@ def _get_file_version(self, file_path: Path) -> str:
         """Extract version from file (simple heuristics)"""
         if not file_path.exists():
             return ""
-            
+
         try:
             with open(file_path, "r") as f:
                 content = f.read()
-                
+
             # Look for version in frontmatter or common patterns
             import re
-            
+
             # YAML frontmatter version
             version_match = re.search(r'version[:\s*["\']([^"\']+)["\']', content)
             if version_match:
                 return version_match.group(1).strip()
-                
+
             # Common version patterns
             version_patterns = [
                 r'version[:\s*([0-9]+\.[0-9]+)',
@@ -227,12 +227,12 @@ def _get_file_version(self, file_path: Path) -> str:
                 r'Updated:[\s*([0-9]+-[0-9]+-[0-9]+)',
                 r'Last Updated:[\s*([0-9]+-[0-9]+-[0-9]+)'
             ]
-            
+
             for pattern in version_patterns:
                 match = re.search(pattern, content)
                 if match:
                     return match.group(1).strip()
-                    
+
             return "unknown"
         except Exception:
             return "unknown"

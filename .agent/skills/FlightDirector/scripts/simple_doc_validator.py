@@ -5,15 +5,11 @@ Simplified Document Reachability Validator
 Focused validation that avoids symlink loops by being more targeted.
 """
 
-import os
+import argparse
 import re
 import sys
-import json
-import argparse
 from pathlib import Path
-from typing import Set, Dict, List, Tuple
 from urllib.parse import urlparse
-import time
 
 
 class SimpleDocumentValidator:
@@ -37,12 +33,12 @@ class SimpleDocumentValidator:
                     print(f"Found GLOBAL_INDEX.md at: {candidate}")
                 return candidate
 
-        raise FileNotFoundError(f"GLOBAL_INDEX.md not found")
+        raise FileNotFoundError("GLOBAL_INDEX.md not found")
 
-    def _extract_links(self, file_path: Path) -> List[Tuple[str, str]]:
+    def _extract_links(self, file_path: Path) -> list[tuple[str, str]]:
         """Extract markdown links from a file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             print(f"Warning: Could not read {file_path}: {e}")
@@ -69,7 +65,7 @@ class SimpleDocumentValidator:
         return (source_file.parent / link_target).resolve()
 
     def _check_file_reachable(
-        self, file_path: Path, checked: Set[str] | None = None
+        self, file_path: Path, checked: set[str] | None = None
     ) -> bool:
         """Check if a file is reachable from GLOBAL_INDEX."""
         if checked is None:

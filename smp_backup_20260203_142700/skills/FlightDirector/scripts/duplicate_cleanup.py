@@ -5,13 +5,9 @@ Duplicate File Cleanup Tool
 Safely removes duplicate markdown files, especially critical ones like GLOBAL_INDEX.md and AGENTS.md.
 """
 
-import os
-import sys
-import json
 import argparse
 import hashlib
 from pathlib import Path
-from typing import Dict, List
 
 
 def file_hash(filepath: Path) -> str:
@@ -23,7 +19,7 @@ def file_hash(filepath: Path) -> str:
         return "ERROR"
 
 
-def find_critical_duplicates(workspace_dir: Path) -> Dict[str, List[Path]]:
+def find_critical_duplicates(workspace_dir: Path) -> dict[str, list[Path]]:
     """Find critical duplicate files."""
     critical_files = ["GLOBAL_INDEX.md", "AGENTS.md"]
     duplicates = {}
@@ -73,7 +69,7 @@ def main():
         print("✅ No critical duplicate files found!")
         return
 
-    print(f"\n🔍 Critical Duplicate Analysis:")
+    print("\n🔍 Critical Duplicate Analysis:")
     for filename, files in critical_duplicates.items():
         if len(files) > 1:
             print(f"⚠️  {filename}: {len(files)} copies found!")
@@ -87,7 +83,7 @@ def main():
                     print(f"  Remove: {extra_file.relative_to(workspace_dir)}")
 
     if not args.dry_run and critical_duplicates:
-        print(f"\n🧹 Safe cleanup commands for critical files:")
+        print("\n🧹 Safe cleanup commands for critical files:")
 
         for filename, files in critical_duplicates.items():
             if len(files) > 1:

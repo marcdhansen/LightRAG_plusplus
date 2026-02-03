@@ -8,7 +8,6 @@ import argparse
 import glob
 import json
 import os
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -28,7 +27,7 @@ def run_command(command, cwd=None):
             cwd=cwd,
         )
         return result.stdout, result.returncode
-    except Exception as e:
+    except Exception:
         return None, 1
 
 

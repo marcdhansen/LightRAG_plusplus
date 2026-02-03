@@ -47,7 +47,7 @@ elif [ "$GEMINI_CONTENT" -gt "$AGENT_CONTENT" ]; then
     echo ""
     echo "🔧 Suggested fixes:"
     echo "  1. Move unique content from ~/.gemini/ to ~/.agent/"
-    echo "  2. Update ~/.gemini symlink to point to ~/.agent" 
+    echo "  2. Update ~/.gemini symlink to point to ~/.agent"
     echo "  3. Remove duplicate ~/.agent/ directory if it exists"
 else
     echo ""
@@ -77,39 +77,39 @@ case $choice in
             echo "  Updating ~/.gemini symlink to point to ~/.agent"
             ln -sf ~/.agent ~/.gemini
         fi
-        
+
         if [ -L ~/.agent ]; then
             echo "  Removing ~/.agent symlink to prevent loops"
             rm ~/.agent
         fi
-        
+
         echo "  Creating ~/.agent symlink for convenience..."
         ln -sf ~/.agent ~/.agent
         echo "✅ ~/.agent/ is now the primary source of truth"
         ;;
-        
+
     2)
         echo "🎯 Making ~/.gemini/ the primary source..."
         if [ -L ~/.agent ]; then
             echo "  Updating ~/.agent symlink to point to ~/.gemini"
             ln -sf ~/.gemini ~/.agent
         fi
-        
+
         if [ -L ~/.gemini ]; then
             echo "  Removing ~/.gemini symlink to prevent loops"
             rm ~/.gemini
         fi
-        
+
         echo "  Creating ~/.gemini symlink for convenience..."
         ln -sf ~/.gemini ~/.gemini
         echo "✅ ~/.gemini/ is now the primary source of truth"
         ;;
-        
+
     3)
         echo "🔍 Manual investigation selected"
         echo "Please examine both directories to determine best approach"
         ;;
-        
+
     *)
         echo "❌ Invalid choice"
         exit 1

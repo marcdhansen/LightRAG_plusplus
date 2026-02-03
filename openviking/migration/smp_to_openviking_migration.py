@@ -6,12 +6,12 @@ Migrates conversation data, embeddings, and skills from SMP to OpenViking
 
 import asyncio
 import json
-import time
-import os
 import shutil
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
+
 import httpx
 
 
@@ -24,7 +24,7 @@ class SMPToOpenVikingMigrator:
         self.migration_log = []
         self.start_time = datetime.now()
 
-    def log_migration(self, level: str, message: str, details: Dict = None):
+    def log_migration(self, level: str, message: str, details: dict = None):
         """Log migration events"""
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -40,7 +40,7 @@ class SMPToOpenVikingMigrator:
             for key, value in details.items():
                 print(f"   {key}: {value}")
 
-    def scan_smp_data(self) -> Dict[str, Any]:
+    def scan_smp_data(self) -> dict[str, Any]:
         """Scan SMP data directory for migrable content"""
         self.log_migration("info", "Scanning SMP data directory...")
 
@@ -62,7 +62,7 @@ class SMPToOpenVikingMigrator:
         # Scan for JSON files that might contain SMP data
         for json_file in self.smp_source_path.rglob("*.json"):
             try:
-                with open(json_file, "r") as f:
+                with open(json_file) as f:
                     data = json.load(f)
 
                 # Categorize based on content patterns
@@ -117,8 +117,8 @@ class SMPToOpenVikingMigrator:
         return smp_data
 
     async def migrate_conversation_data(
-        self, conversations: List[Dict]
-    ) -> Dict[str, Any]:
+        self, conversations: list[dict]
+    ) -> dict[str, Any]:
         """Migrate conversation data to OpenViking"""
         self.log_migration("info", "Migrating conversation data...")
 
@@ -200,7 +200,7 @@ class SMPToOpenVikingMigrator:
         )
         return migration_results
 
-    async def migrate_skills_data(self, skills: List[Dict]) -> Dict[str, Any]:
+    async def migrate_skills_data(self, skills: list[dict]) -> dict[str, Any]:
         """Migrate skills data to OpenViking"""
         self.log_migration("info", "Migrating skills data...")
 
@@ -247,7 +247,7 @@ class SMPToOpenVikingMigrator:
         self.log_migration("success", "Skills migration complete", migration_results)
         return migration_results
 
-    async def migrate_embeddings_data(self, embeddings: List[Dict]) -> Dict[str, Any]:
+    async def migrate_embeddings_data(self, embeddings: list[dict]) -> dict[str, Any]:
         """Migrate embeddings data to OpenViking"""
         self.log_migration("info", "Migrating embeddings data...")
 
@@ -332,7 +332,7 @@ class SMPToOpenVikingMigrator:
             self.log_migration("error", f"Failed to create backup: {e}")
             return ""
 
-    def generate_migration_report(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_migration_report(self, results: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive migration report"""
         end_time = datetime.now()
         duration = end_time - self.start_time
@@ -367,7 +367,7 @@ class SMPToOpenVikingMigrator:
 
         return report
 
-    async def run_migration(self) -> Dict[str, Any]:
+    async def run_migration(self) -> dict[str, Any]:
         """Run complete migration process"""
         self.log_migration("info", "Starting SMP to OpenViking migration...")
 
@@ -426,7 +426,7 @@ async def main():
     print("🚀 SMP to OpenViking Migration Tool")
     print("=" * 50)
     print(f"SMP Source: {smp_source}")
-    print(f"OpenViking Target: http://localhost:8002")
+    print("OpenViking Target: http://localhost:8002")
     print()
 
     migrator = SMPToOpenVikingMigrator(smp_source)

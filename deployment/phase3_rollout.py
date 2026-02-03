@@ -4,22 +4,15 @@ OpenViking Phase 3 Rollout Automation
 Automated gradual traffic routing from SMP to OpenViking
 """
 
+import argparse
 import asyncio
 import json
-import time
-import httpx
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
-import argparse
+from typing import Any
+
+import httpx
 from rich.console import Console
 from rich.table import Table
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TimeElapsedColumn,
-)
 
 
 class Phase3Rollout:
@@ -37,7 +30,7 @@ class Phase3Rollout:
         ]
         self.metrics_history = []
 
-    async def check_system_health(self, system_name: str, url: str) -> Dict[str, Any]:
+    async def check_system_health(self, system_name: str, url: str) -> dict[str, Any]:
         """Check health of a specific system"""
         try:
             async with httpx.AsyncClient() as client:
@@ -60,7 +53,7 @@ class Phase3Rollout:
         except Exception as e:
             return {"healthy": False, "error": str(e), "response_time_ms": 0}
 
-    async def get_router_status(self) -> Dict[str, Any]:
+    async def get_router_status(self) -> dict[str, Any]:
         """Get current router status"""
         try:
             async with httpx.AsyncClient() as client:
@@ -162,7 +155,7 @@ class Phase3Rollout:
             else 0,
         }
 
-    async def monitor_performance(self, duration_minutes: int) -> Dict[str, Any]:
+    async def monitor_performance(self, duration_minutes: int) -> dict[str, Any]:
         """Monitor performance during a phase"""
         self.console.print(
             f"📊 Monitoring performance for {duration_minutes} minutes..."
@@ -227,7 +220,7 @@ class Phase3Rollout:
 
         return {"error": "No metrics collected"}
 
-    async def run_phase(self, phase: Dict[str, Any]) -> Dict[str, Any]:
+    async def run_phase(self, phase: dict[str, Any]) -> dict[str, Any]:
         """Run a single rollout phase"""
         phase_name = phase["name"]
         openviking_percentage = phase["openviking_percentage"]
@@ -282,7 +275,7 @@ class Phase3Rollout:
             "duration_minutes": duration_minutes,
         }
 
-    def display_rollout_summary(self, results: List[Dict[str, Any]]):
+    def display_rollout_summary(self, results: list[dict[str, Any]]):
         """Display rollout summary"""
         self.console.print("\n📋 [bold blue]Phase 3 Rollout Summary[/bold blue]")
         self.console.print("=" * 50)
@@ -388,7 +381,7 @@ class Phase3Rollout:
 
         return True
 
-    async def run_rollout(self, phases_to_run: List[str] = None):
+    async def run_rollout(self, phases_to_run: list[str] = None):
         """Run the complete rollout process"""
         self.console.print(
             "🚀 [bold blue]OpenViking Phase 3 Rollout Automation[/bold blue]"

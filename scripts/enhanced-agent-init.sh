@@ -369,13 +369,24 @@ verify_openviking_integration() {
 
     # Test slash command integration (Phase 0 check)
     echo -e "🔍 Testing slash command discovery..."
+
+    # 1. API check
     local cmd_response=$(curl -s http://localhost:8000/commands 2>/dev/null)
     if echo "$cmd_response" | grep -q '"count":'; then
         local cmd_count=$(echo "$cmd_response" | grep -o '"count":\s*[0-9]*' | grep -o '[0-9]*')
-        log_success "OpenViking slash commands discovered: $cmd_count"
+        log_success "OpenViking slash commands discovered (API): $cmd_count"
+    else
+        log_warning "OpenViking API slash commands endpoint not responding"
+    fi
+
+    # 2. Local file sync (Integration fix)
+    echo -e "🔄 Synchronizing local slash commands..."
+    if python3 openviking/commands.py --sync .agent/workflows >/dev/null 2>&1; then
+        local local_count=$(ls .agent/workflows/*.md 2>/dev/null | wc -l | xargs)
+        log_success "Synced $local_count OpenViking commands to .agent/workflows/"
         return 0
     else
-        log_warning "OpenViking slash commands endpoint not responding correctly"
+        log_error "Failed to synchronize local slash commands"
         return 1
     fi
 }

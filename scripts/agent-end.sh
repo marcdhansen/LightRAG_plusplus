@@ -205,12 +205,12 @@ fi
 # PR Lifecycle (unless --skip-pr)
 if [ "$SKIP_PR" = false ]; then
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-    
+
     if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
         echo ""
         echo "🔀 PR Lifecycle..."
         echo "   Current branch: $CURRENT_BRANCH"
-        
+
         # Check if gh CLI is available
         if command -v gh &> /dev/null; then
             # Check for uncommitted changes
@@ -228,7 +228,7 @@ if [ "$SKIP_PR" = false ]; then
                         gh pr merge --auto --squash --delete-branch || echo "⚠️  Auto-merge setup failed (check branch protection rules)"
                     fi
                 fi
-                
+
                 echo ""
                 echo "💡 After PR merges, run:"
                 echo "   git checkout main && git pull"

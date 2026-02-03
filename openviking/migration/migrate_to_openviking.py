@@ -12,18 +12,15 @@ This is a comprehensive migration that:
 4. Provides rollback capability
 """
 
-import json
+import asyncio
+import logging
 import os
 import sys
-import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from datetime import datetime
-import asyncio
-import pydantic
+
 import structlog
 from rich.console import Console
-from rich.progress import Progress, TaskID
+from rich.progress import Progress
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -161,15 +158,13 @@ class SMPToOpenVikingMigrator:
         skill_content = ""
 
         if os.path.exists(skill_md_path):
-            with open(skill_md_path, "r", encoding="utf-8") as f:
+            with open(skill_md_path, encoding="utf-8") as f:
                 skill_content = f.read()
         else:
             # Read any .md files in the skill directory
             md_files = [f for f in os.listdir(skill_path) if f.endswith(".md")]
             for md_file in md_files:
-                with open(
-                    os.path.join(skill_path, md_file), "r", encoding="utf-8"
-                ) as f:
+                with open(os.path.join(skill_path, md_file), encoding="utf-8") as f:
                     skill_content += f.read() + "\\n\\n"
 
         # Create skill in OpenViking
@@ -232,7 +227,7 @@ class SMPToOpenVikingMigrator:
     async def migrate_single_memory(self, client, memory_file: str):
         """Migrate individual memory to OpenViking"""
 
-        with open(memory_file, "r", encoding="utf-8") as f:
+        with open(memory_file, encoding="utf-8") as f:
             memory_content = f.read()
 
         # Determine memory category based on filename and content
@@ -375,9 +370,7 @@ Migration completed: {datetime.now().isoformat()}
             self.log.info("Migration completed", report_path=report_path)
 
             # Print summary
-            self.console.print(
-                f"\\n[green]✅ Migration completed successfully![/green]"
-            )
+            self.console.print("\\n[green]✅ Migration completed successfully![/green]")
             self.console.print(f"[blue]📄 Report saved to: {report_path}[/blue]")
 
             if self.migration_stats["errors"]:

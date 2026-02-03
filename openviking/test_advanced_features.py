@@ -6,10 +6,11 @@ Tests all advanced features: caching, skill discovery, performance metrics
 
 import asyncio
 import json
-import time
-import httpx
-from datetime import datetime
 import statistics
+import time
+from datetime import datetime
+
+import httpx
 
 
 async def test_openviking_features():
@@ -165,7 +166,7 @@ async def test_openviking_features():
     avg_cache_improvement = results["embedding_caching"]["cache_improvement_percent"]
     avg_search_time = results["skill_search"]["average_search_time_ms"]
 
-    print(f"\n🚀 Performance Metrics:")
+    print("\n🚀 Performance Metrics:")
     print(f"   Cache Improvement: {avg_cache_improvement:.1f}%")
     print(f"   Avg Search Time: {avg_search_time:.1f}ms")
     print(f"   Skills Discovered: {results['skill_search']['total_skills_found']}")

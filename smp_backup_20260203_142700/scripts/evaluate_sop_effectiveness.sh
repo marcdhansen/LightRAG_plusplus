@@ -29,38 +29,38 @@ EOF
 # Function to calculate PFC compliance
 calculate_pfc_compliance() {
     echo "   🔍 Analyzing PFC compliance..."
-    
+
     local pfc_issues=0
     local pfc_checks=0
-    
+
     # Check for common PFC failures
     if [ ! -f ".agent/rules/ROADMAP.md" ]; then
         echo "     ❌ Missing ROADMAP.md"
         pfc_issues=$((pfc_issues + 1))
     fi
     pfc_checks=$((pfc_checks + 1))
-    
+
     if [ ! -f ".agent/rules/ImplementationPlan.md" ]; then
         echo "     ❌ Missing ImplementationPlan.md"
         pfc_issues=$((pfc_issues + 1))
     fi
     pfc_checks=$((pfc_checks + 1))
-    
+
     # Check bd ready status
     if ! bd ready >/dev/null 2>&1; then
         echo "     ❌ Beads not ready"
         pfc_issues=$((pfc_issues + 1))
     fi
     pfc_checks=$((pfc_checks + 1))
-    
+
     local compliance_rate=$((100 - (pfc_issues * 100 / pfc_checks)))
-    
+
     if [ $compliance_rate -lt $COMPLIANCE_MINIMUM ]; then
         echo "     ❌ PFC compliance: ${compliance_rate}% (below ${COMPLIANCE_MINIMUM}%)"
     else
         echo "     ✅ PFC compliance: ${compliance_rate}%"
     fi
-    
+
     # Return the numeric value (not captured by echo)
     echo $compliance_rate
 }
@@ -68,9 +68,9 @@ calculate_pfc_compliance() {
 # Function to analyze process friction
 analyze_process_friction() {
     echo "   🔍 Analyzing process friction..."
-    
+
     local friction_count=0
-    
+
     # Check for session lock issues
     local stale_locks=$(find .agent/session_locks -name "*.json" -mmin +10 2>/dev/null | wc -l)
     if [ $stale_locks -gt 0 ]; then
@@ -78,7 +78,7 @@ analyze_process_friction() {
         jq --arg msg "Found $stale_locks stale session locks" '.friction_points += [{"type": "session_locks", "description": $msg, "severity": "medium"}]' "$EVALUATION_FILE" > "$EVALUATION_FILE.tmp" && mv "$EVALUATION_FILE.tmp" "$EVALUATION_FILE"
         friction_count=$((friction_count + 1))
     fi
-    
+
     # Check for broken symlinks
     local broken_links=$(find .agent -type l -exec test ! -e {} \; -print | wc -l)
     if [ $broken_links -gt 0 ]; then
@@ -86,7 +86,7 @@ analyze_process_friction() {
         jq --arg msg "Found $broken_links broken symbolic links" '.friction_points += [{"type": "documentation", "description": $msg, "severity": "high"}]' "$EVALUATION_FILE" > "$EVALUATION_FILE.tmp" && mv "$EVALUATION_FILE.tmp" "$EVALUATION_FILE"
         friction_count=$((friction_count + 1))
     fi
-    
+
     # Check git issues
     local git_issues=$(git status --porcelain 2>/dev/null | wc -l)
     if [ $git_issues -gt 10 ]; then
@@ -94,7 +94,7 @@ analyze_process_friction() {
         jq --arg msg "High number of git changes: $git_issues" '.friction_points += [{"type": "git_workflow", "description": $msg, "severity": "medium"}]' "$EVALUATION_FILE" > "$EVALUATION_FILE.tmp" && mv "$EVALUATION_FILE.tmp" "$EVALUATION_FILE"
         friction_count=$((friction_count + 1))
     fi
-    
+
     # Return the numeric value
     echo $friction_count
 }
@@ -103,32 +103,32 @@ analyze_process_friction() {
 generate_recommendations() {
     local pfc_compliance=$1
     local friction_count=$2
-    
+
     echo "   📋 Generating recommendations..."
-    
+
     local recommendations=()
-    
+
     # PFC compliance recommendations
     if [ $pfc_compliance -lt $COMPLIANCE_MINIMUM ]; then
         recommendations+=("Improve PFC compliance: Automate validation checks")
     fi
-    
+
     # Friction recommendations
     if [ $friction_count -gt 0 ]; then
         recommendations+=("Implement automated session lock cleanup")
         recommendations+=("Fix broken symbolic links and documentation")
         recommendations+=("Add git workflow automation")
     fi
-    
+
     # General improvement
     recommendations+=("Enhance documentation navigation")
     recommendations+=("Strengthen conflict prevention mechanisms")
-    
+
     # Add recommendations to JSON
     for rec in "${recommendations[@]}"; do
         jq --arg rec "$rec" '.recommendations += [$rec]' "$EVALUATION_FILE" > "$EVALUATION_FILE.tmp" && mv "$EVALUATION_FILE.tmp" "$EVALUATION_FILE"
     done
-    
+
     echo "     Generated ${#recommendations[@]} recommendations"
 }
 
@@ -136,12 +136,12 @@ generate_recommendations() {
 finalize_evaluation() {
     local pfc_compliance=$1
     local friction_count=$2
-    
+
     echo "   📝 Finalizing evaluation..."
-    
+
     local final_status="pass"
     local block_reason=""
-    
+
     # Determine final status
     if [ $pfc_compliance -lt $COMPLIANCE_MINIMUM ]; then
         final_status="blocked"
@@ -150,12 +150,12 @@ finalize_evaluation() {
         final_status="blocked"
         block_reason="High process friction detected"
     fi
-    
+
     # Update final status in JSON
     jq --arg status "$final_status" --arg reason "$block_reason" '.status = $status | .block_reason = $reason' "$EVALUATION_FILE" > "$EVALUATION_FILE.tmp" && mv "$EVALUATION_FILE.tmp" "$EVALUATION_FILE"
-    
+
     echo "   Final Status: $final_status"
-    
+
     if [ "$final_status" = "blocked" ]; then
         echo "   🚫 BLOCKER: $block_reason"
         echo ""
@@ -181,22 +181,22 @@ finalize_evaluation() {
 main() {
     echo "Starting comprehensive SOP effectiveness evaluation..."
     echo ""
-    
+
     # Run all evaluation components and capture just the numeric values
     local pfc_compliance_output=$(calculate_pfc_compliance)
     local pfc_compliance=$(echo "$pfc_compliance_output" | tail -1)
     local friction_output=$(analyze_process_friction)
     local friction_count=$(echo "$friction_output" | tail -1)
     generate_recommendations "$pfc_compliance" "$friction_count"
-    
+
     # Finalize and return status
     finalize_evaluation "$pfc_compliance" "$friction_count"
-    
+
     # Capture learnings using reflect system if evaluation passed
     if [ $? -eq 0 ]; then
         echo ""
         echo "💡 Capturing SOP evaluation learnings with reflect system..."
-        
+
         # Check if reflect system is available
         if [ -f "$HOME/.gemini/antigravity/skills/Reflect/scripts/enhanced_reflect_system.py" ]; then
             echo "🧠 Running flight diagnostics to capture learnings..."

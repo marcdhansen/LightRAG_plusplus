@@ -5,8 +5,7 @@ Just demonstrates basic OpenViking functionality without complex dependencies
 """
 
 import asyncio
-import time
-from typing import Dict, Any
+from typing import Any
 
 
 class UltraMinimalABTestRunner:
@@ -14,7 +13,7 @@ class UltraMinimalABTestRunner:
         print("🚀 Starting Ultra-Minimal A/B Test")
         print("=" * 50)
 
-    async def run_tests(self) -> Dict[str, Any]:
+    async def run_tests(self) -> dict[str, Any]:
         """Run ultra-minimal A/B tests"""
         test_queries = ["React optimization", "API authentication"]
 

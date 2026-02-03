@@ -162,15 +162,15 @@ volumes:
   # OpenViking persistent storage
   openviking_data:
     driver: local
-  
+
   openviking_redis_data:
     driver: local
-  
+
   migration_logs:
     driver: local
-  
+
   comparison_results:
     driver: local
-  
+
   lightrag_experimental_data:
     driver: local

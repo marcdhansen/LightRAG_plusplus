@@ -22,7 +22,7 @@ PORT_OFFSET_MAX=20
 find_available_port() {
     local base_port=$1
     local offset=0
-    
+
     while [ $offset -lt $PORT_OFFSET_MAX ]; do
         local port=$((base_port + offset))
         if ! lsof -i :$port >/dev/null 2>&1; then
@@ -31,7 +31,7 @@ find_available_port() {
         fi
         offset=$((offset + 1))
     done
-    
+
     echo "ERROR: No available port found for base $base_port"
     return 1
 }

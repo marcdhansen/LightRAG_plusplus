@@ -18,13 +18,13 @@ BRANCH=$(git branch --show-current)
 if [[ "$BRANCH" =~ ^agent/([^/]+)/task-([^/]+)$ ]]; then
     AGENT_ID="${BASH_REMATCH[1]}"
     TASK_ID="${BASH_REMATCH[2]}"
-    
+
     # Validate task exclusivity
     if ! ./scripts/validate_task_exclusivity.sh "$TASK_ID" "$AGENT_ID" "check" >/dev/null 2>&1; then
         echo "❌ ERROR: Task $TASK_ID is locked by another agent"
         exit 1
     fi
-    
+
     # Run git operation guard
     ./scripts/git_operation_guards.sh "$AGENT_ID" "$TASK_ID"
     if [ $? -ne 0 ]; then
@@ -50,7 +50,7 @@ BRANCH=$(git branch --show-current)
 if [[ "$BRANCH" =~ ^agent/([^/]+)/task-([^/]+)$ ]]; then
     AGENT_ID="${BASH_REMATCH[1]}"
     TASK_ID="${BASH_REMATCH[2]}"
-    
+
     # Run git operation guard for push
     ./scripts/git_operation_guards.sh "$AGENT_ID" "$TASK_ID" "$@"
     if [ $? -ne 0 ]; then
@@ -83,7 +83,7 @@ BRANCH=$(git branch --show-current)
 # Extract task from branch name
 if [[ "$BRANCH" =~ ^agent/([^/]+)/task-([^/]+)$ ]]; then
     TASK_ID="${BASH_REMATCH[2]}"
-    
+
     # Check if commit message contains task ID
     if ! grep -q "$TASK_ID" "$COMMIT_MSG_FILE"; then
         echo "⚠️  WARNING: Commit message should contain task ID: $TASK_ID"
