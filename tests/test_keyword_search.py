@@ -399,50 +399,5 @@ class TestKeywordSearch:
 
 
 if __name__ == "__main__":
-    # Run a quick test when executed directly
-    async def quick_test():
-        """Quick functional test"""
-        test_instance = TestKeywordSearch()
-        storage = await test_instance.keyword_storage()
-
-        print("🧪 Running comprehensive keyword search tests...")
-
-        try:
-            await test_instance.test_nano_keyword_storage_basic_operations(storage)
-            print("✅ Basic operations test passed")
-
-            await test_instance.test_query_param_keyword_mode()
-            print("✅ QueryParam keyword mode test passed")
-
-            await test_instance.test_keyword_data_function()
-            print("✅ Keyword data function test passed")
-
-            await test_instance.test_lightrag_keyword_integration()
-            print("✅ LightRAG integration test passed")
-
-            await test_instance.test_rrf_keyword_integration()
-            print("✅ RRF integration test passed")
-
-            await test_instance.test_error_handling(storage)
-            print("✅ Error handling test passed")
-
-            await test_instance.test_performance(storage)
-            print("✅ Performance test passed")
-
-            print("\n🎉 ALL KEYWORD SEARCH TESTS PASSED!")
-            print("📋 Test coverage includes:")
-            print("   ✅ Basic storage operations")
-            print("   ✅ QueryParam keyword mode")
-            print("   ✅ Keyword data retrieval")
-            print("   ✅ LightRAG pipeline integration")
-            print("   ✅ RRF fusion integration")
-            print("   ✅ Error handling")
-            print("   ✅ Performance testing")
-
-        except Exception as e:
-            print(f"❌ Test failed: {e}")
-            import traceback
-
-            traceback.print_exc()
-
-    asyncio.run(quick_test())
+    import pytest
+    pytest.main([__file__])
