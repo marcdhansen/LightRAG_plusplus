@@ -1,0 +1,38 @@
+{
+  "Albert Einstein": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1770179217,
+    "update_time": 1770179217,
+    "_id": "Albert Einstein"
+  },
+  "Ulm": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1770179217,
+    "update_time": 1770179217,
+    "_id": "Ulm"
+  },
+  "Germany": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1770179217,
+    "update_time": 1770179217,
+    "_id": "Germany"
+  },
+  "Theory of Relativity": {
+    "chunk_ids": [
+      "chunk-f4df69a51ae967ceec3364438ced590f"
+    ],
+    "count": 1,
+    "create_time": 1770179217,
+    "update_time": 1770179217,
+    "_id": "Theory of Relativity"
+  }
+}

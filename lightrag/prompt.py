@@ -222,6 +222,11 @@ You are a Knowledge Graph Specialist responsible for extracting ALL relevant ent
 2.  **RELATIONSHIP EXTRACTION (STRICT):**
     *   Identify all meaningful relationships between ALL identified entities.
     *   **DENSE LINKING:** Do not just link to the main subject; link entities to each other if they appear in the same context or relate to each other.
+    *   **STRUCTURAL LINKS:** Explicitly look for and extract structural relationships such as:
+        - **Geographic Containment:** (e.g. "Paris" is in "France", "NASA" is in "USA").
+        - **Professional/Organizational:** (e.g. "Person" works for "Company").
+        - **Biographical Origins:** (e.g. "Person" born in "City", "Person" of "Nationality").
+    *   **CROSS-LINKING:** For every pair of extracted entities, ask yourself: "Does the text describe a connection between them?" If yes, extract it even if it seems secondary.
     *   **FORMAT:** Use 'source', 'target', 'keywords', 'description' in a list of objects.
     *   **CONSISTENCY:** Use the EXACT same entity names in relationships as defined in the entities list.
 
@@ -345,6 +350,37 @@ relationships:
     target: "England"
     keywords: "origin, nationality"
     description: "Charles Darwin was a British naturalist from England."
+""",
+    """entities:
+  - name: "Marie Curie"
+    type: "Person"
+    description: "A physicist and chemist who conducted pioneering research on radioactivity."
+  - name: "Warsaw"
+    type: "Location"
+    description: "The city where Marie Curie was born."
+  - name: "Poland"
+    type: "Location"
+    description: "The country where Warsaw is located and Marie Curie's place of origin."
+  - name: "Radioactivity"
+    type: "Concept"
+    description: "The field of study pioneered by Marie Curie."
+relationships:
+  - source: "Marie Curie"
+    target: "Warsaw"
+    keywords: "birthplace"
+    description: "Marie Curie was born in Warsaw."
+  - source: "Marie Curie"
+    target: "Poland"
+    keywords: "origin, nationality"
+    description: "Marie Curie was of Polish origin."
+  - source: "Warsaw"
+    target: "Poland"
+    keywords: "containment, location"
+    description: "Warsaw is a city located in Poland."
+  - source: "Marie Curie"
+    target: "Radioactivity"
+    keywords: "research, pioneer"
+    description: "Marie Curie conducted pioneering research on radioactivity."
 """,
 ]
 
