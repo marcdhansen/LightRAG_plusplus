@@ -33,7 +33,9 @@
   - [Workspace Docs](../antigravity_lightrag/LightRAG/workspace_docs/ANTIGRAVITY_KNOWLEDGE.md)
   - [Beads Sync Issues](../antigravity_lightrag/LightRAG/beads_sync_issues.md)
   - [WebUI Troubleshooting](../antigravity_lightrag/LightRAG/workspace_docs/WEBUI_TROUBLESHOOTING.md)
-  - [Memgraph Vector Research](../antigravity_lightrag/LightRAG/workspace_docs/MEMGRAPH_VECTOR_RESEARCH.md)
+       - [Memgraph Vector Research](../antigravity_lightrag/LightRAG/workspace_docs/MEMGRAPH_VECTOR_RESEARCH.md)
+       - [Community Detection Performance](../antigravity_lightrag/LightRAG/docs/community_detection_tradeoffs.md) - Speed/performance tradeoffs analysis
+       - [TDD Mandatory Gate](../antigravity_lightrag/LightRAG/.agent/docs/sop/TDD_MANDATORY_GATE.md) - ⛔ MANDATORY TDD enforcement - CANNOT bypass
 
   - **Project: LightRAG** (`~/antigravity_lightrag/LightRAG`)
     - [Project Root](../antigravity_lightrag/LightRAG/README.md)

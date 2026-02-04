@@ -48,6 +48,18 @@ The SOP directory provides:
 2. **Agent Skills** - Standardized capabilities and workflows
 3. **Workspace Rules** - Project-specific procedures and guidelines
 
+## ⛔ **MANDATORY TDD GATE**
+
+**🚫 CRITICAL**: [TDD Mandatory Gate](./TDD_MANDATORY_GATE.md) - **CANNOT BYPASS**
+
+All new features **MUST** follow Test-Driven Development methodology:
+- **Failing Tests First** - Define expectations before implementation
+- **Performance Benchmarks** - Measure against baseline with quantifiable metrics
+- **Tradeoff Documentation** - Analyze speed, memory, and scalability tradeoffs
+- **Automated Enforcement** - System blocks non-compliant work automatically
+
+**Validation Script**: `./scripts/validate_tdd_compliance.sh <feature_name>`
+
 ## Usage
 
 All agents must:

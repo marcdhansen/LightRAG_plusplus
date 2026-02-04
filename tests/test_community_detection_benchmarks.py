@@ -74,7 +74,7 @@ class CommunityDetectionBenchmarkSuite:
             result = await func(*args, **kwargs)
             success = True
             error_message = ""
-            result_count = len(result) if isinstance(result, (list, dict)) else 1
+            result_count = len(result) if isinstance(result, list | dict) else 1
         except Exception as e:
             success = False
             error_message = str(e)
