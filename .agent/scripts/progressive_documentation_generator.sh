@@ -93,7 +93,7 @@ fi
 if [[ "${INTERACTIVE:-false}" == "true" ]]; then
     echo -e "${BLUE}=== Progressive Documentation Generator ===${NC}"
     echo "Please provide the following information:"
-    
+
     # Context selection
     echo "Available contexts:"
     echo "1) preflight - Before starting work"
@@ -102,7 +102,7 @@ if [[ "${INTERACTIVE:-false}" == "true" ]]; then
     echo "4) error - Troubleshooting errors"
     echo "5) learning - Skill development"
     read -p "Select context (1-5): " context_choice
-    
+
     case $context_choice in
         1) CONTEXT_TYPE="preflight" ;;
         2) CONTEXT_TYPE="work" ;;
@@ -111,7 +111,7 @@ if [[ "${INTERACTIVE:-false}" == "true" ]]; then
         5) CONTEXT_TYPE="learning" ;;
         *) echo -e "${RED}Invalid choice${NC}"; exit 1 ;;
     esac
-    
+
     # Workflow state
     echo "Available workflow states:"
     echo "1) planning - Planning and preparation"
@@ -119,7 +119,7 @@ if [[ "${INTERACTIVE:-false}" == "true" ]]; then
     echo "3) testing - Testing and validation"
     echo "4) reviewing - Review and refinement"
     read -p "Select workflow state (1-4): " workflow_choice
-    
+
     case $workflow_choice in
         1) WORKFLOW_STATE="planning" ;;
         2) WORKFLOW_STATE="implementing" ;;
@@ -127,7 +127,7 @@ if [[ "${INTERACTIVE:-false}" == "true" ]]; then
         4) WORKFLOW_STATE="reviewing" ;;
         *) echo -e "${RED}Invalid choice${NC}"; exit 1 ;;
     esac
-    
+
     # User position
     echo "User experience levels:"
     echo "1) new - First time with this workflow"
@@ -135,7 +135,7 @@ if [[ "${INTERACTIVE:-false}" == "true" ]]; then
     echo "3) advanced - Experienced with this workflow"
     echo "4) expert - Can teach others"
     read -p "Select your level (1-4): " position_choice
-    
+
     case $position_choice in
         1) USER_POSITION="new" ;;
         2) USER_POSITION="intermediate" ;;
@@ -172,7 +172,7 @@ get_user_profile() {
 adapt_content_detail() {
     local content="$1"
     local detail="$2"
-    
+
     case "$detail" in
         "minimal")
             # Show only essential steps
@@ -196,7 +196,7 @@ adapt_content_detail() {
 format_output() {
     local content="$1"
     local format="$2"
-    
+
     case "$format" in
         "json")
             echo "$content" | jq .
@@ -225,28 +225,28 @@ get_workflow_content() {
     local context="$1"
     local workflow="$2"
     local position="$3"
-    
+
     # Check for context + workflow specific content
     local specific_file="$DOCS_DIR/${context}_${workflow}_${position}.md"
     if [[ -f "$specific_file" ]]; then
         echo "$specific_file"
         return 0
     fi
-    
+
     # Check for context + workflow content
     local context_workflow_file="$DOCS_DIR/${context}_${workflow}.md"
     if [[ -f "$context_workflow_file" ]]; then
         echo "$context_workflow_file"
         return 0
     fi
-    
+
     # Check for context-specific content
     local context_file="$DOCS_DIR/${context}.md"
     if [[ -f "$context_file" ]]; then
         echo "$context_file"
         return 0
     fi
-    
+
     # Return empty if no specific content found
     echo ""
 }
@@ -256,19 +256,19 @@ generate_dynamic_content() {
     local context="$1"
     local workflow="$2"
     local position="$3"
-    
+
     # Get current git status for context
     local git_status=""
     if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
         git_status=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
     fi
-    
+
     # Get current task context
     local current_task=""
     if [[ -f ".agent/current_task.json" ]]; then
         current_task=$(jq -r '.task // ""' .agent/current_task.json 2>/dev/null || echo "")
     fi
-    
+
     # Generate content based on context
     cat <<EOF
 {
@@ -366,7 +366,7 @@ EOF
 EOF
             ;;
     esac
-    
+
     # Close the JSON structure
     echo "}"
 }
@@ -379,10 +379,10 @@ main() {
     echo "User Position: $USER_POSITION"
     echo "Detail Level: $DETAIL_LEVEL"
     echo ""
-    
+
     # Try to get existing documentation first
     local doc_file=$(get_workflow_content "$CONTEXT_TYPE" "$WORKFLOW_STATE" "$USER_POSITION")
-    
+
     if [[ -n "$doc_file" && -f "$doc_file" ]]; then
         echo -e "${GREEN}Found existing documentation: $doc_file${NC}"
         content=$(cat "$doc_file")
@@ -390,7 +390,7 @@ main() {
         echo -e "${YELLOW}Generating dynamic documentation...${NC}"
         content=$(generate_dynamic_content "$CONTEXT_TYPE" "$WORKFLOW_STATE" "$USER_POSITION")
     fi
-    
+
     # Format and output
     if [[ "${OUTPUT_FILE:-}" ]]; then
         format_output "$content" "$OUTPUT_FORMAT" > "$OUTPUT_FILE"
@@ -398,7 +398,7 @@ main() {
     else
         format_output "$content" "$OUTPUT_FORMAT"
     fi
-    
+
     echo -e "${GREEN}Progressive documentation generated successfully!${NC}"
 }
 

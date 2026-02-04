@@ -1,8 +1,8 @@
 # Pre-Flight Check (Progressive Documentation)
 
-**Context**: Before starting work  
-**Workflow**: Planning/Preparation  
-**User Level**: {{USER_LEVEL}}  
+**Context**: Before starting work
+**Workflow**: Planning/Preparation
+**User Level**: {{USER_LEVEL}}
 **Detail Level**: {{DETAIL_LEVEL}}
 
 ## Essential Steps

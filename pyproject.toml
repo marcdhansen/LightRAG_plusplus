@@ -154,6 +154,14 @@ evaluation = [
     "lightrag-hku[api]",
     "ragas>=0.3.7",
     "datasets>=4.3.0",
+    "grounded-ai>=1.0.9",
+]
+
+evaluation-slm = [
+    "lightrag-hku[evaluation]",
+    "grounded-ai>=1.0.9",
+    # Note: For SLM support, manually install with: pip install "grounded-ai[slm]"
+    # This requires: torch, transformers, peft, flash-attn (GPU)
 ]
 
 observability = [

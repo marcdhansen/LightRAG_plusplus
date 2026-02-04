@@ -26,7 +26,7 @@ log() {
     local level="$1"
     local message="$2"
     local timestamp=$(date '+%H:%M:%S')
-    
+
     case "$level" in
         "INFO")  echo -e "${GREEN}[INFO $timestamp]${NC} $message" ;;
         "WARN")  echo -e "${YELLOW}[WARN $timestamp]${NC} $message" ;;
@@ -40,10 +40,10 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     local expected_exit_code="${3:-0}"
-    
+
     TESTS_RUN=$((TESTS_RUN + 1))
     log "INFO" "Running test: $test_name"
-    
+
     if eval "$test_command" >/dev/null 2>&1; then
         local actual_exit_code=$?
         if [[ $actual_exit_code -eq $expected_exit_code ]]; then
@@ -72,14 +72,14 @@ run_test() {
 # Test script existence
 test_script_existence() {
     log "INFO" "Testing script existence and permissions"
-    
+
     local scripts=(
         "progressive_documentation_generator.sh"
         "intelligent_preflight_analyzer.sh"
         "simplified_execution_coordinator.sh"
         "adaptive_sop_engine.sh"
     )
-    
+
     for script in "${scripts[@]}"; do
         if [[ -x "$SCRIPT_DIR/$script" ]]; then
             log "INFO" "✓ $script exists and is executable"
@@ -93,14 +93,14 @@ test_script_existence() {
 # Test configuration files
 test_config_files() {
     log "INFO" "Testing configuration files"
-    
+
     local configs=(
         "config/adaptive_sop_config.json"
         "docs/progressive/preflight.md"
         "docs/progressive/rtb.md"
         "docs/progressive/error_handling.md"
     )
-    
+
     for config in "${configs[@]}"; do
         if [[ -f "$SCRIPT_DIR/../$config" ]]; then
             log "INFO" "✓ $config exists"
@@ -114,13 +114,13 @@ test_config_files() {
 # Test basic functionality
 test_basic_functionality() {
     log "INFO" "Testing basic script functionality"
-    
+
     # Test script help functions
     run_test "Progressive Documentation Help" "$SCRIPT_DIR/progressive_documentation_generator.sh --help" 1
     run_test "Intelligent Preflight Help" "$SCRIPT_DIR/intelligent_preflight_analyzer.sh --help" 1
     run_test "Simplified Coordinator Help" "$SCRIPT_DIR/simplified_execution_coordinator.sh --help" 1
     run_test "Adaptive SOP Engine Help" "$SCRIPT_DIR/adaptive_sop_engine.sh --help" 1
-    
+
     # Test basic argument validation
     run_test "Invalid Progressive Documentation Args" "$SCRIPT_DIR/progressive_documentation_generator.sh --invalid" 1
     run_test "Invalid Coordinator Args" "$SCRIPT_DIR/simplified_execution_coordinator.sh --invalid" 1
@@ -129,12 +129,12 @@ test_basic_functionality() {
 # Test workflow scenarios
 test_workflow_scenarios() {
     log "INFO" "Testing workflow scenarios"
-    
+
     # Test dry-run modes (should work even with JSON issues)
     run_test "Preflight Dry Run" "$SCRIPT_DIR/intelligent_preflight_analyzer.sh --dry-run standard" 0
     run_test "Coordinator Dry Run" "$SCRIPT_DIR/simplified_execution_coordinator.sh --action start --dry-run" 0
     run_test "SOP Engine Status" "$SCRIPT_DIR/adaptive_sop_engine.sh --action status" 0
-    
+
     # Test documentation generation (basic functionality)
     run_test "Documentation Generation" "$SCRIPT_DIR/progressive_documentation_generator.sh --context preflight --workflow planning --position new --output /tmp/test_doc.md" 0
 }
@@ -142,14 +142,14 @@ test_workflow_scenarios() {
 # Test integration points
 test_integration_points() {
     log "INFO" "Testing integration points with existing scripts"
-    
+
     # Check if enhanced scripts have integration code
     local enhanced_scripts=(
         "sop_compliance_validator.py"
-        "tdd_gate_validator.py" 
+        "tdd_gate_validator.py"
         "universal_mission_debrief.py"
     )
-    
+
     for script in "${enhanced_scripts[@]}"; do
         if [[ -f "$SCRIPT_DIR/$script" ]]; then
             if grep -q "adaptive_sop_engine" "$SCRIPT_DIR/$script"; then
@@ -164,14 +164,14 @@ test_integration_points() {
 # Test directory structure
 test_directory_structure() {
     log "INFO" "Testing directory structure"
-    
+
     local dirs=(
         "config"
         "learn"
         "docs/progressive"
         "docs/sop"
     )
-    
+
     for dir in "${dirs[@]}"; do
         if [[ -d "$SCRIPT_DIR/../$dir" ]]; then
             log "INFO" "✓ Directory $dir exists"
@@ -185,7 +185,7 @@ test_directory_structure() {
 # Generate test report
 generate_test_report() {
     local report_file="$TEST_RESULTS_DIR/integration_test_$(date +%Y%m%d_%H%M%S).md"
-    
+
     cat <<EOF > "$report_file"
 # Adaptive SOP System Integration Test Report
 
@@ -247,7 +247,7 @@ EOF
 main() {
     echo -e "${BLUE}=== Adaptive SOP System Integration Tests ===${NC}"
     echo ""
-    
+
     # Run all test categories
     test_script_existence
     test_config_files
@@ -255,10 +255,10 @@ main() {
     test_basic_functionality
     test_workflow_scenarios
     test_integration_points
-    
+
     # Generate report
     generate_test_report
-    
+
     # Show summary
     echo ""
     echo -e "${BLUE}=== Test Summary ===${NC}"
@@ -267,7 +267,7 @@ main() {
     echo "Tests Failed: $TESTS_FAILED"
     echo "Success Rate: $(( TESTS_PASSED * 100 / TESTS_RUN ))%"
     echo ""
-    
+
     if [[ $TESTS_FAILED -eq 0 ]]; then
         echo -e "${GREEN}🎉 All tests passed! System is ready for deployment.${NC}"
         exit 0

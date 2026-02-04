@@ -1,8 +1,8 @@
 # Error Handling (Progressive Documentation)
 
-**Context**: Troubleshooting errors and failures  
-**Workflow**: Error Recovery  
-**User Level**: {{USER_LEVEL}}  
+**Context**: Troubleshooting errors and failures
+**Workflow**: Error Recovery
+**User Level**: {{USER_LEVEL}}
 **Detail Level**: {{DETAIL_LEVEL}}
 
 ## Immediate Response Steps

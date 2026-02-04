@@ -5,11 +5,11 @@ Context-aware if-then rule checking for skill requirements.
 Automatically detects which skills should be used based on work context.
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -55,7 +55,7 @@ class ConditionalSkillDetector:
         session_file = self.log_dir / "session_context.json"
         if session_file.exists():
             try:
-                with open(session_file, "r") as f:
+                with open(session_file) as f:
                     session_data = json.load(f)
                     context["last_directory"] = session_data.get("last_directory")
                     context["is_context_switch"] = (
@@ -306,17 +306,17 @@ class ConditionalSkillDetector:
 
         # Conditional requirements
         if recommendations["conditional_requirements"]:
-            print(f"\n📋 Conditionally Required Skills:")
+            print("\n📋 Conditionally Required Skills:")
             for req in recommendations["conditional_requirements"]:
                 skill = req["skill"]
-                reason = req["reason"]
+                req["reason"]
                 justification = req["justification"]
                 print(f"  🎯 {skill}")
                 print(f"     Reason: {justification}")
 
         # Recommended skills
         if recommendations["recommended_skills"]:
-            print(f"\n💡 Recommended Skills:")
+            print("\n💡 Recommended Skills:")
             for skill in recommendations["recommended_skills"]:
                 if skill in recommendations["justifications"]:
                     justification = recommendations["justifications"][skill]
@@ -326,12 +326,12 @@ class ConditionalSkillDetector:
                     print(f"  💡 {skill}")
 
         # Always mandatory
-        print(f"\n✅ Always Mandatory Skills:")
+        print("\n✅ Always Mandatory Skills:")
         for skill in recommendations["mandatory_skills"]:
             print(f"  ✅ {skill}")
 
         # Optional skills
-        print(f"\n🔧 Optional Skills (use when helpful):")
+        print("\n🔧 Optional Skills (use when helpful):")
         for skill in recommendations["optional_skills"]:
             print(f"  🔧 {skill}")
 

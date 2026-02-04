@@ -5,11 +5,11 @@ Automation/simplicity balance reflection for every mission.
 Analyzes and evolves SOP based on real usage patterns and agent feedback.
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -61,7 +61,7 @@ class ContinualEvolutionReflector:
         tdd_log = self.log_dir / "tdd_interactions.log"
         if tdd_log.exists():
             try:
-                with open(tdd_log, "r") as f:
+                with open(tdd_log) as f:
                     tdd_data = json.load(f)
                     if tdd_data.get("warnings_ignored", 0) > 3:
                         effectiveness["automation_hindering"] += 1
@@ -124,7 +124,7 @@ class ContinualEvolutionReflector:
         doc_access_log = self.log_dir / "documentation_access.log"
         if doc_access_log.exists():
             try:
-                with open(doc_access_log, "r") as f:
+                with open(doc_access_log) as f:
                     doc_data = json.load(f)
                     if (
                         doc_data.get("deep_dives", 0)
@@ -168,7 +168,7 @@ class ContinualEvolutionReflector:
         error_log = self.log_dir / "error_patterns.log"
         if error_log.exists():
             try:
-                with open(error_log, "r") as f:
+                with open(error_log) as f:
                     errors = json.load(f)
                     for error in errors:
                         if "TDD" in error.get("context", ""):
@@ -464,7 +464,7 @@ class ContinualEvolutionReflector:
         # Display summary
         print(self.format_summary_markdown(reflection))
 
-        print(f"\n💾 Evolution reflection saved:")
+        print("\n💾 Evolution reflection saved:")
         print(f"   JSON: {json_file}")
         print(f"   Summary: {summary_file}")
 
@@ -488,7 +488,7 @@ class ContinualEvolutionReflector:
         # Load existing analytics
         if analytics_file.exists():
             try:
-                with open(analytics_file, "r") as f:
+                with open(analytics_file) as f:
                     analytics = json.load(f)
             except:
                 pass

@@ -136,14 +136,14 @@ async def demo_cot_general_reflection():
 
     print("\n📊 Results:")
     print(f"Response: {result[:200]}...")
-    print(f"\n💡 Reflection Insights:")
+    print("\n💡 Reflection Insights:")
     for i, insight in enumerate(insights, 1):
         print(f"  {i}. {insight}")
 
     # Check if reasoning was captured
     if "reflection_reasoning" in generation_result:
         reasoning = generation_result["reflection_reasoning"]
-        print(f"\n🧠 CoT Reasoning (excerpt):")
+        print("\n🧠 CoT Reasoning (excerpt):")
         print(f"  {reasoning[:300]}...")
 
     print("\n✅ General reflection demo complete!\n")

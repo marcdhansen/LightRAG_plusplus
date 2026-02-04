@@ -1,7 +1,7 @@
 # Community Detection Performance Tradeoffs Summary
 
-**Feature**: Community Detection Pre-Filtering for LightRAG with Memgraph  
-**Implementation**: TDD-Driven with comprehensive benchmarking  
+**Feature**: Community Detection Pre-Filtering for LightRAG with Memgraph
+**Implementation**: TDD-Driven with comprehensive benchmarking
 **Status**: ✅ Production Ready - All performance benchmarks passing
 
 ## 🎯 Executive Summary
@@ -156,7 +156,7 @@ Community detection pre-filtering provides **15-50% query performance improvemen
 # For speed-focused applications
 communities = await storage.detect_communities(algorithm="louvain")
 
-# For quality-focused applications  
+# For quality-focused applications
 communities = await storage.detect_communities(algorithm="leiden")
 ```
 
@@ -172,7 +172,7 @@ results = await storage.search_labels_with_community_filter(
 
 # Baseline: No community filtering
 results = await storage.search_labels(
-    query="machine learning", 
+    query="machine learning",
     limit=50
 )
 ```
@@ -197,7 +197,7 @@ if query_namespace not in community_cache:
 - **Speed Improvement**: Percentage improvement over baseline
 - **Response Time**: P95, P99 latency measurements
 
-#### **Memory Metrics**  
+#### **Memory Metrics**
 - **Peak Usage**: Memory consumption during operations
 - **Overhead**: Additional memory vs baseline operations
 - **Growth Rate**: Memory increase with dataset size
@@ -224,7 +224,7 @@ if query_namespace not in community_cache:
 
 #### **1. Performance Validation**
 - [ ] Run benchmark suite on production data
-- [ ] Validate speed improvements meet expectations  
+- [ ] Validate speed improvements meet expectations
 - [ ] Confirm memory overhead within acceptable limits
 - [ ] Test scalability with target dataset sizes
 - [ ] Verify algorithm performance matches benchmarks
@@ -252,7 +252,7 @@ if query_namespace not in community_cache:
 - Verify error rates remain acceptable
 - Confirm memory usage stays within limits
 
-#### **Month 1**: Optimization Phase  
+#### **Month 1**: Optimization Phase
 - Fine-tune algorithm parameters
 - Optimize community update frequency
 - Adjust caching strategies based on usage
@@ -274,7 +274,7 @@ if query_namespace not in community_cache:
 ```
 Total: <100MB for 1000-node graph
 ├── Graph Structure: 40MB (nodes, edges, indexes)
-├── Algorithm State: 25MB (temporary processing data)  
+├── Algorithm State: 25MB (temporary processing data)
 ├── Result Storage: 20MB (community assignments)
 └── Query Processing: 15MB (execution overhead)
 ```
@@ -288,7 +288,7 @@ Baseline Query: 50MB
 
 Community-Filtered Query: 70MB
 ├── Community Access: 35MB (reduced node set)
-├── Result Processing: 25MB (focused results)  
+├── Result Processing: 25MB (focused results)
 └── Response Generation: 10MB (filtering overhead)
 ```
 
@@ -302,7 +302,7 @@ Algorithm Selection:
 
 CPU Efficiency:
 ├── Linear scaling up to 1000 nodes
-├── Sub-linear scaling beyond 1000 nodes  
+├── Sub-linear scaling beyond 1000 nodes
 ├── Parallelizable for large datasets
 └── Memory-bound rather than CPU-bound
 ```
@@ -316,7 +316,7 @@ Baseline Query:
 
 Community-Filtered Query:
 ├── Community Lookup: 15% of CPU time
-├── Filtered Traversal: 40% of CPU time  
+├── Filtered Traversal: 40% of CPU time
 ├── Fuzzy Matching: 35% of CPU time
 └── Result Processing: 10% of CPU time
 ```
@@ -353,17 +353,17 @@ Community-Filtered Query:
 communities = await storage.detect_communities(algorithm="louvain")
 await storage.assign_community_ids(communities, algorithm="louvain")
 results = await storage.search_labels_with_community_filter(
-    query="test", 
+    query="test",
     community_ids=[0, 1, 2],
     algorithm="louvain"
 )
 
-# HIGHEST QUALITY: Quality-optimized community detection  
+# HIGHEST QUALITY: Quality-optimized community detection
 communities = await storage.detect_communities(algorithm="leiden")
 await storage.assign_community_ids(communities, algorithm="leiden")
 results = await storage.search_labels_with_community_filter(
     query="test",
-    community_ids=[0, 1, 2], 
+    community_ids=[0, 1, 2],
     algorithm="leiden"
 )
 

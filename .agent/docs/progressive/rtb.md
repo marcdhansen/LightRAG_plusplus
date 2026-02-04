@@ -1,8 +1,8 @@
 # Return to Base (Progressive Documentation)
 
-**Context**: Completing work session  
-**Workflow**: Review/Completion  
-**User Level**: {{USER_LEVEL}}  
+**Context**: Completing work session
+**Workflow**: Review/Completion
+**User Level**: {{USER_LEVEL}}
 **Detail Level**: {{DETAIL_LEVEL}}
 
 ## Essential Steps

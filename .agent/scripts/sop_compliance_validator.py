@@ -9,12 +9,12 @@ Exit codes:
 2 = Override (SOP violations overridden with justification)
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
+import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 
@@ -210,7 +210,7 @@ class SOPComplianceValidator:
         session_log = self.log_dir / "session_context.json"
 
         if session_log.exists():
-            with open(session_log, "r") as f:
+            with open(session_log) as f:
                 session_data = json.load(f)
                 if session_data.get("last_directory") != current_dir:
                     return True
@@ -297,7 +297,7 @@ class SOPComplianceValidator:
         reflection_log = self.log_dir / "reflections.json"
         if reflection_log.exists():
             try:
-                with open(reflection_log, "r") as f:
+                with open(reflection_log) as f:
                     reflections = json.load(f)
                     if reflections:
                         last_reflection = max(
@@ -400,9 +400,9 @@ class SOPComplianceValidator:
         for violation in self.violations:
             print(f"  ❌ {violation}")
 
-        print(f"\n🎯 Options:")
-        print(f"  1. Fix violations and retry RTB")
-        print(f"  2. Override with justification (requires explanation)")
+        print("\n🎯 Options:")
+        print("  1. Fix violations and retry RTB")
+        print("  2. Override with justification (requires explanation)")
 
         while True:
             try:
@@ -418,7 +418,7 @@ class SOPComplianceValidator:
             return {"status": "blocked", "rtb_allowed": False}
 
         elif choice == "2":
-            print(f"\n📝 Override requires justification:")
+            print("\n📝 Override requires justification:")
             while True:
                 try:
                     justification = input(
@@ -437,7 +437,7 @@ class SOPComplianceValidator:
             # Log override
             self.log_override(self.violations, justification)
 
-            print(f"\n✅ Override logged - RTB will proceed")
+            print("\n✅ Override logged - RTB will proceed")
             return {"status": "overridden", "rtb_allowed": True}
 
     def log_override(self, violations, justification):
@@ -454,7 +454,7 @@ class SOPComplianceValidator:
         overrides = []
         if override_log.exists():
             try:
-                with open(override_log, "r") as f:
+                with open(override_log) as f:
                     overrides = json.load(f)
             except:
                 pass

@@ -7,10 +7,10 @@ import pytest
 
 from lightrag import LightRAG, QueryParam
 from lightrag.ace.config import ACEConfig
+from lightrag.ace.cot_templates import CoTDepth, CoTTemplates
+from lightrag.ace.reflector import ACEReflector
 from lightrag.llm.ollama import ollama_embed, ollama_model_complete
 from lightrag.utils import EmbeddingFunc
-from lightrag.ace.reflector import ACEReflector
-from lightrag.ace.cot_templates import CoTTemplates, CoTDepth
 from tests.ace_test_utils import ACETestKit
 
 WORKING_DIR = "./rag_storage_cot_test"

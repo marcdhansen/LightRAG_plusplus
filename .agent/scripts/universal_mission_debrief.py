@@ -5,11 +5,10 @@ Automatic debrief for every task completion with standardized format.
 Creates brief but comprehensive mission summary for all task completions.
 """
 
-import os
-import sys
 import json
 import subprocess
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -107,7 +106,7 @@ class UniversalMissionDebrief:
         session_file = self.log_dir / "session_start.json"
         if session_file.exists():
             try:
-                with open(session_file, "r") as f:
+                with open(session_file) as f:
                     session_data = json.load(f)
                     return datetime.fromisoformat(
                         session_data.get("start_time", datetime.now().isoformat())
@@ -438,7 +437,7 @@ class UniversalMissionDebrief:
         with open(latest_file, "w") as f:
             f.write(str(markdown_file))
 
-        print(f"\n💾 Debrief saved:")
+        print("\n💾 Debrief saved:")
         print(f"   JSON: {json_file}")
         print(f"   Markdown: {markdown_file}")
 

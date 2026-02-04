@@ -1,16 +1,16 @@
 # TDD Mandatory Gate
 
-**Purpose**: Enforce Test-Driven Development (TDD) for all new features in LightRAG  
-**Status**: ⛔ **MANDATORY** - Cannot be bypassed  
-**Enforcement**: Automatic validation blocks completion without TDD compliance  
+**Purpose**: Enforce Test-Driven Development (TDD) for all new features in LightRAG
+**Status**: ⛔ **MANDATORY** - Cannot be bypassed
+**Enforcement**: Automatic validation blocks completion without TDD compliance
 
 ## 🚫 **MANDATORY REQUIREMENT**
 
-**All new features MUST follow TDD methodology**:  
-1. **Write Tests First** - Define expectations before implementation  
-2. **Implement Features** - Code to pass failing tests  
-3. **Validate Performance** - Measure against baseline benchmarks  
-4. **Document Tradeoffs** - Analyze speed, memory, and scalability  
+**All new features MUST follow TDD methodology**:
+1. **Write Tests First** - Define expectations before implementation
+2. **Implement Features** - Code to pass failing tests
+3. **Validate Performance** - Measure against baseline benchmarks
+4. **Document Tradeoffs** - Analyze speed, memory, and scalability
 
 ---
 
@@ -22,14 +22,14 @@
 ```yaml
 TDD_Requirements:
   - Has_Benchmarking_Tests: false
-  - Has_Performance_Baseline: false  
+  - Has_Performance_Baseline: false
   - Has_Measurable_Assertions: false
   - Has_Speed_Validation: false
   - Has_Memory_Analysis: false
   - Has_Scalability_Testing: false
 ```
 
-**Blocking Behavior**: 
+**Blocking Behavior**:
 - ❌ **Any "false"** → **WORK BLOCKED**
 - ✅ **All "true"** → **WORK PROCEEDS**
 
@@ -45,7 +45,7 @@ TDD_Completion_Gate:
     - Baseline_Comparisons: true
     - Tradeoff_Documentation: true
     - Measurable_Metrics: true
-  
+
   Validation_Methods:
     - Automated_Test_Execution: pytest coverage
     - Performance_Measurement: benchmark suite results
@@ -93,7 +93,7 @@ python -m pytest tests/feature_*_benchmarks.py
 - [ ] **Test Names Follow Convention**: `test_*_tdd.py`
 - [ ] **Tests Define Expectations**: Clear performance thresholds
 
-#### **2. Performance-First Evidence**  
+#### **2. Performance-First Evidence**
 - [ ] **Baseline Measurements**: Document current performance
 - [ ] **Speed Assertions**: Minimum % improvement defined
 - [ ] **Memory Assertions**: Maximum overhead thresholds defined
@@ -122,10 +122,10 @@ def validate_tdd_compliance(feature_name):
         'benchmarks_exist': check_benchmark_tests(feature_name),
         'tradeoffs_analyzed': check_tradeoff_documentation(feature_name)
     }
-    
+
     if not all(tdd_requirements.values()):
         block_work_with_tdd_violation(tdd_requirements)
-    
+
     return tdd_requirements
 ```
 
@@ -133,11 +133,11 @@ def validate_tdd_compliance(feature_name):
 ```python
 def validate_session_tdd_compliance():
     """Session completion validation - CANNOT PROCEED WITHOUT"""
-    
+
     # Check git history for TDD compliance
     commits = get_feature_commits()
     tdd_timeline = validate_tdd_timeline(commits)
-    
+
     # Check required artifacts exist
     required_artifacts = [
         'tests/feature_*_tdd.py',           # Failing tests first
@@ -145,13 +145,13 @@ def validate_session_tdd_compliance():
         'docs/feature_*_tradeoffs.md',        # Tradeoff analysis
         'tests/feature_*_functional.py'       # Passing tests after
     ]
-    
-    missing_artifacts = [artifact for artifact in required_artifacts 
+
+    missing_artifacts = [artifact for artifact in required_artifacts
                        if not file_exists(artifact)]
-    
+
     if missing_artifacts:
         block_session_completion(missing_artifacts, tdd_timeline)
-    
+
     return True
 ```
 
@@ -159,23 +159,23 @@ def validate_session_tdd_compliance():
 ```python
 def enforce_tdd_quality_gates():
     """Quality gates - CANNOT SKIP"""
-    
+
     quality_checks = {
         'test_coverage': check_test_coverage(),
         'performance_benchmarks': check_benchmark_results(),
         'documentation_quality': check_tradeoff_analysis(),
         'measurable_metrics': check_quantified_assertions()
     }
-    
-    failed_checks = [check for check, result in quality_checks.items() 
+
+    failed_checks = [check for check, result in quality_checks.items()
                     if not result]
-    
+
     if failed_checks:
         raise TDDEnforcementError(
             "TDD quality gates failed: " + str(failed_checks),
             blocking=True  # CANNOT BYPASS
         )
-    
+
     return quality_checks
 ```
 
@@ -231,7 +231,7 @@ def attempt_tdd_override(reason: str):
 
 ### **Escalation Path** (IF VIOLATION)
 1. **Immediate Block**: All work stops at point of violation
-2. **Violation Logged**: Permanent record of TDD bypass attempt  
+2. **Violation Logged**: Permanent record of TDD bypass attempt
 3. **Review Required**: Team lead review before any further work
 4. **Remediation Required**: Complete proper TDD process before continuation
 
@@ -268,10 +268,10 @@ def attempt_tdd_override(reason: str):
 TDD_Validation_Pipeline:
   - Stage_1: Validate_TDD_Artifacts
   - Stage_2: Run_TDD_Test_Suite
-  - Stage_3: Execute_Performance_Benchmarks  
+  - Stage_3: Execute_Performance_Benchmarks
   - Stage_4: Validate_Documentation_Quality
   - Stage_5: Enforce_Quality_Gates
-  
+
 Blocking: true  # Pipeline fails if any stage fails
 ```
 
@@ -281,9 +281,9 @@ Blocking: true  # Pipeline fails if any stage fails
 
 ### **Valid TDD Implementation Example**
 - **Reference**: Community Detection Feature (`lightrag-bkj.2`)
-- **Timeline**: 
+- **Timeline**:
   - ❌ Week 1: Failing tests written (RED)
-  - 🟢 Week 1: Implementation passes tests (GREEN) 
+  - 🟢 Week 1: Implementation passes tests (GREEN)
   - 🔄 Week 2: Performance benchmarks created
   - 📊 Week 2: Tradeoff analysis completed
 - **Result**: ✅ All TDD requirements met, feature delivered
@@ -306,7 +306,7 @@ Every feature MUST meet these minimum standards:
 - **Edge Case Tests**: All error conditions covered
 - **Integration Tests**: Real-world usage scenarios validated
 
-### **Performance Documentation Requirements**  
+### **Performance Documentation Requirements**
 - **Speed Claims**: Must have measured % improvement
 - **Memory Claims**: Must have measured overhead analysis
 - **Scalability Claims**: Must have growth rate analysis
@@ -326,20 +326,20 @@ Every feature MUST meet these minimum standards:
 ```python
 class TDDGateSecurity:
     """Prevents any attempt to bypass TDD requirements"""
-    
+
     def __init__(self):
         self.gate_status = "ENFORCED"
         self.bypass_attempts = 0
         self.violation_log = []
-    
+
     def validate_compliance(self, feature_context):
         """Cannot be bypassed - no override capability"""
         if self.check_bypass_attempt():
             self.log_security_violation(feature_context)
             self.permanent_block()
-        
+
         return self.enforce_tdd_requirements(feature_context)
-    
+
     def permanent_block(self):
         """Permanent block - requires admin intervention"""
         raise SystemExit("TDD security violation - contact administrator")
@@ -369,15 +369,15 @@ class TDDGateSecurity:
 
 ### **TDD Success Criteria**
 - **All Gates Pass**: PFC and RTB validation successful
-- **Quality Metrics Met**: Coverage and performance standards achieved  
+- **Quality Metrics Met**: Coverage and performance standards achieved
 - **Documentation Complete**: All required artifacts created
 - **Feature Ready**: Production deployment approved
 
 ---
 
-**🔒 ENFORCEMENT STATEMENT**:  
+**🔒 ENFORCEMENT STATEMENT**:
 TDD compliance is **MANDATORY** for all LightRAG development. These gates **CANNOT** be bypassed, overridden, or skipped. Any attempt to bypass TDD requirements will be **automatically blocked** and logged as a security violation. **This is not a guideline - this is a requirement.**
 
-**⚠️ LAST UPDATED**: 2026-02-04  
-**🔄 REVIEW CYCLE**: Quarterly or when violations occur  
+**⚠️ LAST UPDATED**: 2026-02-04
+**🔄 REVIEW CYCLE**: Quarterly or when violations occur
 **👮 APPROVAL**: LightRAG Technical Lead + Architectural Review Board

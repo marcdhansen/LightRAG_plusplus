@@ -408,7 +408,7 @@ Daily Cost Metrics:
 # Fast deployment
 config_fast = ACEConfig(cot_depth="minimal", cot_general_reflection=False)
 
-# Balanced deployment  
+# Balanced deployment
 config_balanced = ACEConfig(cot_depth="standard")
 
 # Accurate deployment
@@ -417,7 +417,7 @@ config_accurate = ACEConfig(cot_depth="detailed", cot_include_reasoning_output=T
 
 ---
 
-**Last Updated**: v0.5.0  
-**Data Based On**: Comprehensive benchmarking with `qwen2.5-coder:7b`  
-**Review Frequency**: Quarterly or when major model updates occur  
+**Last Updated**: v0.5.0
+**Data Based On**: Comprehensive benchmarking with `qwen2.5-coder:7b`
+**Review Frequency**: Quarterly or when major model updates occur
 **Maintainers**: LightRAG Performance Team

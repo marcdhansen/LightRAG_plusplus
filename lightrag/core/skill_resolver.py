@@ -4,10 +4,6 @@ Provides multiple fallback locations and graceful degradation strategies.
 """
 
 import os
-import sys
-import json
-from typing import Dict, Optional, List
-from pathlib import Path
 
 
 class SkillNotFoundError(Exception):
@@ -43,7 +39,7 @@ class UniversalSkillResolver:
             "show-next-task": self._task_list_fallback,
         }
 
-    def find_skill(self, skill_name: str) -> Optional[Dict]:
+    def find_skill(self, skill_name: str) -> dict | None:
         """
         Find skill with multiple fallback locations.
 
@@ -66,7 +62,7 @@ class UniversalSkillResolver:
 
     def _check_skill_location(
         self, skill_name: str, location: str, priority: int
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Check if skill exists at a specific location."""
         skill_path = os.path.join(location, skill_name, "SKILL.md")
         script_path = os.path.join(location, skill_name, "scripts", f"{skill_name}.sh")
@@ -94,7 +90,7 @@ class UniversalSkillResolver:
         else:
             return "project"
 
-    def require_skill(self, skill_name: str) -> Dict:
+    def require_skill(self, skill_name: str) -> dict:
         """
         Get skill with multiple fallback strategies.
 
@@ -123,7 +119,7 @@ class UniversalSkillResolver:
 
         return skill_info
 
-    def get_fallback_plans(self, missing_skills: List[str]) -> Dict[str, str]:
+    def get_fallback_plans(self, missing_skills: list[str]) -> dict[str, str]:
         """Get fallback plans for missing skills."""
         plans = {}
         for skill in missing_skills:
@@ -134,8 +130,8 @@ class UniversalSkillResolver:
         return plans
 
     def assess_mission_feasibility(
-        self, required_skills: List[str]
-    ) -> tuple[bool, List[str]]:
+        self, required_skills: list[str]
+    ) -> tuple[bool, list[str]]:
         """
         Assess if mission is feasible with available skills.
 
@@ -149,7 +145,7 @@ class UniversalSkillResolver:
 
         return len(missing) == 0, missing
 
-    def list_all_available_skills(self) -> Dict[str, List[Dict]]:
+    def list_all_available_skills(self) -> dict[str, list[dict]]:
         """List all available skills across all locations."""
         available = {}
 
@@ -168,7 +164,7 @@ class UniversalSkillResolver:
 
         return available
 
-    def _manual_rtb_fallback(self) -> Optional[Dict]:
+    def _manual_rtb_fallback(self) -> dict | None:
         """Manual RTB fallback implementation."""
         return {
             "skill_path": "fallback:return-to-base",
@@ -179,7 +175,7 @@ class UniversalSkillResolver:
             "description": "Manual RTB workflow - limited functionality",
         }
 
-    def _manual_reflection_fallback(self) -> Optional[Dict]:
+    def _manual_reflection_fallback(self) -> dict | None:
         """Manual reflection fallback implementation."""
         return {
             "skill_path": "fallback:reflect",
@@ -190,7 +186,7 @@ class UniversalSkillResolver:
             "description": "Manual reflection template - basic functionality",
         }
 
-    def _manual_debrief_fallback(self) -> Optional[Dict]:
+    def _manual_debrief_fallback(self) -> dict | None:
         """Manual debriefing fallback implementation."""
         return {
             "skill_path": "fallback:mission-debriefing",
@@ -201,7 +197,7 @@ class UniversalSkillResolver:
             "description": "Manual debriefing template - structured analysis",
         }
 
-    def _basic_planning_fallback(self) -> Optional[Dict]:
+    def _basic_planning_fallback(self) -> dict | None:
         """Basic planning fallback implementation."""
         return {
             "skill_path": "fallback:planning",
@@ -212,7 +208,7 @@ class UniversalSkillResolver:
             "description": "Manual planning template - basic task analysis",
         }
 
-    def _task_list_fallback(self) -> Optional[Dict]:
+    def _task_list_fallback(self) -> dict | None:
         """Task list fallback implementation."""
         return {
             "skill_path": "fallback:show-next-task",
@@ -253,7 +249,7 @@ def test_skill_resolver():
             print(f"  ❌ {skill}: {e}")
 
     # Test mission feasibility
-    print(f"\n🎯 Mission Feasibility Test:")
+    print("\n🎯 Mission Feasibility Test:")
     feasible, missing = resolver.assess_mission_feasibility(test_skills)
     print(f"  Feasible: {feasible}")
     if missing:

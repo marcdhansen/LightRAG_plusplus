@@ -95,7 +95,7 @@ When `cot_graph_verification=True`, the Reflector performs:
     {
         "action": "delete_relation",
         "source": "Albert Einstein",
-        "target": "Mars", 
+        "target": "Mars",
         "reason": "Relationship not supported by source text"
     },
     {
@@ -146,7 +146,7 @@ The reasoning is stored in the generation result for WebUI display:
 CoT uses a modular template system in `lightrag/ace/cot_templates.py`:
 
 - **CoTTemplates**: Main template manager
-- **CoTDepth**: Enum for depth levels  
+- **CoTDepth**: Enum for depth levels
 - **Configurable templates**: Separate templates for each depth and use case
 
 ### Integration Points
@@ -162,7 +162,7 @@ CoT integrates with existing ACE workflow:
 
 ### Token Usage
 - **Minimal**: +200-400 tokens per request
-- **Standard**: +600-1200 tokens per request  
+- **Standard**: +600-1200 tokens per request
 - **Detailed**: +1500-3000 tokens per request
 
 ### Latency
@@ -268,5 +268,5 @@ To extend or modify CoT functionality:
 
 ---
 
-**Last Updated**: v0.5.0  
+**Last Updated**: v0.5.0
 **Maintainers**: LightRAG Development Team

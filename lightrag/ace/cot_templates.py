@@ -4,7 +4,7 @@ Provides configurable reasoning templates for different CoT depths and use cases
 """
 
 from enum import Enum
-from typing import Dict, List, Any
+
 from ..ace.config import ACEConfig
 
 
@@ -85,7 +85,7 @@ For each entity:
 2. Verify entity type matches source description
 3. Check for duplicate entities that refer to same concept
 
-### Step 3: Relationship Verification  
+### Step 3: Relationship Verification
 For each relationship:
 1. Verify both source and target entities exist in sources
 2. Check if relationship is explicitly stated in sources
@@ -136,7 +136,7 @@ Based on the analysis above, provide JSON list of actions:
 #### 2.1 Existence Verification
 For each entity from graph:
 - **Step 2.1.1**: Search for exact string matches in sources
-- **Step 2.1.2**: Search for semantic equivalents and synonyms  
+- **Step 2.1.2**: Search for semantic equivalents and synonyms
 - **Step 2.1.3**: Evaluate context relevance
 - **Step 2.1.4**: Decision: VERIFIED, HALLUCINATED, or UNCERTAIN
 
@@ -189,7 +189,7 @@ Based on the detailed analysis above:
 Format: `{"action": "delete_relation", "source": "Node A", "target": "Node B", "reason": "Detailed justification..."}`
 Format: `{"action": "delete_entity", "name": "Node X", "reason": "Detailed justification..."}`
 
-#### 5.2 Merge Actions  
+#### 5.2 Merge Actions
 Format: `{"action": "merge_entities", "sources": ["Entity1", "Entity2"], "target": "CanonicalName", "reason": "Detailed justification..."}`
 
 ### Final Action Plan
@@ -369,7 +369,7 @@ Generate specific, actionable lessons:
 - Best practices identified from this interaction
 - Strengths to leverage in future
 
-#### 6.2 Failure Factor Analysis  
+#### 6.2 Failure Factor Analysis
 - What contributed most to negative outcomes
 - Which factors to avoid or mitigate
 - Warning signs to watch for
@@ -410,7 +410,7 @@ If you provide detailed reasoning in your response, format it as follows:
 
 The reasoning section should:
 1. Document your analysis process step by step
-2. Explain key decisions and their justifications  
+2. Explain key decisions and their justifications
 3. Provide evidence for your conclusions
 4. Note any uncertainties or ambiguities
 5. Be structured and easy to follow

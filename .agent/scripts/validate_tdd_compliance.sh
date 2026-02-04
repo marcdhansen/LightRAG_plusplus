@@ -23,7 +23,7 @@ log_validation() {
     local level=$1
     local message=$2
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+
     case $level in
         "ERROR")
             echo -e "${RED}[${timestamp}] ERROR: ${message}${NC}"
@@ -54,9 +54,9 @@ validate_tdd_artifacts() {
     local feature_name=$1
     local missing_artifacts=()
     local required_artifacts=()
-    
+
     log_validation "INFO" "Validating TDD artifacts for feature: $feature_name"
-    
+
     # Define required TDD artifacts based on feature type
     if [[ "$feature_name" == *"performance"* ]] || [[ "$feature_name" == *"benchmark"* ]]; then
         # Performance features require benchmarks
@@ -74,14 +74,14 @@ validate_tdd_artifacts() {
             "docs/${feature_name}_analysis.md"
         )
     fi
-    
+
     # Check each required artifact
     for artifact in "${required_artifacts[@]}"; do
         if [[ ! -f "$artifact" ]]; then
             missing_artifacts+=("$artifact")
         fi
     done
-    
+
     # Report results
     if [[ ${#missing_artifacts[@]} -eq 0 ]]; then
         log_validation "SUCCESS" "All TDD artifacts present for $feature_name"
@@ -99,38 +99,38 @@ validate_tdd_artifacts() {
 validate_tdd_test_structure() {
     local feature_name=$1
     local tdd_test_file="tests/${feature_name}_tdd.py"
-    
+
     if [[ ! -f "$tdd_test_file" ]]; then
         log_validation "ERROR" "TDD test file not found: $tdd_test_file"
         return 1
     fi
-    
+
     # Check if TDD tests have proper structure
     local failing_tests=$(grep -c "def test_.*_expectation.*:" "$tdd_test_file" || echo "0")
     local baseline_tests=$(grep -c "baseline\|benchmark\|performance" "$tdd_test_file" || echo "0")
     local measurable_assertions=$(grep -c "assert.*>.*%\|assert.*<.*ms\|assert.*MB" "$tdd_test_file" || echo "0")
-    
+
     log_validation "INFO" "TDD Test Structure Analysis:"
     echo "  Failing Tests: $failing_tests"
     echo "  Baseline Tests: $baseline_tests"
     echo "  Measurable Assertions: $measurable_assertions"
-    
+
     # Validate TDD requirements
     if [[ $failing_tests -eq 0 ]]; then
         log_validation "ERROR" "TDD tests must include failing test expectations"
         return 1
     fi
-    
+
     if [[ $baseline_tests -eq 0 ]] && [[ "$feature_name" == *"performance"* ]]; then
         log_validation "ERROR" "Performance features must include baseline measurements"
         return 1
     fi
-    
+
     if [[ $measurable_assertions -eq 0 ]] && [[ "$feature_name" == *"performance"* ]]; then
         log_validation "ERROR" "Performance features must include measurable assertions"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "TDD test structure validation passed"
     return 0
 }
@@ -139,34 +139,34 @@ validate_tdd_test_structure() {
 validate_benchmark_structure() {
     local feature_name=$1
     local benchmark_file="tests/${feature_name}_benchmarks.py"
-    
+
     if [[ ! -f "$benchmark_file" ]]; then
         log_validation "WARN" "No benchmark file found for $feature_name (may not be required)"
         return 0  # Not all features need benchmarks
     fi
-    
+
     # Check benchmark structure
     local performance_classes=$(grep -c "class.*Benchmark.*Suite\|class.*Performance.*Test" "$benchmark_file" || echo "0")
     local baseline_comparisons=$(grep -c "baseline\|compare.*performance\|speed.*improvement" "$benchmark_file" || echo "0")
     local memory_analysis=$(grep -c "memory.*usage\|memory.*overhead\|memory.*efficiency" "$benchmark_file" || echo "0")
     local scalability_tests=$(grep -c "scalability\|degradation.*factor\|sub.*linear" "$benchmark_file" || echo "0")
-    
+
     log_validation "INFO" "Benchmark Structure Analysis:"
     echo "  Performance Classes: $performance_classes"
     echo "  Baseline Comparisons: $baseline_comparisons"
     echo "  Memory Analysis: $memory_analysis"
     echo "  Scalability Tests: $scalability_tests"
-    
+
     if [[ $performance_classes -eq 0 ]]; then
         log_validation "ERROR" "Benchmark tests must include performance test classes"
         return 1
     fi
-    
+
     if [[ $baseline_comparisons -eq 0 ]]; then
         log_validation "ERROR" "Benchmark tests must include baseline comparisons"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "Benchmark structure validation passed"
     return 0
 }
@@ -175,40 +175,40 @@ validate_benchmark_structure() {
 validate_tradeoff_documentation() {
     local feature_name=$1
     local tradeoff_file="docs/${feature_name}_tradeoffs.md"
-    
+
     if [[ ! -f "$tradeoff_file" ]]; then
         log_validation "ERROR" "Tradeoff documentation not found: $tradeoff_file"
         return 1
     fi
-    
+
     # Check tradeoff documentation structure
     local performance_metrics=$(grep -c "speed.*improvement\|performance.*tradeoff\|query.*time" "$tradeoff_file" || echo "0")
     local memory_analysis=$(grep -c "memory.*overhead\|memory.*usage\|resource.*cost" "$tradeoff_file" || echo "0")
     local scalability_analysis=$(grep -c "scalability\|dataset.*size\|performance.*growth" "$tradeoff_file" || echo "0")
     local usage_guidelines=$(grep -c "when.*use\|guidelines\|recommendation" "$tradeoff_file" || echo "0")
-    
+
     log_validation "INFO" "Tradeoff Documentation Analysis:"
     echo "  Performance Metrics: $performance_metrics"
     echo "  Memory Analysis: $memory_analysis"
     echo "  Scalability Analysis: $scalability_analysis"
     echo "  Usage Guidelines: $usage_guidelines"
-    
+
     # Validate tradeoff documentation requirements
     if [[ $performance_metrics -eq 0 ]]; then
         log_validation "ERROR" "Tradeoff documentation must include performance metrics"
         return 1
     fi
-    
+
     if [[ $memory_analysis -eq 0 ]]; then
         log_validation "ERROR" "Tradeoff documentation must include memory analysis"
         return 1
     fi
-    
+
     if [[ $usage_guidelines -eq 0 ]]; then
         log_validation "ERROR" "Tradeoff documentation must include usage guidelines"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "Tradeoff documentation validation passed"
     return 0
 }
@@ -217,14 +217,14 @@ validate_tradeoff_documentation() {
 run_tdd_test_suite() {
     local feature_name=$1
     local tdd_test_file="tests/${feature_name}_tdd.py"
-    
+
     if [[ ! -f "$tdd_test_file" ]]; then
         log_validation "ERROR" "Cannot run TDD tests - file not found: $tdd_test_file"
         return 1
     fi
-    
+
     log_validation "INFO" "Running TDD test suite for $feature_name"
-    
+
     # Run TDD tests and expect them to fail (RED phase)
     if python -m pytest "$tdd_test_file" -v --tb=short; then
         log_validation "ERROR" "TDD tests should initially FAIL - this indicates implementation started before tests"
@@ -238,32 +238,32 @@ run_tdd_test_suite() {
 # Function to validate git TDD timeline
 validate_tdd_timeline() {
     local feature_name=$1
-    
+
     log_validation "INFO" "Validating TDD timeline in git history"
-    
+
     # Check git commits for proper TDD timeline
     local commits_with_tdd=$(git log --oneline --grep="TDD\|failing.*test\|benchmark\|tradeoff" --grep-count || echo "0")
     local test_first_commits=$(git log --oneline --grep="test.*first\|failing.*test\|TDD.*red" --grep-count || echo "0")
     local implementation_commits=$(git log --oneline --grep="implement\|fix.*test\|TDD.*green" --grep-count || echo "0")
     local performance_commits=$(git log --oneline --grep="benchmark\|performance\|speed.*improvement" --grep-count || echo "0")
-    
+
     log_validation "INFO" "TDD Timeline Analysis:"
     echo "  TDD-related Commits: $commits_with_tdd"
     echo "  Test-First Commits: $test_first_commits"
     echo "  Implementation Commits: $implementation_commits"
     echo "  Performance Commits: $performance_commits"
-    
+
     # Basic timeline validation
     if [[ $test_first_commits -eq 0 ]]; then
         log_validation "ERROR" "No evidence of test-first development in git history"
         return 1
     fi
-    
+
     if [[ $implementation_commits -eq 0 ]]; then
         log_validation "ERROR" "No evidence of implementation commits in git history"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "TDD timeline validation passed"
     return 0
 }
@@ -271,7 +271,7 @@ validate_tdd_timeline() {
 # Function to block work with TDD violation
 block_work_with_tdd_violation() {
     local violation_details=$1
-    
+
     log_validation "ERROR" "TDD COMPLIANCE VIOLATION DETECTED"
     echo "VIOLATION DETAILS: $violation_details"
     echo ""
@@ -286,7 +286,7 @@ block_work_with_tdd_violation() {
     echo "This work session is BLOCKED until TDD compliance is achieved."
     echo ""
     echo "Refer to: .agent/docs/sop/TDD_MANDATORY_GATE.md"
-    
+
     if [[ "$STRICT_MODE" == "true" ]]; then
         log_validation "ERROR" "EXITING due to TDD violation - STRICT MODE ENABLED"
         exit 1
@@ -296,7 +296,7 @@ block_work_with_tdd_violation() {
 # Main validation function
 validate_tdd_compliance() {
     local feature_name=$1
-    
+
     echo ""
     echo "🔒 TDD MANDATORY GATE VALIDATION"
     echo "=================================="
@@ -304,15 +304,15 @@ validate_tdd_compliance() {
     echo "Timestamp: $(date)"
     echo "Strict Mode: $STRICT_MODE"
     echo ""
-    
+
     # Check if this is a feature session
     if ! is_feature_session; then
         block_work_with_tdd_violation "Not a valid feature development session"
         return 1
     fi
-    
+
     local validation_passed=true
-    
+
     # Run all validation checks
     validate_tdd_artifacts "$feature_name" || validation_passed=false
     validate_tdd_test_structure "$feature_name" || validation_passed=false
@@ -320,10 +320,10 @@ validate_tdd_compliance() {
     validate_tradeoff_documentation "$feature_name" || validation_passed=false
     run_tdd_test_suite "$feature_name" || validation_passed=false
     validate_tdd_timeline "$feature_name" || validation_passed=false
-    
+
     echo ""
     echo "=================================="
-    
+
     if [[ "$validation_passed" == "true" ]]; then
         log_validation "SUCCESS" "All TDD compliance checks PASSED"
         echo "✅ TDD compliance validated - work may proceed"
@@ -337,7 +337,7 @@ validate_tdd_compliance() {
 # Function to enforce TDD gates (cannot be bypassed)
 enforce_tdd_gates() {
     local feature_name=$1
-    
+
     echo ""
     echo "🔐 TDD GATE ENFORCEMENT"
     echo "========================"
@@ -350,7 +350,7 @@ enforce_tdd_gates() {
     echo "- All violations logged permanently"
     echo "- Admin approval required for any exceptions"
     echo ""
-    
+
     # Validate that override attempts are impossible
     if [[ "${FORCE_TDD_OVERRIDE:-}" == "true" ]]; then
         log_validation "ERROR" "TDD OVERRIDE ATTEMPTED - OVERRIDE MODE NOT ALLOWED"
@@ -358,7 +358,7 @@ enforce_tdd_gates() {
         echo "This incident will be logged and escalated to administrators."
         exit 100  # Special exit code for security violation
     fi
-    
+
     return 0
 }
 

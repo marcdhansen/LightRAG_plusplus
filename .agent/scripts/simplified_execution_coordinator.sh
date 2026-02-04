@@ -91,7 +91,7 @@ log() {
     local level="$1"
     local message="$2"
     local timestamp=$(date '+%H:%M:%S')
-    
+
     case "$level" in
         "INFO")
             echo -e "${GREEN}[INFO $timestamp]${NC} $message"
@@ -111,7 +111,7 @@ log() {
 # Function to infer workflow mode from action
 infer_workflow_mode() {
     local action="$1"
-    
+
     case "$action" in
         "emergency"|"recovery")
             echo "emergency"
@@ -131,7 +131,7 @@ infer_workflow_mode() {
 # Function to load context
 load_context() {
     local context_source="$1"
-    
+
     if [[ -n "$context_source" && -f "$context_source" ]]; then
         log "DEBUG" "Loading context from: $context_source"
         cat "$context_source"
@@ -157,9 +157,9 @@ create_workflow_plan() {
     local action="$1"
     local mode="$2"
     local context="$3"
-    
+
     log "DEBUG" "Creating optimized workflow plan for action: $action (mode: $mode)"
-    
+
     # Define optimized workflows that eliminate redundancy
     case "$action" in
         "start")
@@ -322,7 +322,7 @@ EOF
             exit 1
             ;;
     esac
-    
+
     echo "}"
 }
 
@@ -335,17 +335,17 @@ execute_step() {
     local args=$(echo "$step" | jq -r '.args[]?' | tr '\n' ' ' || echo "")
     local critical=$(echo "$step" | jq -r '.critical // false')
     local condition=$(echo "$step" | jq -r '.condition // "true"')
-    
+
     log "INFO" "Executing step: $step_name"
     log "DEBUG" "Description: $description"
-    
+
     # Check condition
     if [[ "$condition" != "true" ]]; then
         log "DEBUG" "Step condition not met: $condition"
         SKIPPED_STEPS+=("$step_name (condition)")
         return 0
     fi
-    
+
     # Skip combined steps if we have the info
     local combined_steps=$(echo "$step" | jq -r '.combined[]?' | tr '\n' ',' || echo "")
     if [[ -n "$combined_steps" && "$FAST_MODE" == "true" ]]; then
@@ -353,23 +353,23 @@ execute_step() {
         SKIPPED_STEPS+=("$step_name (combined: $combined_steps)")
         return 0
     fi
-    
+
     if [[ -z "$script" ]]; then
         log "DEBUG" "No script specified for step: $step_name"
         SKIPPED_STEPS+=("$step_name (no script)")
         return 0
     fi
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         log "INFO" "Would execute: $script $args"
         EXECUTED_STEPS+=("$step_name (dry-run)")
         return 0
     fi
-    
+
     # Execute the step
     local full_command="$script $args"
     log "DEBUG" "Executing: $full_command"
-    
+
     if eval "$full_command" 2>/dev/null; then
         log "DEBUG" "Step completed successfully: $step_name"
         EXECUTED_STEPS+=("$step_name")
@@ -377,7 +377,7 @@ execute_step() {
     else
         log "ERROR" "Step failed: $step_name"
         FAILED_STEPS+=("$step_name")
-        
+
         if [[ "$critical" == "true" ]]; then
             log "ERROR" "Critical step failed, aborting workflow"
             return 1
@@ -396,7 +396,7 @@ show_workflow_summary() {
     echo "Mode: $WORKFLOW_MODE"
     echo "Fast Mode: $FAST_MODE"
     echo ""
-    
+
     if [[ ${#EXECUTED_STEPS[@]} -gt 0 ]]; then
         echo -e "${GREEN}✓ Executed Steps (${#EXECUTED_STEPS[@]}):${NC}"
         for step in "${EXECUTED_STEPS[@]}"; do
@@ -404,7 +404,7 @@ show_workflow_summary() {
         done
         echo ""
     fi
-    
+
     if [[ ${#SKIPPED_STEPS[@]} -gt 0 ]]; then
         echo -e "${YELLOW}⊘ Skipped Steps (${#SKIPPED_STEPS[@]}):${NC}"
         for step in "${SKIPPED_STEPS[@]}"; do
@@ -412,7 +412,7 @@ show_workflow_summary() {
         done
         echo ""
     fi
-    
+
     if [[ ${#FAILED_STEPS[@]} -gt 0 ]]; then
         echo -e "${RED}✗ Failed Steps (${#FAILED_STEPS[@]}):${NC}"
         for step in "${FAILED_STEPS[@]}"; do
@@ -420,7 +420,7 @@ show_workflow_summary() {
         done
         echo ""
     fi
-    
+
     # Overall status
     if [[ ${#FAILED_STEPS[@]} -eq 0 ]]; then
         echo -e "${GREEN}🎉 Workflow completed successfully!${NC}"
@@ -435,10 +435,10 @@ save_session_state() {
     local outcome="$2"
     local executed_steps="$3"
     local failed_steps="$4"
-    
+
     local session_file=".agent/session_state.json"
     mkdir -p "$(dirname "$session_file")"
-    
+
     cat <<EOF > "$session_file"
 {
   "action": "$action",
@@ -450,32 +450,32 @@ save_session_state() {
   "fast_mode": $FAST_MODE
 }
 EOF
-    
+
     log "DEBUG" "Session state saved to: $session_file"
 }
 
 # Main execution function
 main() {
     echo -e "${BLUE}=== Simplified Execution Coordinator ===${NC}"
-    
+
     # Infer workflow mode if not specified
     if [[ -z "$WORKFLOW_MODE" ]]; then
         WORKFLOW_MODE=$(infer_workflow_mode "$TARGET_ACTION")
     fi
-    
+
     echo "Action: $TARGET_ACTION"
     echo "Mode: $WORKFLOW_MODE"
     echo "Fast Mode: $FAST_MODE"
     echo ""
-    
+
     # Load context
     local context=$(load_context "$CONTEXT_FILE")
     log "DEBUG" "Context loaded"
-    
+
     # Create optimized workflow plan
     local workflow_plan=$(create_workflow_plan "$TARGET_ACTION" "$WORKFLOW_MODE" "$context")
     log "DEBUG" "Workflow plan created"
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         echo -e "${CYAN}=== Workflow Plan ===${NC}"
         echo "$workflow_plan" | jq -r '.description'
@@ -483,21 +483,21 @@ main() {
         echo "$workflow_plan" | jq -r '.steps[] | "- \(.name): \(.description)"'
         echo ""
     fi
-    
+
     # Execute workflow steps
     local steps=$(echo "$workflow_plan" | jq -c '.steps[]')
     local workflow_failed=false
-    
+
     while IFS= read -r step; do
         if ! execute_step "$step"; then
             workflow_failed=true
             break
         fi
     done <<< "$steps"
-    
+
     # Show summary
     show_workflow_summary
-    
+
     # Save session state
     local executed_steps_joined=$(IFS=,; echo "${EXECUTED_STEPS[*]}")
     local failed_steps_joined=$(IFS=,; echo "${FAILED_STEPS[*]}")
@@ -507,9 +507,9 @@ main() {
     elif [[ ${#FAILED_STEPS[@]} -gt 0 ]]; then
         outcome="partial"
     fi
-    
+
     save_session_state "$TARGET_ACTION" "$outcome" "$executed_steps_joined" "$failed_steps_joined"
-    
+
     # Exit with appropriate code
     if [[ "$workflow_failed" == "true" ]]; then
         exit 1
