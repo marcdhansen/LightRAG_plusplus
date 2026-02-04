@@ -60,7 +60,7 @@ async def example_workflow_status():
     # Get detailed milestone status
     status = orchestrator.get_milestone_status()
     print("\nMilestone Details:")
-    for milestone_id, data in status.items():
+    for _milestone_id, data in status.items():
         print(f"  {data['order']}. {data['name']} - {data['status']}")
 
     print()

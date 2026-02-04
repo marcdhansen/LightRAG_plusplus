@@ -122,12 +122,10 @@ class StatisticalAnalyzer:
             )
 
         # Descriptive statistics
-        control_mean = statistics.mean(control_data)
-        treatment_mean = statistics.mean(treatment_data)
-        control_std = statistics.stdev(control_data) if len(control_data) > 1 else 0
-        treatment_std = (
-            statistics.stdev(treatment_data) if len(treatment_data) > 1 else 0
-        )
+        statistics.mean(control_data)
+        statistics.mean(treatment_data)
+        statistics.stdev(control_data) if len(control_data) > 1 else 0
+        (statistics.stdev(treatment_data) if len(treatment_data) > 1 else 0)
 
         # Perform selected statistical test
         if test_type == TestType.T_TEST:
@@ -513,7 +511,7 @@ class StatisticalAnalyzer:
         return "unknown"
 
     def calculate_required_sample_size(
-        self, effect_size: float, desired_power: float = 0.8
+        self, effect_size: float, _desired_power: float = 0.8
     ) -> int:
         """Calculate required sample size per group for given effect size and power"""
 
@@ -634,9 +632,6 @@ class ResultCollector:
             avg_effect_size = statistics.mean(effect_sizes)
 
             if avg_effect_size >= 0.5:  # Medium effect or larger
-                treatment_mean = t_test.sample_size_treatment
-                control_mean = t_test.sample_size_control
-
                 # Determine winner (this is simplified - should use actual means)
                 return {
                     "decision": DecisionResult.TREATMENT_WINNER,

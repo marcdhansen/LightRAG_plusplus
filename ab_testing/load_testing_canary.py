@@ -180,7 +180,6 @@ class LoadTestRunner:
 
         # Prepare concurrent tasks
         tasks = []
-        request_times = []
         request_results = []
 
         # Calculate timing for rate limiting
@@ -263,7 +262,7 @@ class LoadTestRunner:
             for r in request_results
             if isinstance(r, dict) and not r.get("success", False)
         ]
-        exceptions = [r for r in request_results if isinstance(r, Exception)]
+        [r for r in request_results if isinstance(r, Exception)]
 
         response_times = [r["response_time_ms"] for r in successful_results]
         timestamps = [r["timestamp"] for r in request_results if isinstance(r, dict)]
@@ -425,7 +424,7 @@ class CanaryDeployer:
         if increments_needed > 0:
             increment_duration = stage_duration / increments_needed
 
-            for i in range(increments_needed):
+            for _i in range(increments_needed):
                 self.current_traffic_percentage = min(
                     self.current_traffic_percentage + self.config.traffic_increment,
                     target_percentage,

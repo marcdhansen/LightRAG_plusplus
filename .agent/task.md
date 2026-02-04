@@ -1,31 +1,38 @@
-# Task: Run Benchmark Comparison with Ollama Models (lightrag-1sk)
-
-**Beads Task ID**: lightrag-1sk
-**Status**: IN_PROGRESS
+# Task: Fix CI/CD Pipeline Cache Key Issue
 
 ## Objective
 
-Verify that optimizations and changes in the current repository do not degrade extraction quality compared to the original LightRAG implementation.
+Fix the `Milestone Validation Pipeline` in
+`.github/workflows/milestone_validation.yml` which is failing because the
+`setup-environment` job does not correctly export the `cache-key` output.
 
-## Todo List
+## Problem Analysis
 
-- [x] **PFC**: Run Pre-Flight Check and verify current objective.
-- [x] **Environment Check**: Verify access to original repo and Ollama models.
-- [x] **Commit Pending Optimizations**: Stabilize and commit current extraction prompt enhancements.
-- [x] **Fix Benchmark Script**: Implement isolated subprocesses for extraction to ensure fair repository comparison.
-- [x] **Execute Verification**: Run isolated extraction to verify baseline functionality.
-- [ ] **Run Full Comparison**: Execute full benchmark run when resources permit.
-- [ ] **Analyze Results**: Review `benchmark_comparison_report.md` for regressions.
-- [ ] **Document Findings**: Update `lightrag-1sk` status with results.
+- The `setup-environment` job defines an output `cache-key` as
+  `${{ steps.cache.outputs.cache-key }}`.
+- However, the `steps.cache` (actions/cache@v5) does not provide an output
+  named `cache-key`.
+- There is a step "Cache validation environment" that sets `cache-key` in
+  `$GITHUB_OUTPUT`, but it lacks an `id` and is not referenced by the job
+  output.
 
-## Steps
+## Proposed Fix
 
-1. [x] Run PFC and identify current objective (`lightrag-1sk`).
-2. [x] Review uncommitted changes and stabilize them.
-3. [x] Commit current optimizations to ensure a consistent benchmark base.
-4. [x] Fix `compare_benchmarks.py` isolation bug by creating `isolated_extract.py`.
-5. [x] Verify extraction prompts for small models (1.5b) via baseline audit.
-6. [ ] Execute full comparison across multiple cases.
-7. [ ] Perform RTB and final debrief
-   - Run SOP effectiveness evaluation: `./scripts/evaluate_sop_effectiveness.sh`
-   - BLOCKER: Cannot proceed with RTB if SOP evaluation fails.
+1. Add an `id: set-cache-key` to the "Cache validation environment" step in
+   the `setup-environment` job.
+2. Update the `setup-environment` job's `cache-key` output to reference
+   `${{ steps.set-cache-key.outputs.cache-key }}`.
+3. Verify that other jobs (`unit-tests`, `tdd-gate-validation`, etc.) correctly
+   use this `cache-key`.
+
+## Plan
+
+- [x] Update `.github/workflows/milestone_validation.yml` with the fix.
+- [x] Create PR and verify fix in CI.
+  - [x] Fix secondary issue: Ghost worktree causing submodule errors in CI.
+- [ ] Merge PR and verify on `main`.
+- [ ] Cleanup (revert `agent/**` trigger if necessary, or keep it).
+
+## Approval
+
+## Approval: [User Sign-off at 2026-02-04 14:15...]

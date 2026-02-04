@@ -41,9 +41,11 @@ class MilestoneValidator:
             with open(self.config_path) as f:
                 return yaml.safe_load(f)
         except FileNotFoundError:
-            raise ValidationError(f"Configuration file not found: {self.config_path}")
+            raise ValidationError(
+                f"Configuration file not found: {self.config_path}"
+            ) from None
         except yaml.YAMLError as e:
-            raise ValidationError(f"Invalid YAML configuration: {e}")
+            raise ValidationError(f"Invalid YAML configuration: {e}") from e
 
     def _parse_milestones(self) -> dict[str, Milestone]:
         """Parse milestones from configuration"""
@@ -194,7 +196,7 @@ class MilestoneValidator:
         return step
 
     async def _run_tdd_gate_validation(
-        self, milestone: Milestone, task_ids: list[str]
+        self, _milestone: Milestone, task_ids: list[str]
     ) -> dict[str, Any]:
         """Run TDD gate validation"""
         try:
@@ -242,7 +244,7 @@ class MilestoneValidator:
             return {"passed": False, "error": f"TDD gate validation failed: {str(e)}"}
 
     async def _run_unit_tests(
-        self, milestone: Milestone, task_ids: list[str]
+        self, _milestone: Milestone, _task_ids: list[str]
     ) -> dict[str, Any]:
         """Run unit tests and collect coverage metrics"""
         try:
@@ -303,7 +305,7 @@ class MilestoneValidator:
             return {"passed": False, "error": f"Unit test execution failed: {str(e)}"}
 
     async def _run_integration_tests(
-        self, milestone: Milestone, task_ids: list[str]
+        self, _milestone: Milestone, _task_ids: list[str]
     ) -> dict[str, Any]:
         """Run integration tests"""
         try:
@@ -335,7 +337,7 @@ class MilestoneValidator:
             }
 
     async def _run_ab_tests(
-        self, milestone: Milestone, task_ids: list[str]
+        self, milestone: Milestone, _task_ids: list[str]
     ) -> dict[str, Any]:
         """Run A/B tests for milestone validation"""
         try:
@@ -365,7 +367,7 @@ class MilestoneValidator:
             return {"passed": False, "error": f"A/B testing failed: {str(e)}"}
 
     async def _test_rollback_procedure(
-        self, milestone: Milestone, task_ids: list[str]
+        self, _milestone: Milestone, _task_ids: list[str]
     ) -> dict[str, Any]:
         """Test rollback procedure"""
         try:
@@ -391,7 +393,7 @@ class MilestoneValidator:
             }
 
     async def _run_load_tests(
-        self, milestone: Milestone, task_ids: list[str]
+        self, milestone: Milestone, _task_ids: list[str]
     ) -> dict[str, Any]:
         """Run load tests"""
         try:
@@ -419,7 +421,7 @@ class MilestoneValidator:
         criteria_name: str,
         expected_value: Any,
         step_results: list[ValidationStep],
-        metrics: dict[str, Any],
+        _metrics: dict[str, Any],
     ) -> bool:
         """Evaluate a specific success criterion"""
 
@@ -507,7 +509,7 @@ class MilestoneValidator:
     def _generate_recommendations(
         self,
         criteria_results: dict[str, bool],
-        step_results: list[ValidationStep],
+        _step_results: list[ValidationStep],
         blocking_issues: list[str],
     ) -> list[str]:
         """Generate recommendations based on validation results"""

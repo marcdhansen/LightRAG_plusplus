@@ -11,7 +11,7 @@ IVS validates changes incrementally through predefined milestones before allowin
 The system uses a 5-phase milestone approach:
 
 1. **Development Complete** - Code implementation and unit testing
-2. **Integration Testing** - System integration validation  
+2. **Integration Testing** - System integration validation
 3. **A/B Testing Validation** - Statistical significance testing
 4. **Production Readiness** - Rollback capability verification
 5. **Production Deployment** - Gradual traffic routing
@@ -88,7 +88,7 @@ orchestrator = MilestoneWorkflowOrchestrator()
 
 # Validate milestone
 result = await orchestrator.advance_to_milestone(
-    "development", 
+    "development",
     task_ids=["lightrag-123"]
 )
 

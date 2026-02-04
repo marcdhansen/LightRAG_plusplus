@@ -110,7 +110,7 @@ class AdvancedDashboard:
                 return {"experiment_id": experiment_id, "status": "created"}
 
             except Exception as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
 
         @self.app.get("/api/experiments/{experiment_id}")
         async def get_experiment(experiment_id: str):
@@ -150,7 +150,7 @@ class AdvancedDashboard:
                 }
 
             except Exception as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
 
         @self.app.get("/api/metrics/{experiment_id}/timeseries")
         async def get_metrics_timeseries(
@@ -897,7 +897,7 @@ if __name__ == "__main__":
         """Demonstrate advanced dashboard"""
 
         monitor, server, terminal_monitor = create_monitoring_system()
-        dashboard = create_advanced_dashboard(monitor)
+        create_advanced_dashboard(monitor)
 
         # Start monitoring server in background
         server_task = asyncio.create_task(server.start())

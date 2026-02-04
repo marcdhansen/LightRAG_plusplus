@@ -727,6 +727,12 @@ def priority_limit_async_func_call(
                             continue
 
                         try:
+                            # Log chunk started for immediate user feedback
+                            func_name = getattr(func, "__name__", str(func))
+                            logger.info(
+                                f"🚀 {queue_name}: Chunk Started - {func_name} (task {task_id})"
+                            )
+
                             # Execute function with timeout protection
                             if max_execution_timeout is not None:
                                 result = await asyncio.wait_for(
