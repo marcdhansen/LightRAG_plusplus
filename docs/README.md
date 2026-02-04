@@ -20,6 +20,7 @@
 - **Architecture**: `docs/project/ARCHITECTURE.md`
 - **Evaluation**: `docs/project/EVALUATION.md`
 - **ACE Framework**: `docs/project/ACE_FRAMEWORK.md`
+- **CoT Performance**: `docs/performance/COT_PERFORMANCE_ANALYSIS.md`
 - **Subsystems**: `docs/subsystems/`
 
 ### 🌐 External References

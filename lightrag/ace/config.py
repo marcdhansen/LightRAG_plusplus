@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from typing import Literal
 
 
 @dataclass
@@ -21,6 +22,13 @@ class ACEConfig:
     max_history_items: int = 50
     enable_auto_curation: bool = True
     enable_human_in_the_loop: bool = False
+
+    # Chain-of-Thought (CoT) Settings
+    cot_enabled: bool = True
+    cot_depth: Literal["minimal", "standard", "detailed"] = "standard"
+    cot_graph_verification: bool = True
+    cot_general_reflection: bool = True
+    cot_include_reasoning_output: bool = True
 
     def __post_init__(self):
         self.ensure_base_dir()

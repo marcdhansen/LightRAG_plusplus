@@ -38,6 +38,37 @@ The effectiveness of the ACE loop is highly dependent on the reasoning capabilit
 
 For detailed latency and accuracy metrics, see [MODEL_PROFILING_RESULTS](../../MODEL_PROFILING_RESULTS.md).
 
+## 🧠 Chain-of-Thought (CoT) Reasoning
+
+Effective from **v0.5.0**, the ACE framework supports **Chain-of-Thought (CoT) reasoning** for enhanced analysis and transparency in the Reflector component.
+
+### CoT Features
+
+- **Configurable Depth**: Choose between `minimal`, `standard`, and `detailed` reasoning levels
+- **Dual Coverage**: CoT available for both graph verification and general reflection
+- **Reasoning Capture**: Extract and store reasoning chains for debugging and WebUI display
+- **Token Management**: Balance accuracy gains with computational cost
+
+### Configuration
+
+```python
+from lightrag.ace.config import ACEConfig
+
+ace_config = ACEConfig(
+    cot_enabled=True,                    # Enable CoT reasoning
+    cot_depth="standard",                # Depth: minimal, standard, detailed
+    cot_graph_verification=True,         # CoT for graph integrity checks
+    cot_general_reflection=True,          # CoT for quality analysis
+    cot_include_reasoning_output=True    # Store reasoning for debugging
+)
+```
+
+### CoT Depth Levels
+
+- **Minimal**: Quick source verification with critical decisions only
+- **Standard**: Step-by-step analysis with quality assessment
+- **Detailed**: Comprehensive analysis with confidence scoring and impact analysis
+
 ## 🛡️ Reasoning Threshold Policy (Review Before Deployment)
 
 Effective from **v0.5.0**, the ACE framework enforces a **Minimum Reasoning Threshold** for the Reflector component to prevent graph corruption.
@@ -54,6 +85,8 @@ Effective from **v0.5.0**, the ACE framework enforces a **Minimum Reasoning Thre
 ## 📚 Resources
 
 - [ACE Core Implementation](../../lightrag/ace/)
+- [CoT Performance Analysis](../performance/COT_PERFORMANCE_ANALYSIS.md)
+- [CoT Reasoning Guide](COT_REASONING.md)
 - [SOTA Roadmap](SOTA_ROADMAP.md)
 
 ## 🔬 Discoveries

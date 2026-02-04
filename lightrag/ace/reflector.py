@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from lightrag.core import LightRAG
+
+from .cot_templates import CoTTemplates
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,10 @@ class ACEReflector:
 
     def __init__(self, lightrag_instance: LightRAG):
         self.rag = lightrag_instance
+        # Initialize CoT templates if ACE config is available
+        self.cot_templates = None
+        if hasattr(lightrag_instance, "ace_config") and lightrag_instance.ace_config:
+            self.cot_templates = CoTTemplates(lightrag_instance.ace_config)
 
     def _parse_json_list(self, llm_output: str) -> list[Any]:
         """
@@ -44,23 +51,74 @@ class ACEReflector:
             )
             return []
 
+    def _extract_reasoning_output(self, llm_output: str) -> tuple[list[Any], str]:
+        """
+        Extracts CoT reasoning and JSON actions from LLM output.
+        Returns: (actions_list, reasoning_text)
+        """
+        reasoning = ""
+
+        # Extract reasoning section if present
+        reasoning_match = re.search(r"```reasoning\n(.*?)\n```", llm_output, re.DOTALL)
+        if reasoning_match:
+            reasoning = reasoning_match.group(1).strip()
+        else:
+            # Look for other reasoning patterns
+            reasoning_patterns = [
+                r"## Reasoning Output\n(.*?)(?=\n\n|\n#|```|\Z)",  # Markdown headers
+                r"Reasoning:?\s*\n(.*?)(?=\n\n|\n#|```|\Z)",  # Simple reasoning prefix
+                r"Step \d+[:].*?\n(.*?)(?=\nStep|\n\n|\n#|```|\Z)",  # Step-by-step
+            ]
+
+            for pattern in reasoning_patterns:
+                match = re.search(pattern, llm_output, re.DOTALL | re.IGNORECASE)
+                if match:
+                    reasoning = match.group(1).strip()
+                    break
+
+        # Extract JSON list (existing logic)
+        actions = self._parse_json_list(llm_output)
+
+        return actions, reasoning
+
     async def reflect(self, query: str, generation_result: dict[str, Any]) -> list[str]:
         """
         Analyzes the interaction and returns a list of insights/lessons.
+        Enhanced with Chain-of-Thought reasoning if configured.
         """
         response = generation_result.get("response")
         if not response:
             return ["Error: No response generated to reflect upon."]
 
-        # Construct Reflection Prompt
-        prompt = (
-            "You are the Reflector component of the ACE Framework.\n"
-            "Analyze the following interaction for quality, accuracy, and adherence to instructions.\n"
-            "Identify 1-3 key lessons or insights that could improve future performance.\n"
-            'Format your output as a simple JSON list of strings, e.g. ["Insight 1", "Insight 2"].\n\n'
-            f"Query: {query}\n"
-            f"Response: {response}\n"
-        )
+        # Check if CoT is enabled for general reflection
+        if (
+            self.cot_templates
+            and self.rag.ace_config
+            and self.rag.ace_config.cot_enabled
+            and self.rag.ace_config.cot_general_reflection
+        ):
+            # Use CoT template
+            cot_template = self.cot_templates.get_general_reflection_template()
+            reasoning_parser = self.cot_templates.get_reasoning_output_parser()
+
+            prompt = (
+                "You are the Reflector component of the ACE Framework.\n"
+                f"Query: {query}\n"
+                f"Response: {response}\n\n"
+                f"{cot_template}\n"
+                'Format your final insights as a simple JSON list of strings, e.g. ["Insight 1", "Insight 2"].\n'
+                f"{reasoning_parser}"
+            )
+        else:
+            # Use original simple prompt
+            prompt = (
+                "You are the Reflector component of the ACE Framework.\n"
+                "Analyze the following interaction for quality, accuracy, and adherence to instructions.\n"
+                "Identify 1-3 key lessons or insights that could improve future performance.\n"
+                'Format your output as a simple JSON list of strings, e.g. ["Insight 1", "Insight 2"].\n\n'
+                f"Query: {query}\n"
+                f"Response: {response}\n"
+            )
 
         try:
             # Use the dedicated reflection LLM if available, falling back to default if not configured
@@ -71,7 +129,24 @@ class ACEReflector:
                 return ["Error: No LLM function configured for reflection."]
 
             llm_output = await llm_func(prompt, model=model_name)
-            insights = self._parse_json_list(llm_output)
+
+            # Extract reasoning if CoT is enabled
+            if (
+                self.cot_templates
+                and self.rag.ace_config
+                and self.rag.ace_config.cot_enabled
+                and self.rag.ace_config.cot_include_reasoning_output
+            ):
+                insights, reasoning = self._extract_reasoning_output(llm_output)
+
+                # Log reasoning for debugging
+                if reasoning:
+                    logger.info(f"ACE Reflector CoT Reasoning:\n{reasoning}")
+                    # Store reasoning in generation result for potential WebUI display
+                    generation_result["reflection_reasoning"] = reasoning
+            else:
+                insights = self._parse_json_list(llm_output)
+
             return (
                 [str(i) for i in insights]
                 if insights
@@ -98,46 +173,100 @@ class ACEReflector:
         if not chunks:
             return []
 
-        # Construct Repair Reflection Prompt
-        prompt = (
-            "You are the Reflector component of the ACE Framework, specializing in Graph Integrity.\n"
-            "CRITICAL TASK: Verify the retrieved graph data against the source text chunks provided below.\n\n"
-            "### Source Text Chunks\n"
-        )
+        # Check if CoT is enabled for graph verification
+        if (
+            self.cot_templates
+            and self.rag.ace_config
+            and self.rag.ace_config.cot_enabled
+            and self.rag.ace_config.cot_graph_verification
+        ):
+            # Use CoT template for graph verification
+            cot_template = self.cot_templates.get_graph_verification_template()
+            reasoning_parser = self.cot_templates.get_reasoning_output_parser()
 
-        for i, c in enumerate(chunks[:5]):
-            prompt += f"Chunk {i}: {c.get('content')}\n"
-
-        prompt += "\n### Entities to Verify\n"
-        for i, e in enumerate(entities[:50]):
-            prompt += f"{i}. {e.get('entity_name')} ({e.get('entity_type')}): {e.get('description')}\n"
-
-        prompt += "\n### Relationships to Verify\n"
-        for i, r in enumerate(relations[:50]):
-            prompt += (
-                f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}\n"
+            # Build context data
+            context_chunks = "\n".join(
+                [f"Chunk {i}: {c.get('content')}" for i, c in enumerate(chunks[:5])]
+            )
+            context_entities = "\n".join(
+                [
+                    f"{i}. {e.get('entity_name')} ({e.get('entity_type')}): {e.get('description')}"
+                    for i, e in enumerate(entities[:50])
+                ]
+            )
+            context_relations = "\n".join(
+                [
+                    f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}"
+                    for i, r in enumerate(relations[:50])
+                ]
             )
 
-        prompt += (
-            "\n### Verification Logic\n"
-            "1. **Relation Verification:** Compare each relationship against the source chunks. If the relationship is not supported by "
-            "the text (explicitly or logically inferred), you MUST delete it.\n"
-            "2. **Entity Verification:** Look at the entities. If an entity is a hallucination (not mentioned in the source text), you MUST delete it.\n"
-            "3. **De-duplication:** If you see multiple entities that refer to the SAME real-world object (e.g., 'AI' and 'Artificial Intelligence'), "
-            "recommend a MERGE. Use the full name as the target.\n\n"
-            "### Instructions\n"
-            "- For `delete_relation`, use the EXACT 'src_id' and 'tgt_id' from the list above.\n"
-            "- For `delete_entity`, use the EXACT 'entity_name' from the list above.\n"
-            "- If an entity is deleted, and it was a hallucination, also delete any relations it was involved in.\n\n"
-            "### Repair Actions JSON Format\n"
-            "Actions: \n"
-            '  - `{"action": "delete_relation", "source": "Node A", "target": "Node B", "reason": "..."}`\n'
-            '  - `{"action": "delete_entity", "name": "Node X", "reason": "..."}`\n'
-            '  - `{"action": "merge_entities", "sources": ["AI", "A.I."], "target": "Artificial Intelligence", "reason": "..."}`\n\n'
-            "### Example\n"
-            'Result: [{"action": "delete_relation", "source": "Einstein", "target": "Mars", "reason": "Text says he died on Earth."}, {"action": "delete_entity", "name": "Mars", "reason": "Mars is not mentioned in source text."}]\n\n'
-            "Return ONLY the JSON list. If everything is correct, return []."
-        )
+            # Format instructions for actions
+            format_instructions = (
+                "Actions: \n"
+                '  - `{"action": "delete_relation", "source": "Node A", "target": "Node B", "reason": "..."}`\n'
+                '  - `{"action": "delete_entity", "name": "Node X", "reason": "..."}`\n'
+                '  - `{"action": "merge_entities", "sources": ["AI", "A.I."], "target": "Artificial Intelligence", "reason": "..."}`\n\n'
+                "### Example\n"
+                'Result: [{"action": "delete_relation", "source": "Einstein", "target": "Mars", "reason": "Text says he died on Earth."}, {"action": "delete_entity", "name": "Mars", "reason": "Mars is not mentioned in source text."}]'
+            )
+
+            # Replace format placeholder in template
+            cot_template = cot_template.replace(
+                "{{format_instructions}}", format_instructions
+            )
+
+            prompt = (
+                "You are the Reflector component of the ACE Framework, specializing in Graph Integrity.\n"
+                "CRITICAL TASK: Verify the retrieved graph data against the source text chunks provided below.\n\n"
+                "### Source Text Chunks\n"
+                f"{context_chunks}\n\n"
+                "### Entities to Verify\n"
+                f"{context_entities}\n\n"
+                "### Relationships to Verify\n"
+                f"{context_relations}\n\n"
+                f"{cot_template}\n"
+                f"{reasoning_parser}"
+            )
+        else:
+            # Use original prompt
+            prompt = (
+                "You are the Reflector component of the ACE Framework, specializing in Graph Integrity.\n"
+                "CRITICAL TASK: Verify the retrieved graph data against the source text chunks provided below.\n\n"
+                "### Source Text Chunks\n"
+            )
+
+            for i, c in enumerate(chunks[:5]):
+                prompt += f"Chunk {i}: {c.get('content')}\n"
+
+            prompt += "\n### Entities to Verify\n"
+            for i, e in enumerate(entities[:50]):
+                prompt += f"{i}. {e.get('entity_name')} ({e.get('entity_type')}): {e.get('description')}\n"
+
+            prompt += "\n### Relationships to Verify\n"
+            for i, r in enumerate(relations[:50]):
+                prompt += f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}\n"
+
+            prompt += (
+                "\n### Verification Logic\n"
+                "1. **Relation Verification:** Compare each relationship against the source chunks. If the relationship is not supported by "
+                "the text (explicitly or logically inferred), you MUST delete it.\n"
+                "2. **Entity Verification:** Look at the entities. If an entity is a hallucination (not mentioned in the source text), you MUST delete it.\n"
+                "3. **De-duplication:** If you see multiple entities that refer to the SAME real-world object (e.g., 'AI' and 'Artificial Intelligence'), "
+                "recommend a MERGE. Use the full name as the target.\n\n"
+                "### Instructions\n"
+                "- For `delete_relation`, use the EXACT 'src_id' and 'tgt_id' from the list above.\n"
+                "- For `delete_entity`, use the EXACT 'entity_name' from the list above.\n"
+                "- If an entity is deleted, and it was a hallucination, also delete any relations it was involved in.\n\n"
+                "### Repair Actions JSON Format\n"
+                "Actions: \n"
+                '  - `{"action": "delete_relation", "source": "Node A", "target": "Node B", "reason": "..."}`\n'
+                '  - `{"action": "delete_entity", "name": "Node X", "reason": "..."}`\n'
+                '  - `{"action": "merge_entities", "sources": ["AI", "A.I."], "target": "Artificial Intelligence", "reason": "..."}`\n\n'
+                "### Example\n"
+                'Result: [{"action": "delete_relation", "source": "Einstein", "target": "Mars", "reason": "Text says he died on Earth."}, {"action": "delete_entity", "name": "Mars", "reason": "Mars is not mentioned in source text."}]\n\n'
+                "Return ONLY the JSON list. If everything is correct, return []."
+            )
 
         try:
             llm_func = self.rag.reflection_llm_model_func or self.rag.llm_model_func
@@ -150,7 +279,26 @@ class ACEReflector:
                 return []
 
             llm_output = await llm_func(prompt, model=model_name)
-            repairs = self._parse_json_list(llm_output)
+
+            # Extract reasoning if CoT is enabled
+            if (
+                self.cot_templates
+                and self.rag.ace_config
+                and self.rag.ace_config.cot_enabled
+                and self.rag.ace_config.cot_include_reasoning_output
+            ):
+                repairs, reasoning = self._extract_reasoning_output(llm_output)
+
+                # Log reasoning for debugging
+                if reasoning:
+                    logger.info(
+                        f"ACE Reflector Graph Verification CoT Reasoning:\n{reasoning}"
+                    )
+                    # Store reasoning in generation result for potential WebUI display
+                    generation_result["graph_verification_reasoning"] = reasoning
+            else:
+                repairs = self._parse_json_list(llm_output)
+
             if repairs:
                 # Filter to only supported actions for safety
                 valid_actions = ["delete_relation", "delete_entity", "merge_entities"]

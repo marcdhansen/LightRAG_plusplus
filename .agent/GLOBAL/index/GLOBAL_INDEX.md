@@ -39,10 +39,11 @@
 
   - **Project: LightRAG** (`~/antigravity_lightrag/LightRAG`)
     - [Project Root](../antigravity_lightrag/LightRAG/README.md)
-    - [Architecture Guide](../antigravity_lightrag/LightRAG/docs/project/ARCHITECTURE.md)
-    - [ACE Framework](../antigravity_lightrag/LightRAG/docs/project/ACE_FRAMEWORK.md)
-    - [Algorithm Details](../antigravity_lightrag/LightRAG/docs/project/Algorithm.md)
-    - [SOTA Roadmap](../antigravity_lightrag/LightRAG/docs/project/SOTA_ROADMAP.md)
+     - [Architecture Guide](../antigravity_lightrag/LightRAG/docs/project/ARCHITECTURE.md)
+     - [ACE Framework](../antigravity_lightrag/LightRAG/docs/project/ACE_FRAMEWORK.md)
+     - [CoT Performance Analysis](../antigravity_lightrag/LightRAG/docs/performance/COT_PERFORMANCE_ANALYSIS.md) - Chain-of-Thought speed/cost tradeoffs
+     - [Algorithm Details](../antigravity_lightrag/LightRAG/docs/project/Algorithm.md)
+     - [SOTA Roadmap](../antigravity_lightrag/LightRAG/docs/project/SOTA_ROADMAP.md)
 
     - **Subsystems**
       - [ACE](../antigravity_lightrag/LightRAG/docs/subsystems/ACE.md)
