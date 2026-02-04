@@ -13,7 +13,30 @@ This directory contains symbolic links to the global configuration files and sta
 
 ## Linked Directories
 
-- **[skills/](skills/)** → `~/.agent/skills/` - Global agent capabilities
+- **[skills/](skills/)** → `.agent/skills/` → `~/.gemini/antigravity/skills/` - Global agent capabilities (symlink chain to universal source)
+
+## 🌐 **Skills & Commands Symlink Ecosystem**
+
+**Critical Note**: Skills and commands use a special symlink architecture where `~/.gemini/antigravity/` is the universal source of truth.
+
+### **Skills Access Points**
+```
+Project Access:      .agent/skills/ → ~/.gemini/antigravity/skills/
+OpenCode Global:     ~/.config/opencode/skills/ → ~/.gemini/antigravity/skills/
+```
+
+### **Commands & Workflows Access Points**
+```
+Agent Global:        ~/.agent/commands/ → ~/.gemini/antigravity/global_workflows/
+OpenCode Global:     ~/.config/opencode/commands/ → ~/.gemini/antigravity/global_workflows/
+Workspace-Specific:  .agent/workflows/ → Project-local commands
+```
+
+### **Why This Structure?**
+- Prevents Antigravity breakage (symlinks in `~/.gemini` cause failures)
+- Maintains single source of truth for universal capabilities
+- Enables multi-tool access to same resources
+- Preserves cross-agent compatibility
 
 ## Purpose
 

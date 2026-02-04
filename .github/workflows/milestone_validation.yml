@@ -1,0 +1,389 @@
+name: Milestone Validation Pipeline
+
+on:
+  push:
+    branches: [milestone-*, feature/*, agent/**]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: 'Milestone to validate'
+        required: true
+        default: 'development'
+      force:
+        description: 'Force validation despite blockers'
+        required: false
+        default: false
+        type: boolean
+      task_ids:
+        description: 'Task IDs to validate (comma-separated)'
+        required: false
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  detect-milestone:
+    runs-on: ubuntu-latest
+    outputs:
+      milestone: ${{ steps.detect.outputs.milestone }}
+      is-milestone-branch: ${{ steps.detect.outputs.is-milestone-branch }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Detect Milestone from Branch
+        id: detect
+        run: |
+          if [[ "${{ github.event.inputs.milestone }}" != "" ]]; then
+            MILESTONE="${{ github.event.inputs.milestone }}"
+          elif [[ "${{ github.ref }}" == refs/heads/milestone-* ]]; then
+            MILESTONE=$(echo "${{ github.ref_name }}" | sed 's/^milestone-//')
+          else
+            MILESTONE="development"
+          fi
+
+          IS_MILESTONE_BRANCH=false
+          if [[ "${{ github.ref }}" == refs/heads/milestone-* ]]; then
+            IS_MILESTONE_BRANCH=true
+          fi
+
+          echo "milestone=$MILESTONE" >> $GITHUB_OUTPUT
+          echo "is-milestone-branch=$IS_MILESTONE_BRANCH" >> $GITHUB_OUTPUT
+          echo "Detected milestone: $MILESTONE"
+
+  setup-environment:
+    runs-on: ubuntu-latest
+    needs: detect-milestone
+    outputs:
+      cache-key: ${{ steps.set-cache-key.outputs.cache-key }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip packages
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[api]"
+          pip install pytest pytest-asyncio pytest-cov
+          pip install pyyaml click
+
+          # Install validation system dependencies
+          if [ -f "requirements-validation.txt" ]; then
+            pip install -r requirements-validation.txt
+          fi
+
+      - name: Cache validation environment
+        id: set-cache-key
+        run: |
+          echo "cache-key=${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', 'validation/**') }}" >> $GITHUB_OUTPUT
+
+  tdd-gate-validation:
+    runs-on: ubuntu-latest
+    needs: [detect-milestone, setup-environment]
+    if: needs.detect-milestone.outputs.is-milestone-branch == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup-environment.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[api]"
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run TDD Gate Validation
+        run: |
+          python .agent/scripts/tdd_gate_validator.py --verbose
+        continue-on-error: true
+
+      - name: Upload TDD Gate Results
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: tdd-gate-results
+          path: |
+            tdd_gate_results.json
+            coverage.xml
+          retention-days: 7
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: [detect-milestone, setup-environment]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup-environment.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[api]"
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run Unit Tests
+        run: |
+          pytest tests/ -m "offline and not integration" --ignore=tests/ui --cov=lightrag --cov-report=xml --cov-report=json --junitxml=test-results.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: unit-test-results
+          path: |
+            test-results.xml
+            coverage.json
+            coverage.xml
+          retention-days: 7
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [detect-milestone, setup-environment]
+    if: needs.detect-milestone.outputs.milestone == 'integration' || needs.detect-milestone.outputs.milestone == 'ab_testing' || needs.detect-milestone.outputs.milestone == 'production_readiness' || needs.detect-milestone.outputs.milestone == 'production'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup-environment.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[api]"
+          pip install pytest pytest-asyncio
+
+      - name: Run Integration Tests
+        run: |
+          pytest tests/ -m integration --ignore=tests/ui --timeout=600
+        continue-on-error: true
+
+      - name: Upload Integration Test Results
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: integration-test-results
+          path: integration-test-results.xml
+          retention-days: 7
+
+  milestone-validation:
+    runs-on: ubuntu-latest
+    needs: [detect-milestone, setup-environment, tdd-gate-validation, unit-tests, integration-tests]
+    if: always() && (needs.detect-milestone.outputs.is-milestone-branch == 'true' || github.event_name == 'workflow_dispatch')
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup-environment.outputs.cache-key }}
+
+      - name: Download test artifacts
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          pattern: "*-results"
+          merge-multiple: true
+
+      - name: Prepare task IDs
+        id: prepare-tasks
+        run: |
+          TASK_IDS=""
+          if [[ "${{ github.event.inputs.task_ids }}" != "" ]]; then
+            TASK_IDS="${{ github.event.inputs.task_ids }}"
+          elif [[ "${{ github.ref_type }}" == "pull_request" ]]; then
+            # Extract task IDs from PR title/body
+            PR_NUMBER="${{ github.event.number }}"
+            TASK_IDS=$(gh pr view $PR_NUMBER --json title,body | jq -r '.title + " " + .body' | grep -o 'lightrag-[0-9]\+' | tr '\n' ',' | sed 's/,$//')
+          fi
+          echo "task-ids=$TASK_IDS" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Milestone Validation
+        id: validate
+        run: |
+          MILESTONE="${{ needs.detect-milestone.outputs.milestone }}"
+          FORCE_FLAG="${{ github.event.inputs.force }}"
+          TASK_IDS="${{ steps.prepare-tasks.outputs.task-ids }}"
+
+          echo "Running validation for milestone: $MILESTONE"
+          if [[ "$FORCE_FLAG" == "true" ]]; then
+            echo "Force mode enabled"
+            FORCE_ARG="--force"
+          else
+            FORCE_ARG=""
+          fi
+
+          if [[ -n "$TASK_IDS" ]]; then
+            echo "Task IDs: $TASK_IDS"
+            IFS=',' read -ra TASK_ARRAY <<< "$TASK_IDS"
+            TASK_ARGS=""
+            for task in "${TASK_ARRAY[@]}"; do
+              TASK_ARGS="$TASK_ARGS --task-ids $task"
+            done
+          else
+            TASK_ARGS=""
+          fi
+
+          # Run validation
+          python validation/cli.py validate $MILESTONE $FORCE_ARG $TASK_ARGS --output json > validation_result.json 2>&1 || true
+
+          # Extract result
+          if [ -f validation_result.json ]; then
+            PASSED=$(cat validation_result.json | jq -r '.passed // false')
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            cat validation_result.json
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+            echo "Validation result file not found"
+          fi
+
+      - name: Update Beads Status
+        if: steps.validate.outputs.passed != ''
+        run: |
+          python validation/scripts/update_beads_status.py \
+            --milestone "${{ needs.detect-milestone.outputs.milestone }}" \
+            --passed "${{ steps.validate.outputs.passed }}" \
+            --result-file validation_result.json
+        continue-on-error: true
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let commentBody = '';
+
+            if (fs.existsSync('validation_result.json')) {
+              const result = JSON.parse(fs.readFileSync('validation_result.json', 'utf8'));
+              const milestone = '${{ needs.detect-milestone.outputs.milestone }}';
+              const passed = result.passed;
+
+              if (passed) {
+                commentBody = `## ✅ Milestone Validation Passed\n\n**Milestone:** ${milestone}\n**Duration:** ${result.validation_duration_seconds}s\n\n### Criteria Results:\n`;
+              } else {
+                commentBody = `## ❌ Milestone Validation Failed\n\n**Milestone:** ${milestone}\n**Duration:** ${result.validation_duration_seconds}s\n\n### Blocking Issues:\n`;
+                if (result.blocking_issues && result.blocking_issues.length > 0) {
+                  result.blocking_issues.forEach(issue => {
+                    commentBody += `- ${issue}\n`;
+                  });
+                }
+                commentBody += '\n### Recommendations:\n';
+                if (result.recommendations && result.recommendations.length > 0) {
+                  result.recommendations.forEach(rec => {
+                    commentBody += `- ${rec}\n`;
+                  });
+                }
+              }
+            } else {
+              commentBody = '## ⚠️ Milestone Validation Error\n\nUnable to run validation checks.';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
+
+      - name: Block PR if Validation Failed
+        if: steps.validate.outputs.passed == 'false' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## 🚫 PR Blocked\n\nThis PR cannot be merged because milestone validation failed. Please address the issues and re-run the validation.'
+            });
+
+      - name: Upload Validation Results
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: milestone-validation-results
+          path: |
+            validation_result.json
+            .agent/state/
+          retention-days: 30
+
+      - name: Fail Workflow if Validation Failed
+        if: steps.validate.outputs.passed == 'false'
+        run: |
+          echo "Milestone validation failed - blocking progression"
+          exit 1
+
+  notify-results:
+    runs-on: ubuntu-latest
+    needs: [detect-milestone, milestone-validation]
+    if: always()
+    steps:
+      - name: Notify Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          MILESTONE="${{ needs.detect-milestone.outputs.milestone }}"
+          STATUS="${{ needs.milestone-validation.result }}"
+
+          if [[ "$STATUS" == "success" ]]; then
+            COLOR="good"
+            EMOJI="✅"
+            MESSAGE="Milestone $MILESTONE validation passed"
+          else
+            COLOR="danger"
+            EMOJI="❌"
+            MESSAGE="Milestone $MILESTONE validation failed"
+          fi
+
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$EMOJI $MESSAGE\", \"attachments\":[{\"color\":\"$COLOR\",\"text\":\"Repository: ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nWorkflow: ${{ github.workflow }}\"}]}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

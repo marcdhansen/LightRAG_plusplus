@@ -95,14 +95,14 @@ async def test_openviking_features():
         results["skill_search"] = {
             "queries_tested": len(test_queries),
             "average_search_time_ms": avg_search_time,
-            "total_skills_found": len(set(s.get("id", "") for s in skills_found)),
+            "total_skills_found": len({s.get("id", "") for s in skills_found}),
             "search_success_rate": len(skill_search_times) / len(test_queries) * 100,
             "success": all(t.status_code == 200 for t in response2),
         }
 
         print(f"   📊 Average search time: {avg_search_time:.1f}ms")
         print(
-            f"   🎯 Total unique skills found: {len(set(s.get('id', '') for s in skills_found))}"
+            f"   🎯 Total unique skills found: {len({s.get('id', '') for s in skills_found})}"
         )
 
         # Test 3: Health Check with Features

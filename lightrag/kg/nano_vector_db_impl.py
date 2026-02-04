@@ -517,7 +517,6 @@ class NanoKeywordStorage(BaseKeywordStorage):
         self, keywords: list[str], limit: int = 50
     ) -> list[dict[str, Any]]:
         """Search for documents containing the given keywords."""
-        results = []
         doc_scores = {}  # doc_id -> total_score
 
         async with self._storage_lock:

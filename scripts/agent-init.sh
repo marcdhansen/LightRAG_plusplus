@@ -8,20 +8,28 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Enable OpenViking by default if Ollama is available
-if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
-    export OPENVIKING_ENABLED=1
-    echo -e "${BLUE}🧠 OpenViking enabled (Ollama detected)${NC}"
-else
-    echo -e "${YELLOW}⚠️  Ollama not detected - OpenViking disabled${NC}"
-    echo -e "   Start Ollama with: ollama serve"
+# Enable OpenViking by default (SMP deprecated)
+export OPENVIKING_ENABLED=1
+echo -e "${BLUE}🧠 OpenViking enabled by default (SMP replaced)${NC}"
+
+# Set up Docker for Colima (lightweight alternative to Docker Desktop)
+if [ -S "$HOME/.colima/docker.sock" ]; then
+    export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
+    echo -e "${BLUE}🐳 Using Colima Docker runtime (lightweight)${NC}"
 fi
 
-echo -e "${BLUE}🛫 Initiating Standard Mission Protocol (SMP) Bootstrap...${NC}"
+# Verify Ollama is running
+if ! curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️  Ollama not detected - starting Ollama...${NC}"
+    ollama serve &
+    sleep 5
+fi
+
+echo -e "${BLUE}🛫 Initiating OpenViking Bootstrap (SMP deprecated)...${NC}"
 
 # 1. Verify environment
 echo -e "\n🔍 Checking Toolchain..."
-for tool in bd uv python git; do
+for tool in bd uv python git docker; do
     if which $tool > /dev/null; then
         echo -e "  ✅ $tool: $(which $tool)"
     else
@@ -29,6 +37,15 @@ for tool in bd uv python git; do
         EXIT_CODE=1
     fi
 done
+
+# Check Docker daemon specifically
+if ! docker info >/dev/null 2>&1; then
+    echo -e "  ❌ Docker daemon not running"
+    echo -e "     Please start Docker Desktop and retry"
+    EXIT_CODE=1
+else
+    echo -e "  ✅ Docker daemon running"
+fi
 
 if [ "$EXIT_CODE" = "1" ]; then
     echo -e "${RED}🛑 Missing required tools. Please fix before proceeding.${NC}"
@@ -58,25 +75,47 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. Run PFC
-echo -e "\n📋 Running Flight Director Pre-Flight Check..."
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc
+# 4. Run OpenViking Pre-Flight Check
+echo -e "\n📋 Running OpenViking Pre-Flight Check..."
+# TODO: Replace with OpenViking PFC API when available
+echo -e "  ⚠️  OpenViking PFC not yet implemented - skipping validation"
 
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ PFC FAILED. Check planning documents and Beads state.${NC}"
+# For now, just check basic prerequisites
+if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+    echo -e "  ❌ Ollama not running - required for OpenViking"
     exit 1
 fi
 
 # 5. Discover Ready Tasks
 echo -e "\n🐚 Discovering Ready Tasks (Beads)..."
-bd ready
-
-# 6. Sync Slash Commands (OpenViking Integration)
-echo -e "\n🔄 Synchronizing Slash Commands..."
-if python3 openviking/commands.py --sync .agent/workflows >/dev/null 2>&1; then
-    echo -e "  ✅ Synced OpenViking commands to .agent/workflows/"
+if command -v bd >/dev/null 2>&1; then
+    bd ready
 else
-    echo -e "  ⚠️  Failed to sync OpenViking commands"
+    echo -e "  ⚠️  Beads not available - task discovery disabled"
 fi
 
-echo -e "\n${GREEN}✅ Bootstrap Complete. You are clear for takeoff.${NC}"
+# 6. Start OpenViking Services
+echo -e "\n🚀 Starting OpenViking services..."
+if ./openviking/scripts/manage.sh start >/dev/null 2>&1; then
+    echo -e "  ✅ OpenViking services started successfully"
+
+    # Verify OpenViking health
+    if curl -sf http://localhost:8002/health >/dev/null 2>&1; then
+        echo -e "  ✅ OpenViking API healthy (port 8002)"
+    else
+        echo -e "  ⚠️  OpenViking API not responding - check logs"
+    fi
+
+    # Sync OpenViking commands for local workflows
+    if python3 openviking/commands.py --sync .agent/workflows >/dev/null 2>&1; then
+        echo -e "  ✅ OpenViking commands synced to .agent/workflows/"
+    else
+        echo -e "  ⚠️  Failed to sync OpenViking commands"
+    fi
+else
+    echo -e "  ❌ Failed to start OpenViking services"
+    echo -e "     Run manually: ./openviking/scripts/manage.sh start"
+fi
+
+echo -e "\n${GREEN}✅ OpenViking Bootstrap Complete. You are clear for takeoff.${NC}"
+echo -e "${BLUE}💡 Use OpenViking API at http://localhost:8002 for enhanced capabilities${NC}"

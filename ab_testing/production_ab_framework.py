@@ -209,7 +209,7 @@ class ABTestSuite:
         winner_emoji = {"openviking": "🏆", "smp": "🏆", "tie": "⚖️"}
 
         self.console.print(
-            f"\n🏆 Overall Winner: {winner} {winner_emoji.get(inner, '')}"
+            f"\n🏆 Overall Winner: {winner} {winner_emoji.get(winner, '')}"
         )
 
         # Save comprehensive report
@@ -253,7 +253,7 @@ class SMPSimulator:
     def __init__(self):
         self.base_url = "http://localhost:9621"
 
-    async def embedding_request(self, text: str):
+    async def embedding_request(self, _text: str):
         """Simulate SMP embedding request"""
         await asyncio.sleep(2.5)  # Simulate SMP response time
         return {
@@ -265,7 +265,7 @@ class SMPSimulator:
             },
         }
 
-    async def skill_search_request(self, query: str):
+    async def skill_search_request(self, _query: str):
         """Simulate SMP skill search"""
         await asyncio.sleep(2.8)  # Simulate SMP response time
         return {
@@ -342,7 +342,7 @@ async def main():
     runner = ABTestRunner()
 
     try:
-        results = await runner.run_production_tests()
+        await runner.run_production_tests()
 
         print("\n🎉 A/B Testing Complete!")
         print("📊 Production-grade testing framework operational")

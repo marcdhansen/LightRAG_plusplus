@@ -1,1 +1,1 @@
-/Users/marchansen/.agent/commands/next.md
+/Users/marchansen/.gemini/antigravity/global_workflows/next.md

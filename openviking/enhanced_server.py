@@ -45,7 +45,7 @@ class ConversationMemory:
         self.timeout_minutes = 30
 
     def add_message(
-        self, session_id: str, role: str, content: str, metadata: dict = None
+        self, session_id: str, role: str, content: str, metadata: dict | None = None
     ):
         if session_id not in self.sessions:
             self.sessions[session_id] = {
@@ -245,7 +245,7 @@ class PerformanceRequest(BaseModel):
     system: str
     metric_type: str
     value: float
-    metadata: dict = None
+    metadata: dict | None = None
 
 
 # Slash command models
@@ -569,20 +569,38 @@ async def search_skills(request: SkillSearchRequest):
 
 @app.post("/conversation", response_model=ConversationResponse)
 async def handle_conversation(request: ConversationRequest):
-    """Conversation memory with context awareness"""
+    """Conversation memory with slash command execution"""
     # Add user message
-    conversation_memory.add_message(request.session_id, request.role, request.message)
+    conversation_memory.add_message(
+        request.session_id, request.role, request.message, {}
+    )
 
     # Get context for response
     context_messages = conversation_memory.get_context(
         request.session_id, request.context_turns
     )
 
-    # Generate mock response
-    response = f"I understand your message about '{request.message}'. Let me help you with that."
+    # Check if message is a slash command
+    if request.message.startswith("/"):
+        command_name = request.message.strip().split()[0]
+        cmd = command_registry.get_command(command_name)
+
+        if cmd:
+            # Execute the command by returning its instructions
+            response = f"Executing command: {cmd['name']}\n\n{cmd['instructions']}"
+            logger.info(f"Executed slash command: {command_name}")
+        else:
+            available_commands = ", ".join(
+                [c["name"] for c in command_registry.list_commands()]
+            )
+            response = f"Unknown command: {command_name}. Available commands: {available_commands}"
+            logger.warning(f"Unknown slash command: {command_name}")
+    else:
+        # Generate mock response for regular messages
+        response = f"I understand your message about '{request.message}'. Let me help you with that."
 
     # Add assistant response
-    conversation_memory.add_message(request.session_id, "assistant", response)
+    conversation_memory.add_message(request.session_id, "assistant", response, {})
 
     return ConversationResponse(
         session_id=request.session_id,

@@ -184,7 +184,7 @@ class TrafficRouter:
 
             raise HTTPException(
                 status_code=503, detail=f"Both systems unavailable: {e}"
-            )
+            ) from e
 
     def set_traffic_split(self, openviking_percentage: int):
         """Set traffic split percentage"""

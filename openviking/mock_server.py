@@ -136,7 +136,7 @@ async def create_embedding(request: EmbeddingRequest):
     await asyncio.sleep(0.2)  # Simulate processing
 
     # Simple mock embedding
-    text_hash = hash(request.text)
+    hash(request.text)
     embedding = [
         float((ord(c) % 1000) / 1000.0) for c in request.text[:100] for _ in range(768)
     ]

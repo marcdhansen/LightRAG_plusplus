@@ -36,7 +36,7 @@ except ImportError:
 class SMPToOpenVikingMigrator:
     """Main migration class for SMP to OpenViking conversion"""
 
-    def __init__(self, config_path: str = "/app/config/ov.conf"):
+    def __init__(self, _config_path: str = "/app/config/ov.conf"):
         self.console = Console()
         self.setup_logging()
 
@@ -193,7 +193,7 @@ class SMPToOpenVikingMigrator:
 
         # Look for memory-like files in global source
         memory_files = []
-        for root, dirs, files in os.walk(self.global_source):
+        for root, _dirs, files in os.walk(self.global_source):
             for file in files:
                 if file.endswith(".md") and any(
                     keyword in file.lower()

@@ -30,7 +30,7 @@ class Phase3Rollout:
         ]
         self.metrics_history = []
 
-    async def check_system_health(self, system_name: str, url: str) -> dict[str, Any]:
+    async def check_system_health(self, _system_name: str, url: str) -> dict[str, Any]:
         """Check health of a specific system"""
         try:
             async with httpx.AsyncClient() as client:
@@ -396,7 +396,7 @@ class Phase3Rollout:
         # Filter phases if specified
         phases = self.rollout_phases
         if phases_to_run:
-            phase_names = [phase["name"] for phase in self.rollout_phases]
+            [phase["name"] for phase in self.rollout_phases]
             phases = [
                 phase for phase in self.rollout_phases if phase["name"] in phases_to_run
             ]

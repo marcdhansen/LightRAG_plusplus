@@ -28,9 +28,16 @@ class ReferenceChecker:
     """Cross-reference integrity validation system"""
 
     def __init__(self):
+        # Add caching for file content to avoid repeated reads
+        self._file_cache = {}
+        self._mtime_cache = {}
         self.agent_global = Path.home() / ".agent"
         self.project_agent = Path(".agent")
         self.issues: list[ReferenceIssue] = []
+
+        # Add caching for file content to avoid repeated reads
+        self._file_cache = {}
+        self._mtime_cache = {}
 
         # Common patterns for different issue types
         self.link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
@@ -53,22 +60,58 @@ class ReferenceChecker:
         return self.issues
 
     def _find_markdown_files(self) -> list[Path]:
-        """Find all markdown files in project"""
+        """Find all markdown files in project with optimized search"""
         md_files = []
 
-        # Search in both global and project locations
+        # Exclude directories early to avoid processing
+        exclude_dirs = {".git", "node_modules", ".venv", "rag_storage", "test_ace"}
+
+        # Search in both global and project locations with optimized patterns
         for base_path in [self.agent_global, self.project_agent]:
-            for md_file in base_path.rglob("**/*.md"):
+            # Use more specific pattern and early exclusion
+            for md_file in base_path.glob("**/*.md"):
+                # Skip excluded directories efficiently
+                if any(excluded in str(md_file) for excluded in exclude_dirs):
+                    continue
                 md_files.append(md_file)
 
         return md_files
 
-    def _check_file_references(self, file_path: Path):
-        """Check references in a single file"""
+    def _get_file_content_cached(self, file_path: Path) -> str:
+        """Cached file content reading with mtime validation"""
         try:
+            current_mtime = file_path.stat().st_mtime
+            cache_key = str(file_path)
+
+            # Check if we have cached content and it's still valid
+            if (
+                cache_key in self._file_cache
+                and cache_key in self._mtime_cache
+                and self._mtime_cache[cache_key] == current_mtime
+            ):
+                return self._file_cache[cache_key]
+
+            # Read fresh content
             with open(file_path, encoding="utf-8") as f:
                 content = f.read()
-                lines = content.split("\n")
+
+            # Cache the content and mtime
+            self._file_cache[cache_key] = content
+            self._mtime_cache[cache_key] = current_mtime
+
+            return content
+        except Exception:
+            return ""
+
+    def _check_file_references(self, file_path: Path):
+        """Check references in a single file with caching"""
+        try:
+            # Use cached file reading
+            content = self._get_file_content_cached(file_path)
+            if not content:
+                return
+
+            lines = content.split("\n")
 
             for line_num, line in enumerate(lines, 1):
                 self._check_line_references(file_path, line_num, line)
@@ -110,7 +153,7 @@ class ReferenceChecker:
         link_target: str,
         line_num: int,
         line: str,
-    ) -> ReferenceIssue:
+    ) -> ReferenceIssue | None:
         """Check if a reference is valid"""
 
         # Skip external URLs
@@ -295,7 +338,7 @@ def main():
 
         if args.auto_fix:
             fixed = checker.auto_fix_simple_issues()
-            print(f"\n🔧 Auto-fixed {fixed_count} issues")
+            print(f"\n🔧 Auto-fixed {fixed} issues")
 
         if args.summary or not args.report:
             checker.print_summary()

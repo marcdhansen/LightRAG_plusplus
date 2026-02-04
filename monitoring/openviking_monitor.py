@@ -184,7 +184,7 @@ class OpenVikingMonitor:
         if metrics and "summary" in metrics:
             summary = metrics["summary"]
             active_sessions = summary.get("active_sessions", 0)
-            total_requests = summary.get("total_requests", 0)
+            summary.get("total_requests", 0)
 
             if active_sessions > 1000:
                 alerts.append(
@@ -209,7 +209,7 @@ class OpenVikingMonitor:
             f"OpenViking Production Monitor - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             style="bold blue",
         )
-        header = Panel(header_text, style="bold white on blue")
+        Panel(header_text, style="bold white on blue")
 
         # Create tables for different sections
         # Health table

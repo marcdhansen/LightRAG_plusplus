@@ -54,4 +54,7 @@ All models achieved **100% YAML compliance**. This confirms that the recent swit
 - Improve instructions for "Concept" type entities, as these were the most variable across models.
 
 ---
+---
 **Next Step**: Implement Extraction Prompt Enhancements based on these failure patterns.
+
+**UPDATE (2026-02-04)**: Optimizations implemented. See [Post-Optimization Report](../docs/benchmarks/EXTRACTION_PROMPT_OPTIMIZATION.md).

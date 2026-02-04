@@ -191,7 +191,7 @@ class EnhancedProductionABTest:
             ]
 
             conversation_times = []
-            for i, msg in enumerate(conversation_messages):
+            for _i, msg in enumerate(conversation_messages):
                 try:
                     start_time = time.time()
                     response = await client.post(

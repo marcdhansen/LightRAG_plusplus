@@ -269,7 +269,7 @@ class SMPToOpenVikingMigrator:
                             text_content = data["query"]
                         else:
                             # Try to find any string field
-                            for key, value in data.items():
+                            for _key, value in data.items():
                                 if isinstance(value, str) and len(value) > 10:
                                     text_content = value
                                     break
