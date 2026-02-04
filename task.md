@@ -1,24 +1,29 @@
-# Task: lightrag-64p - Fix CI dependency issue: sqlite3 in requirements-validation.txt
+# Task: lightrag-fv9 - Extraction Prompt Enhancement (Relationship Schema Refinement)
 
 ## Objective
 
-Fix the failing CI/CD pipeline caused by a non-existent PyPI package `sqlite3` being listed in `requirements-validation.txt`. `sqlite3` is a built-in Python module and should not be installed via pip.
+Enhance the relationship extraction prompts to improve accuracy on small models (1.5B/7B), specifically addressing the 0% accuracy observed in the "Einstein" case for smaller models during the baseline audit.
 
 ## Success Criteria
 
-- [x] `sqlite3` is removed from `requirements-validation.txt`.
-- [x] No other built-in modules are incorrectly listed in requirements files.
-- [x] Local dependencies can be installed without error.
-- [ ] (Optional but recommended) Add a pre-commit or CI check to prevent built-in modules from being added to requirements files.
+- [ ] Relationship accuracy for `qwen2.5-coder:3b` on the "Einstein" case improves from 0% to >50%.
+- [ ] Maintain 100% YAML compliance across all tested models.
+- [ ] No regression in entity recall (>90% on 3B/7B).
 
 ## Proposed Strategy
 
-1. **Remove sqlite3**: Delete the line containing `sqlite3` in `requirements-validation.txt`.
-2. **Scan for other built-ins**: Run a quick check on all `requirements*.txt` files to see if other standard library modules (e.g., `os`, `sys`, `json`, `datetime`) are accidentally listed.
-3. **Verification**: Run `pip install -r requirements-validation.txt` (in a dry-run or temporary environment if possible, or just verify the file content).
-4. **CI Validation**: Push the changes and verify the GitHub Actions run passes the dependency installation step.
+1. **Analyze Failure Patterns**: Review the `baseline_audit_report.md` and the actual outputs of the Einstein test case to understand why relationships are being missed or malformed.
+2. **Enhance Prompt Instructions**:
+    - Update `entity_extraction_key_value_system_prompt` in `lightrag/prompt.py`.
+    - Add explicit instructions for identifying binary relationships between *all* extracted entities.
+    - Clarify the "source", "target", "keywords", "description" schema.
+3. **Diversify Examples**: Add one or two more complex relationship examples to the `{examples}` placeholder or directly in the prompt if appropriate.
+4. **Verification**:
+    - Run `tests/test_gold_standard_extraction.py` using `qwen2.5-coder:3b` and `qwen2.5-coder:7b`.
+    - Compare results with the baseline audit.
 
 ## Approval
 
-Plan Completed: 2026-02-04 04:00
-Fixed CI dependency issue by removing sqlite3 from requirements-validation.txt. Verified with uv pip install --dry-run.
+## Status: IN_PROGRESS
+
+Approved: [User Sign-off at 2026-02-04 15:30]
