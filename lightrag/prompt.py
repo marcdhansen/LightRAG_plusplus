@@ -65,20 +65,21 @@ You are a Knowledge Graph Specialist specializing in quick, robust extraction fo
 
 ---Instructions---
 1. Entity Extraction:
-   - Identify all meaningful entities in the input text.
+   - Identify all meaningful entities (Persons, Locations, Organizations, Concepts).
    - For each entity output a single line with the following 4 fields delimited by {tuple_delimiter}:
      entity{tuple_delimiter}entity_name{tuple_delimiter}entity_type{tuple_delimiter}entity_description
 2. Relationship Extraction:
-   - Identify direct relationships between the extracted entities.
+   - Identify ALL direct and structural relationships between entities.
+   - LINK EVERYTHING: For every entity, look for its connection to every other entity in the text.
    - For each relationship output a single line with the following 5 fields delimited by {tuple_delimiter}:
      relation{tuple_delimiter}source_entity{tuple_delimiter}target_entity{tuple_delimiter}relationship_keywords{tuple_delimiter}relationship_description
 3. Delimiters:
-   - Use {tuple_delimiter} as a strict field separator; do not include extra content in that token.
+   - Use {tuple_delimiter} as a strict field separator.
 4. Language & Completion:
    - Language: {language}
    - Completion signal: {completion_delimiter}
 5. Output style:
-   - Keep entity names in Title Case when appropriate and descriptions in the input's language.
+   - Keep entity names in Title Case and be exhaustive in relationship pairings.
 """
 
 PROMPTS["entity_extraction_system_prompt_variant_A"] = """---Role---
@@ -219,16 +220,14 @@ You are a Knowledge Graph Specialist responsible for extracting ALL relevant ent
     *   **NO HALLUCINATION:** Strictly use information present in the text. Do NOT add biographical info or external facts. Keywords and Descriptions must come ONLY from the Input Text, NOT the examples.
     *   **FORMAT:** Every entity MUST have 'name', 'type', and 'description'. Use a list of objects.
 
-2.  **RELATIONSHIP EXTRACTION (STRICT):**
+2.  **RELATIONSHIP EXTRACTION (DENSE):**
     *   Identify all meaningful relationships between ALL identified entities.
-    *   **DENSE LINKING:** Do not just link to the main subject; link entities to each other if they appear in the same context or relate to each other.
-    *   **STRUCTURAL LINKS:** Explicitly look for and extract structural relationships such as:
-        - **Geographic Containment:** (e.g. "Paris" is in "France", "NASA" is in "USA").
-        - **Professional/Organizational:** (e.g. "Person" works for "Company").
-        - **Biographical Origins:** (e.g. "Person" born in "City", "Person" of "Nationality").
-    *   **CROSS-LINKING:** For every pair of extracted entities, ask yourself: "Does the text describe a connection between them?" If yes, extract it even if it seems secondary.
-    *   **FORMAT:** Use 'source', 'target', 'keywords', 'description' in a list of objects.
-    *   **CONSISTENCY:** Use the EXACT same entity names in relationships as defined in the entities list.
+    *   **EXHAUSTIVE PAIRING:** For every possible pair of entities in the list, check if the text supports a connection. If yes, extract it.
+    *   **LINK EVERYTHING:** Do not just link to the main subject; link secondary entities to each other.
+    *   **GEOGRAPHIC LINKS:** Always link a specific location (City/State) to its containing location (Country/Region) if both are listed or implied.
+    *   **RELATIONSHIP SCHEMA:** Use 'source', 'target', 'keywords', 'description'.
+    *   **CONSISTENCY:** Use the EXACT same entity 'name' in relationships as defined in the entities list.
+    *   **EXAMPLE:** If "A was born in B, C", extract: (A -> B), (A -> C), and (B -> C).
 
 3.  **OUTPUT FORMAT:**
     *   Return ONLY a valid YAML object with 'entities' and 'relationships' keys.
@@ -257,16 +256,19 @@ Extract ALL entities and relationships from the input text in YAML format.
 1.  **Strict YAML Output:** Output only valid YAML. Do not include preamble or thoughts.
 2.  **Completeness:** DO NOT omit entities at the end of the text. Extract EVERYTHING relevant, including abstract concepts or themes mentioned.
 3.  **No Contamination:** Descriptions and keywords must be based ONLY on the provided Input Text. Do NOT copy information from the examples.
-4.  **Entity Mapping:**
+4.  **Dense Linkage:** Ensure all meaningful connections between ALL entities are captured.
+    *   **Geographic Containment:** (e.g., link "City" to "Country").
+    *   **Nested Relations:** If a person is born in a city, and that city is in a country, capture BOTH relations if mentioned or implied.
+5.  **Entity Mapping:**
     - name: "<entity_name>"
       type: "<entity_type>"
       description: "<entity_description>"
-5.  **Relationship Mapping:**
+6.  **Relationship Mapping:**
     - source: "<source_entity>"
       target: "<target_entity>"
       keywords: "<keywords>"
       description: "<description>"
-6.  **Language:** Use {language}.
+7.  **Language:** Use {language}.
 
 <Input Text>
 {input_text}
@@ -279,8 +281,9 @@ Identify and extract any **MISSING** entities and relationships from the input t
 
 ---Instructions---
 1.  **Completeness Check:** Look for overlooked concepts, locations, or people.
-2.  **Strict YAML Output:** Output only valid YAML with 'entities' and 'relationships' keys.
-3.  **If Nothing New Found:** If you find no new entities or relationships, return exactly:
+2.  **Missed Relations:** Specifically look for **structural or contextual links** between the entities already extracted (e.g. "City" in "Country", "Organization" in "Location") that might have been missed in the first dense pass.
+3.  **Strict YAML Output:** Output only valid YAML with 'entities' and 'relationships' keys.
+4.  **If Nothing New Found:** If you find no new entities or relationships, return exactly:
 entities: []
 relationships: []
 
@@ -350,6 +353,10 @@ relationships:
     target: "England"
     keywords: "origin, nationality"
     description: "Charles Darwin was a British naturalist from England."
+  - source: "Shrewsbury"
+    target: "England"
+    keywords: "containment, location"
+    description: "Shrewsbury is a town in England."
 """,
     """entities:
   - name: "Marie Curie"

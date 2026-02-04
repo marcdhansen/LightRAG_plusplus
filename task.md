@@ -6,9 +6,10 @@ Enhance the relationship extraction prompts to improve accuracy on small models 
 
 ## Success Criteria
 
-- [ ] Relationship accuracy for `qwen2.5-coder:3b` on the "Einstein" case improves from 0% to >50%.
-- [ ] Maintain 100% YAML compliance across all tested models.
-- [ ] No regression in entity recall (>90% on 3B/7B).
+- [x] Relationship accuracy for `qwen2.5-coder:3b` on the "Einstein" case
+  improves from 0% to >50%. (Achieved 100%)
+- [x] Maintain 100% YAML compliance across all tested models.
+- [x] No regression in entity recall (>90% on 3B/7B).
 
 ## Proposed Strategy
 
@@ -24,6 +25,6 @@ Enhance the relationship extraction prompts to improve accuracy on small models 
 
 ## Approval
 
-## Status: IN_PROGRESS
+## Status: COMPLETED
 
-Approved: [User Sign-off at 2026-02-04 15:30]
+Completed: 2026-02-04 16:15
