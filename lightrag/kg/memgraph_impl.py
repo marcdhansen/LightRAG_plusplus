@@ -1313,6 +1313,356 @@ class MemgraphStorage(BaseGraphStorage):
                 await result.consume()
             return []
 
+    # Community Detection Methods
+
+    async def detect_communities(
+        self, algorithm: str = "louvain", weight_property: str = "weight"
+    ) -> dict[str, int]:
+        """
+        Detect communities in the knowledge graph using MAGE algorithms.
+
+        Args:
+            algorithm: Community detection algorithm ('louvain' or 'leiden')
+            weight_property: Property name to use as edge weight
+
+        Returns:
+            Dict mapping node IDs to community IDs
+
+        Raises:
+            RuntimeError: If driver is not initialized
+            Exception: If community detection fails
+        """
+        if self._driver is None:
+            raise RuntimeError(
+                "Memgraph driver is not initialized. Call 'await initialize()' first."
+            )
+
+        workspace_label = self._get_workspace_label()
+
+        try:
+            async with self._driver.session(
+                database=self._DATABASE, default_access_mode="WRITE"
+            ) as session:
+                communities = {}
+
+                # Choose MAGE procedure based on algorithm
+                if algorithm.lower() == "louvain":
+                    query = f"""
+                    CALL louvain.projection('{workspace_label}', '{weight_property}')
+                    YIELD node, community_id
+                    RETURN node.id AS node_id, community_id
+                    """
+                    result = await session.run(query)
+
+                elif algorithm.lower() == "leiden":
+                    query = f"""
+                    CALL leiden.projection('{workspace_label}', '{weight_property}')
+                    YIELD node, community_id
+                    RETURN node.id AS node_id, community_id
+                    """
+                    result = await session.run(query)
+
+                else:
+                    raise ValueError(
+                        f"Unsupported algorithm: {algorithm}. Use 'louvain' or 'leiden'"
+                    )
+
+                async for record in result:
+                    node_id = record["node_id"]
+                    community_id = record["community_id"]
+                    communities[node_id] = community_id
+
+                await result.consume()
+
+                logger.info(
+                    f"[{self.workspace}] Detected {len(set(communities.values()))} communities "
+                    f"in {len(communities)} nodes using {algorithm} algorithm"
+                )
+
+                return communities
+
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Community detection failed: {str(e)}")
+            raise
+
+    async def assign_community_ids(
+        self, communities: dict[str, int], algorithm: str = "louvain"
+    ) -> int:
+        """
+        Assign community IDs to nodes as properties for efficient filtering.
+
+        Args:
+            communities: Dict mapping node IDs to community IDs
+            algorithm: Algorithm name for property naming
+
+        Returns:
+            Number of nodes updated
+
+        Raises:
+            RuntimeError: If driver is not initialized
+        """
+        if self._driver is None:
+            raise RuntimeError(
+                "Memgraph driver is not initialized. Call 'await initialize()' first."
+            )
+
+        if not communities:
+            logger.warning(f"[{self.workspace}] No communities to assign")
+            return 0
+
+        workspace_label = self._get_workspace_label()
+        community_property = f"{algorithm}_community"
+
+        try:
+            async with self._driver.session(
+                database=self._DATABASE, default_access_mode="WRITE"
+            ) as session:
+                # Use UNWIND for efficient batch updates
+                query = f"""
+                UNWIND $updates AS update
+                MATCH (n:{workspace_label} {{id: update.node_id}})
+                SET n.{community_property} = update.community_id
+                RETURN count(*) AS updated_count
+                """
+
+                # Convert to list of dicts for UNWIND
+                updates = [
+                    {"node_id": node_id, "community_id": community_id}
+                    for node_id, community_id in communities.items()
+                ]
+
+                result = await session.run(query, updates=updates)
+                record = await result.single()
+                updated_count = record["updated_count"] if record else 0
+                await result.consume()
+
+                logger.info(
+                    f"[{self.workspace}] Assigned {algorithm} community IDs to {updated_count} nodes "
+                    f"using property '{community_property}'"
+                )
+
+                return updated_count
+
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Failed to assign community IDs: {str(e)}")
+            raise
+
+    async def get_node_communities(
+        self, node_ids: list[str], algorithm: str = "louvain"
+    ) -> dict[str, int]:
+        """
+        Get community IDs for specific nodes.
+
+        Args:
+            node_ids: List of node IDs to get communities for
+            algorithm: Algorithm used for community detection
+
+        Returns:
+            Dict mapping node IDs to community IDs
+        """
+        if self._driver is None:
+            raise RuntimeError(
+                "Memgraph driver is not initialized. Call 'await initialize()' first."
+            )
+
+        if not node_ids:
+            return {}
+
+        workspace_label = self._get_workspace_label()
+        community_property = f"{algorithm}_community"
+
+        try:
+            async with self._driver.session(
+                database=self._DATABASE, default_access_mode="READ"
+            ) as session:
+                query = f"""
+                MATCH (n:{workspace_label})
+                WHERE n.id IN $node_ids AND n.{community_property} IS NOT NULL
+                RETURN n.id AS node_id, n.{community_property} AS community_id
+                """
+
+                result = await session.run(query, node_ids=node_ids)
+
+                communities = {}
+                async for record in result:
+                    node_id = record["node_id"]
+                    community_id = record["community_id"]
+                    communities[node_id] = community_id
+
+                await result.consume()
+
+                return communities
+
+        except Exception as e:
+            logger.error(f"[{self.workspace}] Failed to get node communities: {str(e)}")
+            return {}
+
+    async def filter_by_community(
+        self,
+        query: str,
+        community_ids: list[int] = None,
+        algorithm: str = "louvain",
+        top_k: int = 10,
+    ) -> list[str]:
+        """
+        Execute graph query with optional community filtering for improved performance.
+
+        Args:
+            query: Graph query pattern (e.g., entity description)
+            community_ids: List of community IDs to restrict search to. If None, search all.
+            algorithm: Algorithm used for community detection
+            top_k: Maximum number of results to return
+
+        Returns:
+            List of matching entity labels
+        """
+        if self._driver is None:
+            raise RuntimeError(
+                "Memgraph driver is not initialized. Call 'await initialize()' first."
+            )
+
+        workspace_label = self._get_workspace_label()
+        community_property = f"{algorithm}_community"
+
+        try:
+            async with self._driver.session(
+                database=self._DATABASE, default_access_mode="READ"
+            ) as session:
+                # Base query for fuzzy matching
+                base_query = f"""
+                MATCH (n:{workspace_label})
+                WHERE n.labels CONTAINS $query
+                """
+
+                # Add community filtering if specified
+                if community_ids:
+                    base_query += f"AND n.{community_property} IN $community_ids\n"
+
+                base_query += """
+                RETURN DISTINCT n.labels
+                LIMIT $top_k
+                """
+
+                params = {"query": query, "top_k": top_k}
+                if community_ids:
+                    params["community_ids"] = community_ids
+
+                result = await session.run(base_query, **params)
+
+                labels = []
+                async for record in result:
+                    labels.append(record["labels"])
+                await result.consume()
+
+                filter_info = (
+                    f"restricted to communities {community_ids}"
+                    if community_ids
+                    else "unrestricted"
+                )
+                logger.debug(
+                    f"[{self.workspace}] Community-filtered search '{query}' ({filter_info}) "
+                    f"returned {len(labels)} results"
+                )
+
+                return labels
+
+        except Exception as e:
+            logger.error(
+                f"[{self.workspace}] Error in community-filtered search: {str(e)}"
+            )
+            return []
+
+    async def search_labels_with_community_filter(
+        self,
+        query: str,
+        limit: int = 50,
+        community_ids: list[int] = None,
+        algorithm: str = "louvain",
+    ) -> list[str]:
+        """
+        Search labels with fuzzy matching and optional community filtering.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results to return
+            community_ids: Optional list of community IDs to restrict search to
+            algorithm: Community detection algorithm used ('louvain' or 'leiden')
+
+        Returns:
+            List of matching labels sorted by relevance
+        """
+        if self._driver is None:
+            raise RuntimeError(
+                "Memgraph driver is not initialized. Call 'await initialize()' first."
+            )
+
+        query_lower = query.lower().strip()
+
+        if not query_lower:
+            return []
+
+        workspace_label = self._get_workspace_label()
+        community_property = f"{algorithm}_community"
+
+        result = None
+        try:
+            async with self._driver.session(
+                database=self._DATABASE, default_access_mode="READ"
+            ) as session:
+                # Build query with optional community filtering
+                base_query = f"""
+                MATCH (n:`{workspace_label}`)
+                WHERE n.entity_id IS NOT NULL
+                """
+
+                # Add community filtering if specified
+                if community_ids:
+                    base_query += f"AND n.{community_property} IN $community_ids\n"
+
+                base_query += f"""
+                WITH n.entity_id AS label, toLower(n.entity_id) AS label_lower
+                WHERE label_lower CONTAINS $query_lower
+                WITH label, label_lower,
+                     CASE
+                         WHEN label_lower = $query_lower THEN 1000
+                         WHEN label_lower STARTS WITH $query_lower THEN 500
+                         ELSE 100 - size(label)
+                     END AS score
+                ORDER BY score DESC, label ASC
+                LIMIT {limit}
+                RETURN label
+                """
+
+                # Prepare parameters
+                params = {"query_lower": query_lower}
+                if community_ids:
+                    params["community_ids"] = community_ids
+
+                result = await session.run(base_query, **params)
+                labels = []
+                async for record in result:
+                    labels.append(record["label"])
+                await result.consume()
+
+                filter_info = (
+                    f"restricted to communities {community_ids}"
+                    if community_ids
+                    else "unrestricted"
+                )
+                logger.debug(
+                    f"[{self.workspace}] Community-filtered search '{query}' ({filter_info}) "
+                    f"returned {len(labels)} results (limit: {limit})"
+                )
+                return labels
+
+        except Exception as e:
+            logger.error(
+                f"[{self.workspace}] Error in community-filtered search: {str(e)}"
+            )
+            if result is not None:
+                await result.consume()
+            return []
+
 
 @final
 @dataclass

@@ -12,6 +12,10 @@ echo "🔒 Git operation guard checking branch: $BRANCH"
 if [[ "$BRANCH" =~ ^agent/([^/]+)/task-([^/]+)$ ]]; then
     BRANCH_AGENT="${BASH_REMATCH[1]}"
     BRANCH_TASK="${BASH_REMATCH[2]}"
+elif [[ "$BRANCH" =~ ^dependabot/ ]] || [[ "$BRANCH" == "main" ]] || [[ "$BRANCH" == "dev" ]]; then
+    echo "⚠️  Operating on non-agent branch: $BRANCH"
+    BRANCH_AGENT="system"
+    BRANCH_TASK="none"
 else
     echo "❌ ERROR: Branch name does not follow required format"
     echo "   Required: agent/<agent-name>/task-<task-id>"
