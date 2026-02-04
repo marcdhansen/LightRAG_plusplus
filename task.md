@@ -1,28 +1,24 @@
-# Task: lightrag-uc1 - Implement comprehensive A/B testing framework
+# Task: lightrag-64p - Fix CI dependency issue: sqlite3 in requirements-validation.txt
 
 ## Objective
 
-Build a production-grade A/B testing system to compare the legacy Standard Mission Protocol (SMP) against the new OpenViking production environment. The framework must provide statistically significant insights into latency, cost, and extraction quality.
+Fix the failing CI/CD pipeline caused by a non-existent PyPI package `sqlite3` being listed in `requirements-validation.txt`. `sqlite3` is a built-in Python module and should not be installed via pip.
 
 ## Success Criteria
 
-- [ ] Automated A/B test harness that can run parallel queries across SMP and OpenViking endpoints.
-- [ ] Metric collection for:
-  - Mean/P95 Latency.
-  - Token Usage (Input/Output).
-  - Extraction Quality (Entity/Relation F1 via `eval_metrics.py`).
-- [ ] Statistical analysis module (calculating Lift, Confidence Intervals).
-- [ ] Automated markdown report generator for experiment results.
-- [ ] Integration with existing monitoring (Langfuse/Prometheus if available).
+- [x] `sqlite3` is removed from `requirements-validation.txt`.
+- [x] No other built-in modules are incorrectly listed in requirements files.
+- [x] Local dependencies can be installed without error.
+- [ ] (Optional but recommended) Add a pre-commit or CI check to prevent built-in modules from being added to requirements files.
 
 ## Proposed Strategy
 
-1. **Runner Design**: Create a unified runner script `scripts/ab_test_runner.py` that takes a set of test documents/queries and dispatches them to both "Baseline" (SMP) and "Candidate" (OpenViking).
-2. **Telemetry Management**: Reuse `eval_metrics.py` for quality and add a context manager for timing and token counting.
-3. **Analysis Library**: Use `scipy` or basic math to implement t-tests for latency and recall improvements.
-4. **Reporting**: Generate a dashboard-like markdown file in `audit_results/ab_reports/`.
+1. **Remove sqlite3**: Delete the line containing `sqlite3` in `requirements-validation.txt`.
+2. **Scan for other built-ins**: Run a quick check on all `requirements*.txt` files to see if other standard library modules (e.g., `os`, `sys`, `json`, `datetime`) are accidentally listed.
+3. **Verification**: Run `pip install -r requirements-validation.txt` (in a dry-run or temporary environment if possible, or just verify the file content).
+4. **CI Validation**: Push the changes and verify the GitHub Actions run passes the dependency installation step.
 
 ## Approval
 
-Plan Completed: 2026-02-03 18:29
-A/B testing framework integration and OpenViking slash commands fixed.
+Plan Completed: 2026-02-04 04:00
+Fixed CI dependency issue by removing sqlite3 from requirements-validation.txt. Verified with uv pip install --dry-run.
