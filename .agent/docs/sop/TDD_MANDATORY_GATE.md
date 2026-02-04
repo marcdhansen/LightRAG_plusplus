@@ -17,9 +17,13 @@
 ## 🛑 **ENFORCEMENT MECHANISMS**
 
 ### 1. **Pre-Flight Validation** (PFC Gate)
-**Mandatory TDD Checklist**: Every agent must validate before starting work:
+**Mandatory Implementation Readiness Checklist**: Every agent must validate before starting work:
 
 ```yaml
+Implementation_Readiness:
+  - Beads_Issue_Exists: false
+  - Feature_Branch_Active: false
+
 TDD_Requirements:
   - Has_Benchmarking_Tests: false
   - Has_Performance_Baseline: false
@@ -30,7 +34,8 @@ TDD_Requirements:
 ```
 
 **Blocking Behavior**:
-- ❌ **Any "false"** → **WORK BLOCKED**
+- ❌ **Any Implementation Readiness "false"** → **WORK BLOCKED**
+- ❌ **Any TDD "false"** → **WORK BLOCKED**
 - ✅ **All "true"** → **WORK PROCEEDS**
 
 ### 2. **Return-to-Base Validation** (RTB Gate)
@@ -57,6 +62,39 @@ TDD_Completion_Gate:
 - ❌ **Missing Artifacts** → **SESSION INCOMPLETE**
 - ⚠️ **Incomplete Analysis** → **REQUIRE FIXES**
 - ✅ **All Validated** → **SESSION COMPLETE**
+
+---
+
+## 🚀 **IMPLEMENTATION READINESS VALIDATION**
+
+### **Automated Checks**
+
+#### **1. Implementation Readiness Check**
+```bash
+# Must run before any implementation
+python .agent/scripts/validate_implementation_ready.py
+# Expected: All implementation checks PASS
+```
+
+### **Implementation Readiness Requirements**
+
+#### **1. Beads Issue Exists (MANDATORY)**
+- [ ] **Active beads issue** assigned to current work
+- [ ] **Issue status** is "open" or "in-progress"
+- [ ] **Issue metadata** properly configured with type and priority
+
+#### **2. Feature Branch Active (MANDATORY)**
+- [ ] **Not on protected branch** (main, master, develop, dev)
+- [ ] **Feature branch created** with descriptive name
+- [ ] **Code changes isolated** from main development line
+
+### **Manual Validation Points**
+
+#### **Implementation Readiness Evidence**
+- [ ] **Beads Issue ID**: Valid issue exists in tracking system
+- [ ] **Branch Name**: Feature branch follows naming conventions
+- [ ] **Git Status**: Clean isolation from main branch
+- [ ] **Work Context**: Current task properly scoped and assigned
 
 ---
 
