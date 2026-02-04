@@ -1,13 +1,14 @@
 import json
 import subprocess
 import sys
-from typing import List, Dict, Any
+from typing import Any
+
 
 class TaskAnalyzer:
     def __init__(self, limit: int = 0):
         self.limit = limit
 
-    def get_ready_tasks(self) -> List[Dict[str, Any]]:
+    def get_ready_tasks(self) -> list[dict[str, Any]]:
         """Fetch ready tasks from Beads in JSON format."""
         cmd = ["bd", "ready", "--json", f"--limit={self.limit}"]
         try:
@@ -35,18 +36,20 @@ class TaskAnalyzer:
             by_priority[p].append(task)
 
         output = ["# 🎯 LightRAG: Ready Tasks Analysis", ""]
-        
+
         # Summary counts
         total = len(tasks)
         in_progress_count = sum(1 for t in tasks if t.get("status") == "in_progress")
-        output.append(f"**Total Ready Issues**: {total} | **In Progress**: {in_progress_count}")
+        output.append(
+            f"**Total Ready Issues**: {total} | **In Progress**: {in_progress_count}"
+        )
         output.append("")
 
         for priority in sorted(by_priority.keys()):
             output.append(f"## Priority P{priority}")
             output.append("| ID | Status | Title | Type |")
             output.append("| :--- | :--- | :--- | :--- |")
-            
+
             for task in by_priority[priority]:
                 status = task.get("status", "open")
                 if status == "in_progress":
@@ -60,6 +63,7 @@ class TaskAnalyzer:
             output.append("")
 
         return "\n".join(output)
+
 
 if __name__ == "__main__":
     analyzer = TaskAnalyzer()

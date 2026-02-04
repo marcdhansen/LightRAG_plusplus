@@ -17,6 +17,7 @@ This is the central directory for all project-specific planning, tracking, and i
 ## 🧠 Project Context & Evolution
 
 - **[Model Profiling Results](../../MODEL_PROFILING_RESULTS.md)**: Benchmarks for the specific models used in this repo.
+- **[Original Repo Comparison](docs/benchmarks/ORIGINAL_REPO_COMPARISON.md)**: Performance vs. HKUDS/LightRAG.
 
 ## 📖 Instructions & Guides (Local)
 

@@ -76,6 +76,7 @@ To ensure coordination and safety in multi-agent environments, the following gat
   * Measure: entity recall, relationship accuracy, YAML compliance rate, hallucination frequency
   * Document failure patterns: missing concepts, malformed YAML, entity duplication
   * **Success Criteria**: Baseline metrics documented in [baseline_audit_report.md](../../audit_results/baseline_audit_report.md)
+  * **Update (2026-02-04)**: Verified **+38% (Few-NERD)** and **+43% (Text2KGBench)** F1 improvement over original HKUDS repo. See [ORIGINAL_REPO_COMPARISON.md](../benchmarks/ORIGINAL_REPO_COMPARISON.md).
 
 * [ ] **Extraction Prompt Enhancement**:
   * Implement explicit "Concept Extraction" instructions with examples
