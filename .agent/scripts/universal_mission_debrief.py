@@ -111,7 +111,7 @@ class UniversalMissionDebrief:
                     return datetime.fromisoformat(
                         session_data.get("start_time", datetime.now().isoformat())
                     )
-            except:
+            except Exception:
                 pass
         return datetime.now()
 
@@ -126,7 +126,7 @@ class UniversalMissionDebrief:
                 for line in lines:
                     if "Current task:" in line:
                         return line.split(":")[1].strip()
-        except:
+        except Exception:
             pass
 
         return "unknown"
@@ -142,7 +142,7 @@ class UniversalMissionDebrief:
             )
             if result.returncode == 0:
                 return [f for f in result.stdout.strip().split("\n") if f.strip()]
-        except:
+        except Exception:
             pass
 
         return []
@@ -165,7 +165,7 @@ class UniversalMissionDebrief:
                 check=True,
             )
             success_indicators["git_clean"] = len(result.stdout.strip()) == 0
-        except:
+        except Exception:
             pass
 
         # Check if tests pass
@@ -174,7 +174,7 @@ class UniversalMissionDebrief:
                 ["python", "-m", "pytest", "--tb=short"], capture_output=True, text=True
             )
             success_indicators["tests_pass"] = result.returncode == 0
-        except:
+        except Exception:
             success_indicators["tests_pass"] = True  # No tests = pass by default
 
         # Check if task was marked as completed
@@ -191,7 +191,7 @@ class UniversalMissionDebrief:
                     success_indicators["task_completed"] = (
                         "status: closed" in output.lower()
                     )
-            except:
+            except Exception:
                 pass
 
         return success_indicators
@@ -280,7 +280,7 @@ class UniversalMissionDebrief:
                 next_steps.append(
                     "📋 New tasks available - run 'bd ready' to see options"
                 )
-        except:
+        except Exception:
             pass
 
         # Check if there are uncommitted changes
@@ -293,7 +293,7 @@ class UniversalMissionDebrief:
             )
             if result.returncode == 0 and result.stdout.strip():
                 next_steps.append("🔄 Review and commit remaining changes")
-        except:
+        except Exception:
             pass
 
         # Default next steps
@@ -327,7 +327,7 @@ class UniversalMissionDebrief:
                         notes.append(
                             f"⚠️ {skill.replace('_', ' ').title()} not recently used"
                         )
-                except:
+                except Exception:
                     notes.append(f"⚠️ {skill.replace('_', ' ').title()} status unclear")
             else:
                 notes.append(f"❓ {skill.replace('_', ' ').title()} not found in logs")

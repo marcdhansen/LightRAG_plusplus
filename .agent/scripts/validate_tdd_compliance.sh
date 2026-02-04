@@ -49,6 +49,87 @@ is_feature_session() {
     return 0
 }
 
+# Function to validate beads issue exists
+validate_beads_issue() {
+    local feature_name=$1
+    
+    log_validation "INFO" "Validating beads issue for feature: $feature_name"
+    
+    # Check if beads is available
+    if ! command -v bd &> /dev/null; then
+        log_validation "ERROR" "Beads (bd) command not available - required for TDD validation"
+        return 1
+    fi
+    
+    # Search for beads issue related to feature
+    local issue_count=$(bd list --all 2>/dev/null | grep -i "$feature_name" | wc -l || echo "0")
+    
+    if [[ $issue_count -eq 0 ]]; then
+        log_validation "ERROR" "No beads issue found for feature: $feature_name"
+        echo "  Required: Create beads issue before starting development"
+        echo "  Command: bd create -t \"Implement $feature_name\" -p P0 -c \"TDD implementation of $feature_name\""
+        return 1
+    else
+        log_validation "SUCCESS" "Found $issue_count beads issue(s) for $feature_name"
+        return 0
+    fi
+}
+
+# Function to validate git branch usage
+validate_git_branch() {
+    local feature_name=$1
+    
+    log_validation "INFO" "Validating git branch usage for feature: $feature_name"
+    
+    local current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    
+    # Block work on main/master branch for new features
+    if [[ "$current_branch" == "main" ]] || [[ "$current_branch" == "master" ]]; then
+        log_validation "ERROR" "Cannot develop new features on main/master branch"
+        echo "  Current branch: $current_branch"
+        echo "  Required: Create feature branch before starting development"
+        echo "  Command: git checkout -b feature/$feature_name"
+        return 1
+    fi
+    
+    # Check if branch is feature-related
+    if [[ ! "$current_branch" =~ ^(feature|agent|task|feat|fix)/ ]]; then
+        log_validation "WARN" "Branch does not follow feature naming convention: $current_branch"
+        echo "  Recommended: feature/$feature_name or agent/<name>/task-<id>"
+    fi
+    
+    log_validation "SUCCESS" "Git branch validation passed: $current_branch"
+    return 0
+}
+
+# Function to validate git worktree usage
+validate_git_worktree() {
+    local feature_name=$1
+    
+    log_validation "INFO" "Validating git worktree usage"
+    
+    # Check if worktrees are being used appropriately
+    local worktree_count=$(git worktree list 2>/dev/null | wc -l || echo "0")
+    
+    if [[ $worktree_count -gt 1 ]]; then
+        log_validation "INFO" "Multiple worktrees detected ($worktree_count)"
+        
+        # Check if current worktree is properly isolated
+        local current_path=$(pwd)
+        local main_worktree=$(git worktree list --porcelain 2>/dev/null | grep "^worktree" | head -1 | cut -d' ' -f2)
+        
+        if [[ "$current_path" == "$main_worktree" ]]; then
+            log_validation "WARN" "Working in main worktree - consider using isolated worktree for feature development"
+        else
+            log_validation "SUCCESS" "Working in isolated worktree: $current_path"
+        fi
+    else
+        log_validation "INFO" "Single worktree configuration detected"
+    fi
+    
+    return 0
+}
+
 # Function to validate TDD artifacts exist
 validate_tdd_artifacts() {
     local feature_name=$1
@@ -56,6 +137,11 @@ validate_tdd_artifacts() {
     local required_artifacts=()
 
     log_validation "INFO" "Validating TDD artifacts for feature: $feature_name"
+
+    # First validate prerequisites
+    validate_beads_issue "$feature_name" || return 1
+    validate_git_branch "$feature_name" || return 1
+    validate_git_worktree "$feature_name" || return 1
 
     # Define required TDD artifacts based on feature type
     if [[ "$feature_name" == *"performance"* ]] || [[ "$feature_name" == *"benchmark"* ]]; then
@@ -247,13 +333,21 @@ validate_tdd_timeline() {
     local implementation_commits=$(git log --oneline --grep="implement\|fix.*test\|TDD.*green" --grep-count || echo "0")
     local performance_commits=$(git log --oneline --grep="benchmark\|performance\|speed.*improvement" --grep-count || echo "0")
 
+    # Check for beads issue references in commits
+    local beads_refs=$(git log --oneline --grep="lightrag-" --grep-count || echo "0")
+    
+    # Check branch creation vs implementation timing
+    local branch_creation=$(git log --oneline --since="1 week ago" --grep="branch\|create.*branch" --grep-count || echo "0")
+
     log_validation "INFO" "TDD Timeline Analysis:"
     echo "  TDD-related Commits: $commits_with_tdd"
     echo "  Test-First Commits: $test_first_commits"
     echo "  Implementation Commits: $implementation_commits"
     echo "  Performance Commits: $performance_commits"
+    echo "  Beads Issue References: $beads_refs"
+    echo "  Recent Branch Creation: $branch_creation"
 
-    # Basic timeline validation
+    # Enhanced timeline validation
     if [[ $test_first_commits -eq 0 ]]; then
         log_validation "ERROR" "No evidence of test-first development in git history"
         return 1
@@ -262,6 +356,28 @@ validate_tdd_timeline() {
     if [[ $implementation_commits -eq 0 ]]; then
         log_validation "ERROR" "No evidence of implementation commits in git history"
         return 1
+    fi
+
+    # Check for proper beads integration
+    if [[ $beads_refs -eq 0 ]]; then
+        log_validation "WARN" "No beads issue references found in commit history"
+        echo "  Recommended: Reference beads issue in commit messages"
+    fi
+
+    # Validate commit order (tests should precede implementation)
+    local first_test_commit=$(git log --oneline --grep="test\|TDD" --reverse | head -1 | cut -d' ' -f1)
+    local first_impl_commit=$(git log --oneline --grep="implement\|feat\|fix" --reverse | head -1 | cut -d' ' -f1)
+    
+    if [[ -n "$first_test_commit" && -n "$first_impl_commit" ]]; then
+        local test_date=$(git show -s --format=%ct "$first_test_commit" 2>/dev/null || echo "0")
+        local impl_date=$(git show -s --format=%ct "$first_impl_commit" 2>/dev/null || echo "0")
+        
+        if [[ $test_date -gt $impl_date ]]; then
+            log_validation "ERROR" "Implementation commits appear before test commits - violates TDD"
+            echo "  First implementation: $first_impl_commit"
+            echo "  First test: $first_test_commit"
+            return 1
+        fi
     fi
 
     log_validation "SUCCESS" "TDD timeline validation passed"
@@ -314,6 +430,9 @@ validate_tdd_compliance() {
     local validation_passed=true
 
     # Run all validation checks
+    validate_beads_issue "$feature_name" || validation_passed=false
+    validate_git_branch "$feature_name" || validation_passed=false
+    validate_git_worktree "$feature_name" || validation_passed=false
     validate_tdd_artifacts "$feature_name" || validation_passed=false
     validate_tdd_test_structure "$feature_name" || validation_passed=false
     validate_benchmark_structure "$feature_name" || validation_passed=false
@@ -373,6 +492,9 @@ show_help() {
     echo ""
     echo "OPTIONS:"
     echo "  --artifact-check     Only validate TDD artifacts exist"
+    echo "  --beads-check        Only validate beads issue exists"
+    echo "  --branch-check       Only validate git branch usage"
+    echo "  --worktree-check     Only validate git worktree usage"
     echo "  --test-structure    Only validate TDD test structure"
     echo "  --benchmark-check    Only validate benchmark test structure"
     echo "  --timeline-check     Only validate TDD git timeline"
@@ -384,8 +506,18 @@ show_help() {
     echo "EXAMPLES:"
     echo "  $0 community_detection                    # Full TDD validation"
     echo "  $0 --artifact-check community_detection     # Check artifacts only"
+    echo "  $0 --beads-check community_detection        # Check beads issue only"
+    echo "  $0 --branch-check community_detection       # Check branch usage only"
     echo "  $0 --run-tests community_detection         # Run TDD tests"
     echo "  $0 --strict community_detection             # Strict enforcement"
+    echo ""
+    echo "TDD REQUIREMENTS (Mandatory):"
+    echo "  ✓ Beads issue created before development"
+    echo "  ✓ Feature branch (not main/master)"
+    echo "  ✓ TDD test file (failing first)"
+    echo "  ✓ Functional tests"
+    echo "  ✓ Documentation/analysis"
+    echo "  ✓ Proper git timeline (test-first commits)"
     echo ""
     echo "ENVIRONMENT VARIABLES:"
     echo "  FEATURE_NAME        Name of the feature being developed"
@@ -409,6 +541,21 @@ main() {
         --artifact-check)
             shift
             validate_tdd_artifacts "$1"
+            exit $?
+            ;;
+        --beads-check)
+            shift
+            validate_beads_issue "$1"
+            exit $?
+            ;;
+        --branch-check)
+            shift
+            validate_git_branch "$1"
+            exit $?
+            ;;
+        --worktree-check)
+            shift
+            validate_git_worktree "$1"
             exit $?
             ;;
         --test-structure)

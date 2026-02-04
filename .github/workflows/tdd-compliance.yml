@@ -1,0 +1,356 @@
+name: TDD Compliance Validation
+
+on:
+  push:
+    branches: [ main, dev, 'feature/*', 'agent/*', 'task/*' ]
+  pull_request:
+    branches: [ main, dev ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  tdd-compliance-check:
+    name: TDD Compliance Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0  # Full git history for timeline validation
+    
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest jq
+        # Install beads if available
+        if command -v npm >/dev/null 2>&1; then
+          npm install -g @beadsdev/beads || echo "Beads installation failed, continuing..."
+        fi
+    
+    - name: Check for beads availability
+      id: beads-check
+      run: |
+        if command -v bd >/dev/null 2>&1; then
+          echo "beads_available=true" >> $GITHUB_OUTPUT
+          echo "✅ Beads command available"
+        else
+          echo "beads_available=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Beads command not available, some checks will be skipped"
+        fi
+    
+    - name: Extract feature context
+      id: feature-context
+      run: |
+        # Detect feature name from branch or changes
+        FEATURE_NAME=""
+        
+        # Try branch name
+        if [[ "$GITHUB_REF" =~ ^refs/heads/(feature|agent|task)/(.+)$ ]]; then
+          FEATURE_NAME="${BASH_REMATCH[2]}"
+        fi
+        
+        # Try from changed files if no feature name from branch
+        if [[ -z "$FEATURE_NAME" ]]; then
+          # Get most recently changed file
+          FEATURE_FILE=$(git diff --name-only HEAD~5..HEAD | head -1 | sed 's/.*\///' | sed 's/\.[^.]*$//' || echo "")
+          FEATURE_NAME="$FEATURE_FILE"
+        fi
+        
+        # Set environment variables
+        echo "FEATURE_NAME=$FEATURE_NAME" >> $GITHUB_ENV
+        
+        # Output for GitHub Actions
+        echo "feature_name=$FEATURE_NAME" >> $GITHUB_OUTPUT
+        echo "feature_detected=$([ -n "$FEATURE_NAME" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+        
+        echo "🔍 Feature context: $FEATURE_NAME"
+    
+    - name: Validate Git Branch Usage
+      run: |
+        echo "🔍 Checking git branch usage..."
+        
+        CURRENT_BRANCH=${GITHUB_REF#refs/heads/}
+        echo "Current branch: $CURRENT_BRANCH"
+        
+        # Block development on main/master
+        if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
+          # Check if this is just a merge/PR to main (allowed)
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "✅ PR to main branch is allowed"
+          else
+            echo "❌ ERROR: Direct push to main/master branch detected"
+            echo "All development must happen on feature branches"
+            exit 1
+          fi
+        else
+          echo "✅ Development on feature branch: $CURRENT_BRANCH"
+        fi
+    
+    - name: Validate Beads Issue (if available)
+      if: steps.beads-check.outputs.beads_available == 'true'
+      run: |
+        echo "🔗 Checking beads issue compliance..."
+        
+        # Check if beads repository is initialized
+        if [[ ! -d ".beads" ]]; then
+          echo "⚠️ Not a beads-enabled repository"
+        else
+          echo "✅ Beads repository detected"
+          
+          # List available issues
+          ISSUE_COUNT=$(bd list --all 2>/dev/null | wc -l | tr -d ' ' || echo "0")
+          echo "Available beads issues: $ISSUE_COUNT"
+          
+          if [[ $ISSUE_COUNT -eq 0 ]]; then
+            echo "❌ ERROR: No beads issues found"
+            echo "Required: Create beads issue before development"
+            exit 1
+          fi
+          
+          # Check for feature-specific issues if feature detected
+          if [[ "${{ steps.feature-context.outputs.feature_detected }}" == "true" ]]; then
+            FEATURE_NAME="${{ steps.feature-context.outputs.feature_name }}"
+            MATCHING_ISSUES=$(bd list --all 2>/dev/null | grep -i "$FEATURE_NAME" | wc -l | tr -d ' ' || echo "0")
+            
+            if [[ $MATCHING_ISSUES -gt 0 ]]; then
+              echo "✅ Found $MATCHING_ISSUES beads issue(s) for feature: $FEATURE_NAME"
+            else
+              echo "⚠️ No specific beads issues found for feature: $FEATURE_NAME"
+            fi
+          fi
+        fi
+    
+    - name: Validate TDD Artifacts
+      run: |
+        echo "🧪 Validating TDD artifacts..."
+        
+        FEATURE_NAME="${{ steps.feature-context.outputs.feature_name }}"
+        
+        if [[ "${{ steps.feature-context.outputs.feature_detected }}" != "true" ]]; then
+          echo "ℹ️ No specific feature detected, skipping artifact validation"
+          exit 0
+        fi
+        
+        # Define required artifacts based on feature type
+        MISSING_ARTIFACTS=()
+        
+        # Check for TDD test file
+        if [[ ! -f "tests/${FEATURE_NAME}_tdd.py" ]]; then
+          MISSING_ARTIFACTS+=("tests/${FEATURE_NAME}_tdd.py")
+        fi
+        
+        # Check for functional test file
+        if [[ ! -f "tests/${FEATURE_NAME}_functional.py" ]]; then
+          MISSING_ARTIFACTS+=("tests/${FEATURE_NAME}_functional.py")
+        fi
+        
+        # Check for documentation
+        if [[ ! -f "docs/${FEATURE_NAME}_analysis.md" ]]; then
+          MISSING_ARTIFACTS+=("docs/${FEATURE_NAME}_analysis.md")
+        fi
+        
+        # Report results
+        if [[ ${#MISSING_ARTIFACTS[@]} -eq 0 ]]; then
+          echo "✅ All TDD artifacts present for feature: $FEATURE_NAME"
+        else
+          echo "❌ ERROR: Missing TDD artifacts for feature: $FEATURE_NAME"
+          for artifact in "${MISSING_ARTIFACTS[@]}"; do
+            echo "  - $artifact"
+          done
+          echo ""
+          echo "Required TDD artifacts must exist before implementation"
+          exit 1
+        fi
+    
+    - name: Validate TDD Timeline
+      run: |
+        echo "📅 Validating TDD commit timeline..."
+        
+        # Check recent commits for TDD compliance
+        COMMITS_SINCE_FEATURE=10
+        if git rev-parse --verify HEAD~$COMMITS_SINCE_FEATURE >/dev/null 2>&1; then
+          COMMITS=$(git log --oneline HEAD~$COMMITS_SINCE_FEATURE..HEAD)
+        else
+          COMMITS=$(git log --oneline)
+        fi
+        
+        if [[ -z "$COMMITS" ]]; then
+          echo "ℹ️ No commits to analyze"
+          exit 0
+        fi
+        
+        echo "Analyzing commits:"
+        echo "$COMMITS"
+        echo ""
+        
+        # Count different types of commits
+        TEST_COMMITS=$(echo "$COMMITS" | grep -i "test\|tdd" | wc -l | tr -d ' ')
+        IMPL_COMMITS=$(echo "$COMMITS" | grep -i "feat\|impl\|fix" | wc -l | tr -d ' ')
+        DOCS_COMMITS=$(echo "$COMMITS" | grep -i "docs\|readme" | wc -l | tr -d ' ')
+        REFS_COMMITS=$(echo "$COMMITS" | grep -i "lightrag-" | wc -l | tr -d ' ')
+        
+        echo "Commit analysis:"
+        echo "  Test-related: $TEST_COMMITS"
+        echo "  Implementation: $IMPL_COMMITS"
+        echo "  Documentation: $DOCS_COMMITS"
+        echo "  Beads references: $REFS_COMMITS"
+        
+        # Validate beads issue references
+        if [[ $REFS_COMMITS -eq 0 && $IMPL_COMMITS -gt 0 ]]; then
+          echo "⚠️ WARNING: Implementation commits without beads issue references"
+          echo "Consider referencing beads issues in commit messages"
+        fi
+        
+        # Check test-first pattern (simplified)
+        if [[ $TEST_COMMITS -gt 0 && $IMPL_COMMITS -gt 0 ]]; then
+          echo "✅ Both test and implementation commits found"
+        elif [[ $IMPL_COMMITS -gt 0 ]]; then
+          echo "⚠️ WARNING: Implementation without clear test commits"
+        fi
+    
+    - name: Validate Test Structure (if TDD files exist)
+      run: |
+        echo "🔬 Validating test structure..."
+        
+        FEATURE_NAME="${{ steps.feature-context.outputs.feature_name }}"
+        TDD_FILE="tests/${FEATURE_NAME}_tdd.py"
+        
+        if [[ -f "$TDD_FILE" ]]; then
+          echo "Analyzing TDD test file: $TDD_FILE"
+          
+          # Check for test functions
+          TEST_COUNT=$(grep -c "def test_" "$TDD_FILE" || echo "0")
+          ASSERTION_COUNT=$(grep -c "assert" "$TDD_FILE" || echo "0")
+          
+          echo "  Test functions: $TEST_COUNT"
+          echo "  Assertions: $ASSERTION_COUNT"
+          
+          if [[ $TEST_COUNT -eq 0 ]]; then
+            echo "❌ ERROR: TDD test file contains no test functions"
+            exit 1
+          fi
+          
+          if [[ $ASSERTION_COUNT -eq 0 ]]; then
+            echo "⚠️ WARNING: TDD test file contains no assertions"
+          fi
+          
+          echo "✅ TDD test structure validated"
+        else
+          echo "ℹ️ No TDD test file found, skipping structure validation"
+        fi
+    
+    - name: Generate TDD Compliance Report
+      if: always()
+      run: |
+        echo "📊 Generating TDD compliance report..."
+        
+        REPORT_DIR="tdd-reports"
+        mkdir -p "$REPORT_DIR"
+        
+        REPORT_FILE="$REPORT_DIR/tdd-compliance-${{ github.run_number }}.md"
+        
+        cat > "$REPORT_FILE" << EOF
+        # TDD Compliance Report
+        
+        **Run ID:** ${{ github.run_id }}
+        **Branch:** ${{ github.ref_name }}
+        **Commit:** ${{ github.sha }}
+        **Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+        
+        ## Summary
+        
+        - **Feature Detected:** ${{ steps.feature-context.outputs.feature_name || 'None' }}
+        - **Beads Available:** ${{ steps.beads-check.outputs.beads_available }}
+        - **TDD Artifacts Validated:** ${{ job.status }}
+        
+        ## Validation Results
+        
+        ### Git Branch Usage
+        - Branch: \`${{ github.ref_name }}\`
+        - Status: $([ "${{ github.ref_name }}" != "main" ] && echo "✅ Feature branch" || echo "⚠️ Main branch")
+        
+        ### TDD Artifacts
+        - Feature: \`${{ steps.feature-context.outputs.feature_name }}\`
+        - Status: $([ "${{ job.status }}" == "success" ] && echo "✅ Complete" || echo "❌ Missing artifacts")
+        
+        ### Timeline Analysis
+        - Recent commits analyzed
+        - Status: ✅ Analyzed
+        
+        ## Recommendations
+        
+        $([ "${{ job.status }}" != "success" ] && echo "⚠️ Fix TDD compliance issues before merging")
+        $([ "${{ steps.beads-check.outputs.beads_available }}" == "false" ] && echo "💡 Consider installing beads for better task tracking")
+        
+        ---
+        *Generated by TDD Compliance Validation*
+        EOF
+        
+        echo "📄 Report generated: $REPORT_FILE"
+        
+        # Upload as artifact
+        echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
+    
+    - name: Upload TDD Compliance Report
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: tdd-compliance-report-${{ github.run_number }}
+        path: tdd-reports/
+        retention-days: 30
+    
+    - name: Comment PR with TDD Status (if PR)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './tdd-reports/tdd-compliance-' + context.runNumber + '.md';
+          
+          let commentBody = '## 🧪 TDD Compliance Validation\n\n';
+          
+          if (process.env.JOB_STATUS === 'success') {
+            commentBody += '✅ **TDD Compliance Passed**\n\n';
+          } else {
+            commentBody += '❌ **TDD Compliance Failed**\n\n';
+            commentBody += 'Please fix the TDD compliance issues before merging.\n\n';
+          }
+          
+          // Try to read report
+          try {
+            const reportContent = fs.readFileSync(path, 'utf8');
+            commentBody += reportContent;
+          } catch (error) {
+            commentBody += 'Report generation failed.\n';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+          });
+
+  tdd-gate-enforcement:
+    name: TDD Gate Enforcement
+    runs-on: ubuntu-latest
+    needs: tdd-compliance-check
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Enforce TDD Gates
+      run: |
+        echo "🚪 Enforcing TDD quality gates..."
+        
+        if [[ "${{ needs.tdd-compliance-check.result }}" == "success" ]]; then
+          echo "✅ TDD compliance validation passed"
+          echo "✅ Ready for merge consideration"
+        else
+          echo "❌ TDD compliance validation failed"
+          echo "❌ Merge blocked until TDD issues are resolved"
+          exit 1
+        fi

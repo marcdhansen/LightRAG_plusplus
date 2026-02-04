@@ -48,7 +48,7 @@ class ConditionalSkillDetector:
                 context["is_new_session"] = context["hours_since_last_commit"] > 24
             else:
                 context["is_new_session"] = True  # No git history
-        except:
+        except Exception:
             context["is_new_session"] = True
 
         # Check for context switch (different directory)
@@ -61,7 +61,7 @@ class ConditionalSkillDetector:
                     context["is_context_switch"] = (
                         context["last_directory"] != context["current_directory"]
                     )
-            except:
+            except Exception:
                 pass
 
         # Save current session context
@@ -150,7 +150,7 @@ class ConditionalSkillDetector:
                 else:
                     complexity["level"] = "low"
 
-        except:
+        except Exception:
             pass
 
         return complexity
@@ -296,7 +296,7 @@ class ConditionalSkillDetector:
         try:
             with open(session_file, "w") as f:
                 json.dump(session_data, f, indent=2)
-        except:
+        except Exception:
             pass
 
     def display_recommendations(self, recommendations):
@@ -353,7 +353,7 @@ class ConditionalSkillDetector:
         try:
             with open(rec_file, "w") as f:
                 json.dump(recommendations_data, f, indent=2)
-        except:
+        except Exception:
             pass
 
         return rec_file
@@ -396,7 +396,7 @@ class ConditionalSkillDetector:
         try:
             with open(log_file, "a") as f:
                 f.write(json.dumps(log_entry) + "\n")
-        except:
+        except Exception:
             pass
 
 

@@ -202,7 +202,7 @@ class SOPComplianceValidator:
 
             if hours_since_commit > 24:
                 return True
-        except:
+        except Exception:
             return True  # Error = assume new session
 
         # Check for context switch (different working directory)
@@ -254,7 +254,7 @@ class SOPComplianceValidator:
                 self.violations.append("Core changes detected without devils-advocate")
                 return True
 
-        except:
+        except Exception:
             pass
 
         return False
@@ -283,7 +283,7 @@ class SOPComplianceValidator:
                     f for f in changed_files if f.endswith(".py") or f.endswith(".js")
                 ]
                 return len(dev_files) > 0
-        except:
+        except Exception:
             pass
 
         return False
@@ -307,7 +307,7 @@ class SOPComplianceValidator:
                         current_time = time.time()
                         # Check if reflection was within last 4 hours
                         return (current_time - last_time) < 14400
-            except:
+            except Exception:
                 pass
 
         return False
@@ -322,7 +322,7 @@ class SOPComplianceValidator:
                 current_time = time.time()
                 file_time = stat.st_mtime
                 return (current_time - file_time) < 21600  # 6 hours
-            except:
+            except Exception:
                 pass
 
         return False
@@ -336,7 +336,7 @@ class SOPComplianceValidator:
                 current_time = time.time()
                 file_time = stat.st_mtime
                 return (current_time - file_time) < 14400  # 4 hours
-            except:
+            except Exception:
                 pass
 
         return False
@@ -350,7 +350,7 @@ class SOPComplianceValidator:
                 current_time = time.time()
                 file_time = stat.st_mtime
                 return (current_time - file_time) < 14400  # 4 hours
-            except:
+            except Exception:
                 pass
 
         return False
@@ -365,7 +365,7 @@ class SOPComplianceValidator:
                 check=True,
             )
             return len(result.stdout.strip()) == 0
-        except:
+        except Exception:
             return False
 
     def check_beads_ready(self):
@@ -375,7 +375,7 @@ class SOPComplianceValidator:
                 ["bd", "ready"], capture_output=True, text=True, check=True
             )
             return result.returncode == 0
-        except:
+        except Exception:
             return False
 
     def check_no_duplicate_docs(self):
@@ -387,7 +387,7 @@ class SOPComplianceValidator:
                 text=True,
             )
             return result.returncode == 0
-        except:
+        except Exception:
             return True  # Assume no duplicates if script fails
 
     def handle_user_override(self):
@@ -456,7 +456,7 @@ class SOPComplianceValidator:
             try:
                 with open(override_log) as f:
                     overrides = json.load(f)
-            except:
+            except Exception:
                 pass
 
         overrides.append(override_entry)
@@ -464,7 +464,7 @@ class SOPComplianceValidator:
         try:
             with open(override_log, "w") as f:
                 json.dump(overrides, f, indent=2)
-        except:
+        except Exception:
             pass  # Don't fail RTB if logging fails
 
     def run_validation(self):
@@ -479,7 +479,7 @@ class SOPComplianceValidator:
         try:
             with open(results_file, "w") as f:
                 json.dump(compliance_results, f, indent=2)
-        except:
+        except Exception:
             pass
 
         if compliance_results["status"] == "passed":

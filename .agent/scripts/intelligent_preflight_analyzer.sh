@@ -301,12 +301,29 @@ determine_check_necessity() {
 
     # Context-specific logic
         case "$check_name" in
+            "tdd_gates")
+                # Mandatory for any feature development
+                local current_task=$(echo "$1" | jq -r '.task_context.current_task // ""')
+                local has_staged=$(echo "$1" | jq -r '.git_state.has_staged_changes // false')
+                if [[ "$current_task" != "" || "$has_staged" == "true" ]]; then
+                    echo "run"
+                    return
+                fi
+                ;;
             "git_hooks")
                 # Only check if we're in a git repo with changes
                 local is_git=$(echo "$1" | jq -r '.git_state.is_git_repo // false')
                 local has_changes=$(echo "$1" | jq -r '.git_state.has_unstaged_changes // false')
                 if [[ "$is_git" != "true" || "$has_changes" != "true" ]]; then
                     echo "skip"
+                    return
+                fi
+                ;;
+            "branch_protection")
+                # Critical for new feature work
+                local branch_name=$(echo "$1" | jq -r '.git_state.branch // ""')
+                if [[ "$branch_name" == "main" || "$branch_name" == "master" ]]; then
+                    echo "run"
                     return
                 fi
                 ;;
@@ -471,10 +488,11 @@ EOF
         ["git_status"]="check_git_status.sh|critical|core"
         ["git_hooks"]="install_git_hooks.sh|critical|core"
         ["resource_allocation"]="allocate_safe_resources.sh|critical|core"
-        ["symlink_health"]="validate_symlink_health.sh|important|core"
-        ["tdd_gates"]="validate_tdd_compliance.sh|important|core"
+        ["symlink_health"]="validate_symlink_health.sh|critical|core"
+        ["tdd_gates"]="validate_tdd_compliance.sh|critical|core"
+        ["beads_validation"]="validate_beads_issue.sh|critical|core"
         ["quality_gates"]="tdd_gate_validator.py|optional|quality"
-        ["branch_protection"]="main_branch_protection.sh|important|git"
+        ["branch_protection"]="main_branch_protection.sh|critical|git"
         ["version_consistency"]="validate_version_consistency.py|optional|quality"
         ["session_locks"]="enhanced_session_locks.sh|critical|core"
         ["markdown_integrity"]="verify_markdown_duplicates.sh|optional|cleanup"

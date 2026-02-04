@@ -54,7 +54,7 @@ class ContinualEvolutionReflector:
                     effectiveness["specific_feedback"].append(
                         "Too few commits - consider more frequent automated reminders"
                     )
-        except:
+        except Exception:
             pass
 
         # Analyze TDD gate interactions
@@ -73,7 +73,7 @@ class ContinualEvolutionReflector:
                         effectiveness["specific_feedback"].append(
                             "TDD blocks prevented issues - automation working well"
                         )
-            except:
+            except Exception:
                 pass
 
         return effectiveness
@@ -103,7 +103,7 @@ class ContinualEvolutionReflector:
                     age_hours = (datetime.now().timestamp() - stat.st_mtime) / 3600
                     if age_hours < 6:  # Used this session
                         used_skills.append(skill)
-                except:
+                except Exception:
                     pass
 
         # Check if too many skills were used
@@ -134,7 +134,7 @@ class ContinualEvolutionReflector:
                         balance["complexity_indicators"].append(
                             "Frequent deep documentation dives - SOP may be too complex"
                         )
-            except:
+            except Exception:
                 pass
 
         return balance
@@ -161,7 +161,7 @@ class ContinualEvolutionReflector:
                 friction_points["process_friction"].append(
                     "Code rollbacks detected - may indicate insufficient planning"
                 )
-        except:
+        except Exception:
             pass
 
         # Analyze error patterns in logs
@@ -179,7 +179,7 @@ class ContinualEvolutionReflector:
                             friction_points["tool_friction"].append(
                                 f"Skill execution issue: {error.get('message', 'Unknown')}"
                             )
-            except:
+            except Exception:
                 pass
 
         return friction_points
@@ -490,7 +490,7 @@ class ContinualEvolutionReflector:
             try:
                 with open(analytics_file) as f:
                     analytics = json.load(f)
-            except:
+            except Exception:
                 pass
 
         # Update with new reflection
@@ -532,7 +532,7 @@ class ContinualEvolutionReflector:
         try:
             with open(analytics_file, "w") as f:
                 json.dump(analytics, f, indent=2)
-        except:
+        except Exception:
             pass
 
 
