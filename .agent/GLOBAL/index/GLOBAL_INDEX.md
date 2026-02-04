@@ -61,12 +61,13 @@
       - [WebUI Readme](../antigravity_lightrag/LightRAG/lightrag_webui/README.md)
       - [K8s Deploy](../antigravity_lightrag/LightRAG/k8s-deploy/README.md)
 
-    - **Guides & SOPs**
-      - [Local Setup Hints](../antigravity_lightrag/LightRAG/docs/local_setup_hints.md)
-      - [UV Lock Guide](../antigravity_lightrag/LightRAG/docs/UV_LOCK_GUIDE.md)
-      - [Testing Summary](../antigravity_lightrag/LightRAG/docs/TESTING_SUMMARY.md)
-      - [Beads Sync SQLite Fix](../antigravity_lightrag/LightRAG/docs/sop/workspace/beads_sync_sqlite_fix.md)
-      - [Critical Data Loss](../antigravity_lightrag/LightRAG/docs/CRITICAL_DATA_LOSS.md)
+     - **Guides & SOPs**
+       - [Local Setup Hints](../antigravity_lightrag/LightRAG/docs/local_setup_hints.md)
+       - [UV Lock Guide](../antigravity_lightrag/LightRAG/docs/UV_LOCK_GUIDE.md)
+       - [Testing Summary](../antigravity_lightrag/LightRAG/docs/TESTING_SUMMARY.md)
+       - [Beads Sync SQLite Fix](../antigravity_lightrag/LightRAG/docs/sop/workspace/beads_sync_sqlite_fix.md)
+       - [Critical Data Loss](../antigravity_lightrag/LightRAG/docs/CRITICAL_DATA_LOSS.md)
+       - [DSPy SOP Refactoring Decision](../antigravity_lightrag/LightRAG/docs/architecture/DSPY_SOP_REFACTORING_DECISION.md) - 🧠 DSPy Program of Thought architectural analysis
 
     - **Research & Evaluation**
       - [Academic Benchmarking](../antigravity_lightrag/LightRAG/docs/ACADEMIC_BENCHMARKING.md)
