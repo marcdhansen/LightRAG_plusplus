@@ -22,14 +22,14 @@ class MilestoneValidator:
     Core validation engine that orchestrates milestone-based validation
     Integrates with TDD gates, A/B testing, and deployment systems
     """
-    
+
     def __init__(self, config_path: str = ".agent/config/milestone_config.yaml"):
         self.config = self._load_milestone_config()
         self.tdd_gate = TDDValidator(Path.cwd())
         self.ab_testing = ABTestSuite()
         self.deployment_manager = DeploymentManager()
         self.metrics_collector = MetricsCollector()
-        
+
     async def validate_milestone(self, milestone_id: str, task_ids: List[str]) -> ValidationResult:
         """
         Validate completion of a milestone against success criteria

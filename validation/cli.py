@@ -41,7 +41,7 @@ def cli(ctx, config):
     help="Output format",
 )
 @click.pass_context
-def validate(ctx, milestone, force, task_ids, output):
+def validate(_ctx, milestone, force, task_ids, output):
     """Validate milestone against success criteria"""
 
     async def run_validation():
@@ -86,7 +86,7 @@ def validate(ctx, milestone, force, task_ids, output):
     help="Output format",
 )
 @click.pass_context
-def status(ctx, milestone, dry_run, output):
+def status(_ctx, milestone, dry_run, output):
     """Show milestone validation status and blockers"""
 
     try:
@@ -128,7 +128,7 @@ def status(ctx, milestone, dry_run, output):
 @click.option("--reason", required=True, help="Rollback reason")
 @click.option("--user-id", help="User ID triggering rollback")
 @click.pass_context
-def rollback(ctx, milestone, reason, user_id):
+def rollback(_ctx, milestone, reason, user_id):
     """Trigger manual rollback for milestone"""
 
     async def run_rollback():
@@ -158,7 +158,7 @@ def rollback(ctx, milestone, reason, user_id):
     help="Output format",
 )
 @click.pass_context
-def history(ctx, limit, output):
+def history(_ctx, limit, output):
     """Show validation history"""
 
     try:
@@ -192,7 +192,7 @@ def history(ctx, limit, output):
 
 @cli.command()
 @click.pass_context
-def list_milestones(ctx):
+def list_milestones(_ctx):
     """List all available milestones"""
 
     try:
@@ -313,7 +313,7 @@ def output_workflow_status(
     click.echo(f"🕐 Last Updated: {summary['last_updated']}")
 
     click.echo("\n📋 Milestone Details:")
-    for milestone_id, data in milestone_status.items():
+    for _milestone_id, data in milestone_status.items():
         status_icons = {
             "not_started": "⏳",
             "in_progress": "🔄",
