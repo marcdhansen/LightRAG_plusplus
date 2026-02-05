@@ -64,6 +64,22 @@ repos:
         files: ^lightrag/.*\.py$
         pass_filenames: false
         stages: [pre-commit]
+      - id: tdd-artifact-validation
+        name: 🔍 TDD Artifact Validation
+        entry: ./scripts/hooks/tdd-compliance-check.sh
+        language: script
+        files: ''
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: beads-sync-check
+        name: 🔗 Beads Sync Check
+        entry: ./scripts/hooks/beads-sync-check.sh
+        language: script
+        files: ''
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
       - id: test-coverage-gate
         name: Test Coverage Gate
         entry: bash -c 'coverage report --fail-under=80 || echo "Test coverage below 80%"'
@@ -84,3 +100,26 @@ repos:
       - id: check-manifest
         stages: [manual]
         exclude: ^lightrag_webui/|^lightrag/api/webui/
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
+
+# Global configuration
+default_language_version:
+  python: python3
+
+# Fail fast on first error (set to true for strict enforcement)
+fail_fast: false
+
+# Minimum pre-commit version
+minimum_pre_commit_version: "3.2.0"

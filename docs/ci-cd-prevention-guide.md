@@ -20,7 +20,25 @@ This guide outlines **systematic solutions** to prevent TDD compliance failures 
 
 ## 🛠️ Implemented Solutions
 
-### 1. **Local Development Validation**
+### 1. **Pre-commit Framework Integration** (Recommended for Teams)
+```bash
+# One-time setup
+./scripts/setup-pre-commit.sh
+
+# Manual testing
+pre-commit run --all-files
+```
+
+**Features:**
+- ✅ **Version-controlled hooks** - Shared with entire team via Git
+- ✅ **Automatic enforcement** - Runs on every commit
+- ✅ **TDD artifact validation** - Checks required files before commits
+- ✅ **Code quality checks** - Integrates with existing linting/formatter hooks
+- ✅ **Beads sync validation** - Ensures beads changes are flushed
+- ✅ **Emergency bypass** - `git commit --no-verify` for emergencies
+- ✅ **Team consistency** - Everyone uses same validation rules
+
+### 2. **Local Development Validation**
 ```bash
 # Run before starting any development work
 ./scripts/dev-start-check.sh
@@ -33,7 +51,7 @@ This guide outlines **systematic solutions** to prevent TDD compliance failures 
 - ✅ Provides auto-creation command
 - ✅ Blocks development until artifacts exist
 
-### 2. **Automated Artifact Generation**
+### 3. **Automated Artifact Generation**
 ```bash
 # Auto-generate TDD artifact templates
 ./scripts/create-tdd-artifacts.sh <feature-name>
@@ -59,23 +77,23 @@ This guide outlines **systematic solutions** to prevent TDD compliance failures 
 
 ## 🚀 Prevention Workflow
 
-### **For New Features**
+### **Recommended Team Workflow (Pre-commit Framework)**
 
-1. **Create Feature Branch**
+1. **One-time Setup** (Each developer does once)
+   ```bash
+   ./scripts/setup-pre-commit.sh
+   ```
+
+2. **Create Feature Branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-2. **Automatic Setup** (GitHub creates setup issue)
+3. **Automatic Setup** (GitHub creates setup issue)
    - Issue created with templates and guidance
    - Multiple solution options provided
 
-3. **Local Validation** (Before any development)
-   ```bash
-   ./scripts/dev-start-check.sh
-   ```
-
-4. **Generate Artifacts** (If missing)
+4. **Generate Artifacts** (If needed - pre-commit will catch this)
    ```bash
    ./scripts/create-tdd-artifacts.sh your-feature-name
    ```
@@ -83,7 +101,41 @@ This guide outlines **systematic solutions** to prevent TDD compliance failures 
 5. **Start Development**
    - Customize templates with actual tests
    - Implement your feature
+   - **Pre-commit hooks run automatically** before each commit
+
+6. **Commit & Push** (Blocked if TDD artifacts missing)
+   ```bash
+   git add .
+   git commit -m "Implement your-feature-name"  # Pre-commit runs here
+   git push
+   ```
+
+### **Alternative Workflow (Manual Checks)**
+
+1. **Create Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Local Validation** (Before any development)
+   ```bash
+   ./scripts/dev-start-check.sh
+   ```
+
+3. **Generate Artifacts** (If missing)
+   ```bash
+   ./scripts/create-tdd-artifacts.sh your-feature-name
+   ```
+
+4. **Start Development**
+   - Customize templates with actual tests
+   - Implement your feature
    - Run tests locally
+
+5. **Manual Pre-commit Testing**
+   ```bash
+   pre-commit run --all-files  # Test all hooks
+   ```
 
 6. **Commit & Push**
    ```bash
@@ -92,16 +144,19 @@ This guide outlines **systematic solutions** to prevent TDD compliance failures 
    git push
    ```
 
-### **For Existing Branches**
+### **Emergency Procedures**
 
-1. **Run Development Check**
+1. **Emergency Bypass** (Not recommended)
    ```bash
-   ./scripts/dev-start-check.sh
+   git commit --no-verify -m "Emergency fix - TDD artifacts to follow"
    ```
 
-2. **Fix Any Issues** (Follow provided commands)
-
-3. **Continue Development**
+2. **Immediate Fix After Emergency**
+   ```bash
+   ./scripts/create-tdd-artifacts.sh <feature-name>
+   git add .
+   git commit -m "Add TDD artifacts for <feature-name>"
+   ```
 
 ## 🔧 Configuration & Setup
 
@@ -241,6 +296,6 @@ git commit --no-verify -m "Emergency fix - TDD artifacts to follow"
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: 2026-02-05*  
+*Document Version: 1.0*
+*Last Updated: 2026-02-05*
 *Author: Agent Marchansen*
