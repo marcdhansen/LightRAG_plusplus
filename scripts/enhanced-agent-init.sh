@@ -466,44 +466,40 @@ main() {
         fi
     fi
 
-    # 3. Start services
+    # Start services
     if ! start_automem_service; then
         log_error "Failed to start Automem service"
         errors=$((errors + 1))
 
         # Try recovery
         if ! restart_service_if_needed "Automem" "automem-flask-api-1" "http://localhost:8001/health"; then
-            errors=$((errors + 1))
+            log_error "Automem recovery failed. Memory is MANDATORY."
+            exit 1
         fi
     fi
 
     if ! start_langfuse_service; then
-        log_error "Failed to start Langfuse service"
-        errors=$((errors + 1))
-
-        # Try recovery
-        if ! restart_service_if_needed "Langfuse" "langfuse_docker-langfuse-web-1" "http://localhost:3000/api/public/health"; then
-            errors=$((errors + 1))
-        fi
+        log_warning "Failed to start Langfuse service (Optional)"
+        # Langfuse is optional compared to AutoMem/OpenViking memory
     fi
 
     # 4. Integration testing
     if ! verify_automem_integration; then
-        log_error "Automem integration testing failed"
-        errors=$((errors + 1))
+        log_error "Automem integration testing failed. Memory is MANDATORY."
+        exit 1
     fi
 
     if ! verify_langfuse_integration; then
-        log_error "Langfuse integration testing failed"
-        errors=$((errors + 1))
+        log_warning "Langfuse integration testing failed (Optional)"
     fi
 
-    # Check OpenViking if enabled
-    if [[ -n "$OPENVIKING_ENABLED" || "$1" == "--openviking" ]]; then
-        if ! verify_openviking_integration; then
-            log_error "OpenViking integration testing failed"
-            errors=$((errors + 1))
-        fi
+    # Check OpenViking (MANDATORY per SOTA transition)
+    log_info "Ensuring OpenViking is enabled (MANDATORY)..."
+    export OPENVIKING_ENABLED=1
+
+    if ! verify_openviking_integration; then
+        log_error "OpenViking integration testing failed. Memory is MANDATORY."
+        exit 1
     fi
 
     # 5. Run original PFC and task discovery
@@ -521,16 +517,14 @@ main() {
     # 6. Final summary
     echo -e "\n${BLUE}📊 Enhanced Bootstrap Summary${NC}"
     if [[ $errors -eq 0 ]]; then
-        log_success "All services started and verified successfully"
+        log_success "All mandatory memory services (AutoMem, OpenViking) verified successfully"
         log_success "Agent environment ready for takeoff"
         echo -e "\n🚀 You are clear for takeoff!"
         return 0
     else
-        log_error "Bootstrap completed with $errors error(s)"
-        echo -e "\n🔧 Please check service logs and configuration"
-        echo -e "   Automem logs: cd $AUTOMEM_PATH && make logs"
-        echo -e "   Langfuse logs: cd $LANGFUSE_PATH && docker-compose logs"
-        return 1
+        log_error "Bootstrap completed with $errors error(s) in non-critical services"
+        echo -e "\n🚀 Proceeding with caution - mandatory memory is UP"
+        return 0
     fi
 }
 

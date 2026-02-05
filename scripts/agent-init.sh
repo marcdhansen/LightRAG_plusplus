@@ -94,8 +94,8 @@ else
     echo -e "  ⚠️  Beads not available - task discovery disabled"
 fi
 
-# 6. Start OpenViking Services
-echo -e "\n🚀 Starting OpenViking services..."
+# 6. Start OpenViking Services (MANDATORY)
+echo -e "\n🚀 Starting OpenViking services (MANDATORY)..."
 if ./openviking/scripts/manage.sh start >/dev/null 2>&1; then
     echo -e "  ✅ OpenViking services started successfully"
 
@@ -103,7 +103,8 @@ if ./openviking/scripts/manage.sh start >/dev/null 2>&1; then
     if curl -sf http://localhost:8002/health >/dev/null 2>&1; then
         echo -e "  ✅ OpenViking API healthy (port 8002)"
     else
-        echo -e "  ⚠️  OpenViking API not responding - check logs"
+        echo -e "  ❌ OpenViking API not responding. Memory is MANDATORY."
+        exit 1
     fi
 
     # Sync OpenViking commands for local workflows
@@ -113,8 +114,9 @@ if ./openviking/scripts/manage.sh start >/dev/null 2>&1; then
         echo -e "  ⚠️  Failed to sync OpenViking commands"
     fi
 else
-    echo -e "  ❌ Failed to start OpenViking services"
+    echo -e "  ❌ Failed to start OpenViking services. Memory is MANDATORY."
     echo -e "     Run manually: ./openviking/scripts/manage.sh start"
+    exit 1
 fi
 
 echo -e "\n${GREEN}✅ OpenViking Bootstrap Complete. You are clear for takeoff.${NC}"
