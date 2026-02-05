@@ -33,14 +33,17 @@
   - [Workspace Docs](../antigravity_lightrag/LightRAG/workspace_docs/ANTIGRAVITY_KNOWLEDGE.md)
   - [Beads Sync Issues](../antigravity_lightrag/LightRAG/beads_sync_issues.md)
   - [WebUI Troubleshooting](../antigravity_lightrag/LightRAG/workspace_docs/WEBUI_TROUBLESHOOTING.md)
-  - [Memgraph Vector Research](../antigravity_lightrag/LightRAG/workspace_docs/MEMGRAPH_VECTOR_RESEARCH.md)
+       - [Memgraph Vector Research](../antigravity_lightrag/LightRAG/workspace_docs/MEMGRAPH_VECTOR_RESEARCH.md)
+       - [Community Detection Performance](../antigravity_lightrag/LightRAG/docs/community_detection_tradeoffs.md) - Speed/performance tradeoffs analysis
+       - [TDD Mandatory Gate](../antigravity_lightrag/LightRAG/.agent/docs/sop/TDD_MANDATORY_GATE.md) - ⛔ MANDATORY TDD enforcement - CANNOT bypass
 
   - **Project: LightRAG** (`~/antigravity_lightrag/LightRAG`)
     - [Project Root](../antigravity_lightrag/LightRAG/README.md)
-    - [Architecture Guide](../antigravity_lightrag/LightRAG/docs/project/ARCHITECTURE.md)
-    - [ACE Framework](../antigravity_lightrag/LightRAG/docs/project/ACE_FRAMEWORK.md)
-    - [Algorithm Details](../antigravity_lightrag/LightRAG/docs/project/Algorithm.md)
-    - [SOTA Roadmap](../antigravity_lightrag/LightRAG/docs/project/SOTA_ROADMAP.md)
+     - [Architecture Guide](../antigravity_lightrag/LightRAG/docs/project/ARCHITECTURE.md)
+     - [ACE Framework](../antigravity_lightrag/LightRAG/docs/project/ACE_FRAMEWORK.md)
+     - [CoT Performance Analysis](../antigravity_lightrag/LightRAG/docs/performance/COT_PERFORMANCE_ANALYSIS.md) - Chain-of-Thought speed/cost tradeoffs
+     - [Algorithm Details](../antigravity_lightrag/LightRAG/docs/project/Algorithm.md)
+     - [SOTA Roadmap](../antigravity_lightrag/LightRAG/docs/project/SOTA_ROADMAP.md)
 
     - **Subsystems**
       - [ACE](../antigravity_lightrag/LightRAG/docs/subsystems/ACE.md)
@@ -58,12 +61,13 @@
       - [WebUI Readme](../antigravity_lightrag/LightRAG/lightrag_webui/README.md)
       - [K8s Deploy](../antigravity_lightrag/LightRAG/k8s-deploy/README.md)
 
-    - **Guides & SOPs**
-      - [Local Setup Hints](../antigravity_lightrag/LightRAG/docs/local_setup_hints.md)
-      - [UV Lock Guide](../antigravity_lightrag/LightRAG/docs/UV_LOCK_GUIDE.md)
-      - [Testing Summary](../antigravity_lightrag/LightRAG/docs/TESTING_SUMMARY.md)
-      - [Beads Sync SQLite Fix](../antigravity_lightrag/LightRAG/docs/sop/workspace/beads_sync_sqlite_fix.md)
-      - [Critical Data Loss](../antigravity_lightrag/LightRAG/docs/CRITICAL_DATA_LOSS.md)
+     - **Guides & SOPs**
+       - [Local Setup Hints](../antigravity_lightrag/LightRAG/docs/local_setup_hints.md)
+       - [UV Lock Guide](../antigravity_lightrag/LightRAG/docs/UV_LOCK_GUIDE.md)
+       - [Testing Summary](../antigravity_lightrag/LightRAG/docs/TESTING_SUMMARY.md)
+       - [Beads Sync SQLite Fix](../antigravity_lightrag/LightRAG/docs/sop/workspace/beads_sync_sqlite_fix.md)
+       - [Critical Data Loss](../antigravity_lightrag/LightRAG/docs/CRITICAL_DATA_LOSS.md)
+       - [DSPy SOP Refactoring Decision](../antigravity_lightrag/LightRAG/docs/architecture/DSPY_SOP_REFACTORING_DECISION.md) - 🧠 DSPy Program of Thought architectural analysis
 
     - **Research & Evaluation**
       - [Academic Benchmarking](../antigravity_lightrag/LightRAG/docs/ACADEMIC_BENCHMARKING.md)
@@ -72,7 +76,7 @@
       - [Baseline Report](../antigravity_lightrag/LightRAG/lightrag/evaluation/baseline_report.md)
       - [RAGAS Evaluation](../antigravity_lightrag/LightRAG/lightrag/evaluation/README_EVALUASTION_RAGAS.md)
 
-    - [Project Roadmap](../antigravity_lightrag/LightRAG/.agent/rules/ROADMAP.md)
+    - [Project Roadmap](../../rules/ROADMAP.md)
     - [Project Self-Evolution](../antigravity_lightrag/LightRAG/.agent/SELF_EVOLUTION.md)
 
 ## 🧰 Skills

@@ -14,7 +14,49 @@
 | **Context Precision** | Is retrieved context clean without irrelevant noise? | > 0.80 |
 | **RAGAS Score** | Overall quality metric (average of above) | > 0.80 |
 
-### 📁 LightRAG Evalua'tion Framework Directory Structure
+### 🤖 GroundedAI Integration: SLM-Optimized Evaluation
+
+**NEW FEATURE**: GroundedAI provides specialized Small Language Model (SLM) evaluation capabilities that complement the existing RAGAS framework.
+
+### 🎯 Key Benefits
+
+| Feature | RAGAS | GroundedAI | Description |
+|---------|--------|------------|-------------|
+| **Cost** | ❌ API costs (~$0.50/query) | ✅ **100% FREE** | GroundedAI runs locally using SLMs |
+| **Performance** | 🌐 Cloud-dependent | ⚡ **Local & Fast** | No network latency |
+| **Privacy** | 📡 Data sent to external API | 🔒 **100% Private** | All evaluation happens locally |
+| **SLM Optimization** | ❌ Generic prompts | ✅ **Specialized Models** | Purpose-built for small models |
+| **Resource Usage** | 💾 High memory (large LLMs) | 🧠 **Low Memory** | Optimized for SLMs |
+
+### 🔧 Evaluation Modes
+
+| Mode | Purpose | Score Range | Use Case |
+|-------|---------|-------------|---------|
+| **HALLUCINATION** | Fact consistency vs context | 0.0 (faithful) to 1.0 (hallucinated) | Detect factual errors |
+| **TOXICITY** | Content safety | 0.0 (non-toxic) to 1.0 (toxic) | Filter harmful content |
+| **RAG_RELEVANCE** | Context-retrieval quality | 0.0 (unrelated) to 1.0 (relevant) | Measure retrieval accuracy |
+
+### 💡 When to Use GroundedAI
+
+- **Cost-Sensitive Testing**: Large-scale evaluation runs
+- **Privacy-First Environments**: Sensitive data processing
+- **SLM Development**: Testing with 1.5B-7B models
+- **Offline Evaluation**: No internet connectivity required
+- **CI/CD Pipelines**: Automated quality gates
+
+### 🆚 RAGAS vs GroundedAI
+
+| Aspect | RAGAS | GroundedAI |
+|--------|--------|------------|
+| **Evaluation Style** | Reference-based evaluation | Response-based evaluation |
+| **Metric Types** | Academic NLP metrics | Specialized SLM metrics |
+| **Infrastructure** | Requires API keys | Fully local |
+| **Model Flexibility** | Any LLM provider | Purpose-built SLMs |
+| **Use Case** | Comprehensive RAG analysis | Focused evaluation |
+
+---
+
+## 📁 LightRAG Evalua'tion Framework Directory Structure
 
 ```
 lightrag/evaluation/
@@ -40,8 +82,19 @@ lightrag/evaluation/
 
 ### 1. Install Dependencies
 
+**Standard RAGAS Evaluation:**
 ```bash
-pip install ragas datasets langfuse
+pip install ragas datasets
+```
+
+**GroundedAI SLM Evaluation (NEW):**
+```bash
+pip install "lightrag-hku[evaluation]"  # Includes GroundedAI
+```
+
+Or install all evaluation dependencies:
+```bash
+pip install -e ".[evaluation]"
 ```
 
 Or use your project dependencies (already included in pyproject.toml):
@@ -52,11 +105,46 @@ pip install -e ".[evaluation]"
 
 ### 2. Run Evaluation
 
-**Basic usage (uses defaults):**
+**Basic usage (uses defaults - RAGAS evaluation):**
 
 ```bash
 cd /path/to/LightRAG
 python lightrag/evaluation/eval_rag_quality.py
+
+# Specify custom dataset
+python lightrag/evaluation/eval_rag_quality.py --dataset my_test.json
+
+# Specify custom RAG endpoint
+python lightrag/evaluation/eval_rag_quality.py --ragendpoint http://my-server.com:9621
+
+# Specify both
+python lightrag/evaluation/eval_rag_quality.py -d my_test.json -r http://localhost:9621
+```
+
+**GroundedAI SLM Evaluation (100% local, no API costs):**
+
+```bash
+# Use GroundedAI for local evaluation (CPU fallback, no GPU required)
+python lightrag/evaluation/eval_rag_quality.py --use-grounded-ai
+
+# Use specific GroundedAI model
+python lightrag/evaluation/eval_rag_quality.py --use-grounded-ai --grounded-ai-model "grounded-ai/phi4-mini-judge"
+
+# Use GPU for faster evaluation (if available)
+python lightrag/evaluation/eval_rag_quality.py --use-grounded-ai --grounded-ai-device cuda
+
+# Enable 8-bit quantization for memory efficiency
+python lightrag/evaluation/eval_rag_quality.py --use-grounded-ai --grounded-ai-quantization
+```
+
+**Hybrid Evaluation (RAGAS + GroundedAI for comparison):**
+
+```bash
+# Run both evaluation systems for comprehensive comparison
+python lightrag/evaluation/eval_rag_quality.py --hybrid-evaluation
+
+# Hybrid with custom model and device
+python lightrag/evaluation/eval_rag_quality.py --hybrid-evaluation --grounded-ai-model "grounded-ai/phi4-mini-judge" --grounded-ai-device cuda
 ```
 
 **Specify custom dataset:**

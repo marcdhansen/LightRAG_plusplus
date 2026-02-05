@@ -110,6 +110,16 @@ except ImportError:
     evaluate = None
     LangchainLLMWrapper = None
 
+# Import GroundedAI for SLM evaluation
+try:
+    from lightrag.evaluation.grounded_ai_backend import (
+        GROUNDED_AI_AVAILABLE,
+        GroundedAIRAGEvaluator,
+    )
+except ImportError:
+    GROUNDED_AI_AVAILABLE = False
+    GroundedAIRAGEvaluator = None
+
 
 CONNECT_TIMEOUT_SECONDS = 1800.0
 READ_TIMEOUT_SECONDS = 1800.0
@@ -122,9 +132,18 @@ def _is_nan(value: Any) -> bool:
 
 
 class RAGEvaluator:
-    """Evaluate RAG system quality using RAGAS metrics"""
+    """Evaluate RAG system quality using RAGAS metrics and/or GroundedAI SLM evaluation"""
 
-    def __init__(self, test_dataset_path: str = None, rag_api_url: str = None):
+    def __init__(
+        self,
+        test_dataset_path: str = None,
+        rag_api_url: str = None,
+        use_grounded_ai: bool = False,
+        grounded_ai_model: str = "grounded-ai/phi4-mini-judge",
+        grounded_ai_device: str = None,
+        grounded_ai_quantization: bool = False,
+        hybrid_mode: bool = False,
+    ):
         """
         Initialize evaluator with test dataset
 
@@ -145,93 +164,120 @@ class RAGEvaluator:
             ImportError: If ragas or datasets packages are not installed
             EnvironmentError: If EVAL_LLM_BINDING_API_KEY and OPENAI_API_KEY are both not set
         """
-        # Validate RAGAS dependencies are installed
-        if not RAGAS_AVAILABLE:
+        # Validate dependencies are installed
+        if not use_grounded_ai and not hybrid_mode:
+            # Pure RAGAS mode requires RAGAS dependencies
+            if not RAGAS_AVAILABLE:
+                raise ImportError(
+                    "RAGAS dependencies not installed. "
+                    "Install with: pip install ragas datasets"
+                )
+        elif hybrid_mode:
+            # Hybrid mode requires both RAGAS and GroundedAI
+            if not RAGAS_AVAILABLE:
+                raise ImportError(
+                    "Hybrid evaluation requires RAGAS dependencies. "
+                    "Install with: pip install ragas datasets"
+                )
+            if not GROUNDED_AI_AVAILABLE:
+                raise ImportError(
+                    "Hybrid evaluation requires GroundedAI dependencies. "
+                    "Install with: pip install grounded-ai[slm]"
+                )
+
+        # For pure GroundedAI mode, only check GroundedAI availability
+        if use_grounded_ai and not hybrid_mode and not GROUNDED_AI_AVAILABLE:
             raise ImportError(
-                "RAGAS dependencies not installed. "
-                "Install with: pip install ragas datasets"
+                "GroundedAI dependencies not installed. "
+                "Install with: pip install grounded-ai[slm]"
             )
 
-        # Configure evaluation LLM (for RAGAS scoring)
-        eval_llm_api_key = os.getenv("EVAL_LLM_BINDING_API_KEY") or os.getenv(
-            "OPENAI_API_KEY"
-        )
-        if not eval_llm_api_key:
-            raise OSError(
-                "EVAL_LLM_BINDING_API_KEY or OPENAI_API_KEY is required for evaluation. "
-                "Set EVAL_LLM_BINDING_API_KEY to use a custom API key, "
-                "or ensure OPENAI_API_KEY is set."
+        # Initialize RAGAS components if needed
+        if not use_grounded_ai or hybrid_mode:
+            # Configure evaluation LLM (for RAGAS scoring)
+            eval_llm_api_key = os.getenv("EVAL_LLM_BINDING_API_KEY") or os.getenv(
+                "OPENAI_API_KEY"
             )
+            if not eval_llm_api_key:
+                raise OSError(
+                    "EVAL_LLM_BINDING_API_KEY or OPENAI_API_KEY is required for RAGAS evaluation. "
+                    "Set EVAL_LLM_BINDING_API_KEY to use a custom API key, "
+                    "or ensure OPENAI_API_KEY is set."
+                )
 
-        eval_model = os.getenv("EVAL_LLM_MODEL", "gpt-4o-mini")
-        eval_llm_base_url = os.getenv("EVAL_LLM_BINDING_HOST")
+            eval_model = os.getenv("EVAL_LLM_MODEL", "gpt-4o-mini")
+            eval_llm_base_url = os.getenv("EVAL_LLM_BINDING_HOST")
 
-        # Configure evaluation embeddings (for RAGAS scoring)
-        # Fallback chain: EVAL_EMBEDDING_BINDING_API_KEY -> EVAL_LLM_BINDING_API_KEY -> OPENAI_API_KEY
-        eval_embedding_api_key = (
-            os.getenv("EVAL_EMBEDDING_BINDING_API_KEY")
-            or os.getenv("EVAL_LLM_BINDING_API_KEY")
-            or os.getenv("OPENAI_API_KEY")
-        )
-        eval_embedding_model = os.getenv(
-            "EVAL_EMBEDDING_MODEL", "text-embedding-3-large"
-        )
-        # Fallback chain: EVAL_EMBEDDING_BINDING_HOST -> EVAL_LLM_BINDING_HOST -> None
-        eval_embedding_base_url = os.getenv("EVAL_EMBEDDING_BINDING_HOST") or os.getenv(
-            "EVAL_LLM_BINDING_HOST"
-        )
-
-        # Create LLM and Embeddings instances for RAGAS
-        llm_kwargs = {
-            "model": eval_model,
-            "api_key": eval_llm_api_key,
-            "max_retries": int(os.getenv("EVAL_LLM_MAX_RETRIES", "5")),
-            "request_timeout": int(os.getenv("EVAL_LLM_TIMEOUT", "600")),
-        }
-        embedding_kwargs = {
-            "model": eval_embedding_model,
-            "api_key": eval_embedding_api_key,
-        }
-
-        if eval_llm_base_url:
-            llm_kwargs["base_url"] = eval_llm_base_url
-
-        if eval_embedding_base_url:
-            embedding_kwargs["base_url"] = eval_embedding_base_url
-
-        # Create base LangChain LLM
-        base_llm = ChatOpenAI(**llm_kwargs)
-
-        # Configure evaluation embeddings (for RAGAS scoring)
-        eval_embedding_binding = os.getenv("EVAL_EMBEDDING_BINDING")
-        if eval_embedding_binding == "ollama":
-            # Native Ollama embeddings
-            self.eval_embeddings = OllamaEmbeddings(
-                model=eval_embedding_model,
-                base_url=eval_embedding_base_url,
+            # Configure evaluation embeddings (for RAGAS scoring)
+            # Fallback chain: EVAL_EMBEDDING_BINDING_API_KEY -> EVAL_LLM_BINDING_API_KEY -> OPENAI_API_KEY
+            eval_embedding_api_key = (
+                os.getenv("EVAL_EMBEDDING_BINDING_API_KEY")
+                or os.getenv("EVAL_LLM_BINDING_API_KEY")
+                or os.getenv("OPENAI_API_KEY")
             )
-            logger.info("Using native OllamaEmbeddings for evaluation")
+            eval_embedding_model = os.getenv(
+                "EVAL_EMBEDDING_MODEL", "text-embedding-3-large"
+            )
+            # Fallback chain: EVAL_EMBEDDING_BINDING_HOST -> EVAL_LLM_BINDING_HOST -> None
+            eval_embedding_base_url = os.getenv(
+                "EVAL_EMBEDDING_BINDING_HOST"
+            ) or os.getenv("EVAL_LLM_BINDING_HOST")
+
+            # Create LLM and Embeddings instances for RAGAS
+            llm_kwargs = {
+                "model": eval_model,
+                "api_key": eval_llm_api_key,
+                "max_retries": int(os.getenv("EVAL_LLM_MAX_RETRIES", "5")),
+                "request_timeout": int(os.getenv("EVAL_LLM_TIMEOUT", "600")),
+            }
+            embedding_kwargs = {
+                "model": eval_embedding_model,
+                "api_key": eval_embedding_api_key,
+            }
+
+            if eval_llm_base_url:
+                llm_kwargs["base_url"] = eval_llm_base_url
+
+            if eval_embedding_base_url:
+                embedding_kwargs["base_url"] = eval_embedding_base_url
+
+            # Create base LangChain LLM
+            base_llm = ChatOpenAI(**llm_kwargs)
+
+            # Configure evaluation embeddings (for RAGAS scoring)
+            eval_embedding_binding = os.getenv("EVAL_EMBEDDING_BINDING")
+            if eval_embedding_binding == "ollama":
+                # Native Ollama embeddings
+                self.eval_embeddings = OllamaEmbeddings(
+                    model=eval_embedding_model,
+                    base_url=eval_embedding_base_url,
+                )
+                logger.info("Using native OllamaEmbeddings for evaluation")
+            else:
+                # Default to OpenAIEmbeddings
+                self.eval_embeddings = OpenAIEmbeddings(**embedding_kwargs)
+                logger.info("Using OpenAIEmbeddings for evaluation")
+
+            # Wrap LLM with LangchainLLMWrapper and enable bypass_n mode for custom endpoints
+            # This ensures compatibility with endpoints that don't support 'n' parameter
+            # by generating multiple outputs through repeated prompts instead of using 'n' parameter
+            try:
+                self.eval_llm = LangchainLLMWrapper(
+                    langchain_llm=base_llm,
+                    bypass_n=True,  # Enable bypass_n to avoid passing 'n' to OpenAI API
+                )
+                logger.debug("Successfully configured bypass_n mode for LLM wrapper")
+            except Exception as e:
+                logger.warning(
+                    "Could not configure LangchainLLMWrapper with bypass_n: %s. "
+                    "Using base LLM directly, which may cause warnings with custom endpoints.",
+                    e,
+                )
+                self.eval_llm = base_llm
         else:
-            # Default to OpenAIEmbeddings
-            self.eval_embeddings = OpenAIEmbeddings(**embedding_kwargs)
-            logger.info("Using OpenAIEmbeddings for evaluation")
-
-        # Wrap LLM with LangchainLLMWrapper and enable bypass_n mode for custom endpoints
-        # This ensures compatibility with endpoints that don't support the 'n' parameter
-        # by generating multiple outputs through repeated prompts instead of using 'n' parameter
-        try:
-            self.eval_llm = LangchainLLMWrapper(
-                langchain_llm=base_llm,
-                bypass_n=True,  # Enable bypass_n to avoid passing 'n' to OpenAI API
-            )
-            logger.debug("Successfully configured bypass_n mode for LLM wrapper")
-        except Exception as e:
-            logger.warning(
-                "Could not configure LangchainLLMWrapper with bypass_n: %s. "
-                "Using base LLM directly, which may cause warnings with custom endpoints.",
-                e,
-            )
-            self.eval_llm = base_llm
+            # GroundedAI-only mode: set placeholders
+            self.eval_llm = None
+            self.eval_embeddings = None
 
         if test_dataset_path is None:
             test_dataset_path = Path(__file__).parent / "sample_dataset.json"
@@ -254,6 +300,33 @@ class RAGEvaluator:
         self.eval_embedding_base_url = eval_embedding_base_url
         self.eval_max_retries = llm_kwargs["max_retries"]
         self.eval_timeout = llm_kwargs["request_timeout"]
+
+        # GroundedAI configuration
+        self.use_grounded_ai = use_grounded_ai
+        self.grounded_ai_model = grounded_ai_model
+        self.grounded_ai_device = grounded_ai_device
+        self.grounded_ai_quantization = grounded_ai_quantization
+        self.hybrid_mode = hybrid_mode
+
+        # Initialize GroundedAI evaluator if requested
+        self.grounded_ai_evaluator = None
+        if use_grounded_ai or hybrid_mode:
+            try:
+                self.grounded_ai_evaluator = GroundedAIRAGEvaluator(
+                    model_id=grounded_ai_model,
+                    device=grounded_ai_device,
+                    quantization=grounded_ai_quantization,
+                    timeout=self.eval_timeout,
+                )
+                logger.info("GroundedAI evaluator initialized successfully")
+            except Exception as e:
+                logger.error("Failed to initialize GroundedAI evaluator: %s", str(e))
+                if use_grounded_ai and not hybrid_mode:
+                    # If pure GroundedAI mode fails, we can't proceed
+                    raise
+                else:
+                    # For hybrid mode, we can continue with just RAGAS
+                    logger.warning("Continuing with RAGAS evaluation only")
 
         # Display configuration
         self._display_configuration()
@@ -477,84 +550,95 @@ class RAGEvaluator:
             # *** CRITICAL FIX: Use actual retrieved contexts, NOT ground_truth ***
             retrieved_contexts = rag_response["contexts"]
 
-            # Prepare dataset for RAGAS evaluation with CORRECT contexts
-            eval_dataset = Dataset.from_dict(
-                {
-                    "question": [question],
-                    "answer": [rag_response["answer"]],
-                    "contexts": [retrieved_contexts],
-                    "ground_truth": [ground_truth],
-                }
-            )
+            # Initialize result with basic information
+            result = {
+                "test_number": idx,
+                "question": question,
+                "answer": rag_response["answer"][:200] + "..."
+                if len(rag_response["answer"]) > 200
+                else rag_response["answer"],
+                "ground_truth": ground_truth[:200] + "..."
+                if len(ground_truth) > 200
+                else ground_truth,
+                "project": test_case.get("project", "unknown"),
+                "timestamp": datetime.now().isoformat(),
+            }
 
-            # Stage 2: Run RAGAS evaluation (controlled by eval_semaphore)
-            # IMPORTANT: Create fresh metric instances for each evaluation to avoid
-            # concurrent state conflicts when multiple tasks run in parallel
-            async with eval_semaphore:
-                pbar = None
-                position = None
-                try:
-                    # Acquire a position from the pool for this tqdm progress bar
-                    position = await position_pool.get()
+            # Run RAGAS evaluation if available
+            if self.eval_llm and self.eval_embeddings:
+                # Prepare dataset for RAGAS evaluation with CORRECT contexts
+                eval_dataset = Dataset.from_dict(
+                    {
+                        "question": [question],
+                        "answer": [rag_response["answer"]],
+                        "contexts": [retrieved_contexts],
+                        "ground_truth": [ground_truth],
+                    }
+                )
 
-                    # Serialize tqdm creation to prevent race conditions
-                    # Multiple tasks creating tqdm simultaneously can cause display conflicts
-                    async with pbar_creation_lock:
-                        # Create tqdm progress bar with assigned position to avoid overlapping
-                        # leave=False ensures the progress bar is cleared after completion,
-                        # preventing accumulation of completed bars and allowing position reuse
-                        pbar = tqdm(
-                            total=4,
-                            desc=f"Eval-{idx:02d}",
-                            position=position,
-                            leave=False,
-                        )
-                        # Give tqdm time to initialize and claim its screen position
-                        await asyncio.sleep(0.05)
+                # Stage 2: Run RAGAS evaluation (controlled by eval_semaphore)
+                # IMPORTANT: Create fresh metric instances for each evaluation to avoid
+                # concurrent state conflicts when multiple tasks run in parallel
+                async with eval_semaphore:
+                    pbar = None
+                    position = None
+                    try:
+                        # Acquire a position from the pool for this tqdm progress bar
+                        position = await position_pool.get()
 
-                    callbacks = []
-                    if os.getenv("LANGFUSE_ENABLE_TRACE", "false").lower() == "true":
-                        try:
-                            langfuse_handler = LangfuseCallbackHandler()
-                            callbacks.append(langfuse_handler)
-                        except Exception as e:
-                            logger.warning(
-                                "Failed to initialize Langfuse callback: %s", e
+                        # Serialize tqdm creation to prevent race conditions
+                        # Multiple tasks creating tqdm simultaneously can cause display conflicts
+                        async with pbar_creation_lock:
+                            # Create tqdm progress bar with assigned position to avoid overlapping
+                            # leave=False ensures the progress bar is cleared after completion,
+                            # preventing accumulation of completed bars and allowing position reuse
+                            pbar = tqdm(
+                                total=4,
+                                desc=f"Eval-{idx:02d}",
+                                position=position,
+                                leave=False,
                             )
+                            # Give tqdm time to initialize and claim its screen position
+                            await asyncio.sleep(0.05)
 
-                    eval_results = evaluate(
-                        dataset=eval_dataset,
-                        metrics=[
-                            Faithfulness(),
-                            AnswerRelevancy(),
-                            ContextRecall(),
-                            ContextPrecision(),
-                        ],
-                        llm=self.eval_llm,
-                        embeddings=self.eval_embeddings,
-                        run_config=RunConfig(timeout=self.eval_timeout, max_workers=1),
-                        _pbar=pbar,
-                        callbacks=callbacks,
-                    )
+                        callbacks = []
+                        if (
+                            os.getenv("LANGFUSE_ENABLE_TRACE", "false").lower()
+                            == "true"
+                        ):
+                            try:
+                                langfuse_handler = LangfuseCallbackHandler()
+                                callbacks.append(langfuse_handler)
+                            except Exception as e:
+                                logger.warning(
+                                    "Failed to initialize Langfuse callback: %s", e
+                                )
 
-                    # Convert to DataFrame (RAGAS v0.3+ API)
-                    df = eval_results.to_pandas()
+                        eval_results = evaluate(
+                            dataset=eval_dataset,
+                            metrics=[
+                                Faithfulness(),
+                                AnswerRelevancy(),
+                                ContextRecall(),
+                                ContextPrecision(),
+                            ],
+                            llm=self.eval_llm,
+                            embeddings=self.eval_embeddings,
+                            run_config=RunConfig(
+                                timeout=self.eval_timeout, max_workers=1
+                            ),
+                            _pbar=pbar,
+                            callbacks=callbacks,
+                        )
 
-                    # Extract scores from first row
-                    scores_row = df.iloc[0]
+                        # Convert to DataFrame (RAGAS v0.3+ API)
+                        df = eval_results.to_pandas()
 
-                    # Extract scores (RAGAS v0.3+ uses .to_pandas())
-                    result = {
-                        "test_number": idx,
-                        "question": question,
-                        "answer": rag_response["answer"][:200] + "..."
-                        if len(rag_response["answer"]) > 200
-                        else rag_response["answer"],
-                        "ground_truth": ground_truth[:200] + "..."
-                        if len(ground_truth) > 200
-                        else ground_truth,
-                        "project": test_case.get("project", "unknown"),
-                        "metrics": {
+                        # Extract scores from first row
+                        scores_row = df.iloc[0]
+
+                        # Extract RAGAS scores
+                        result["metrics"] = {
                             "faithfulness": float(scores_row.get("faithfulness", 0)),
                             "answer_relevance": float(
                                 scores_row.get("answer_relevancy", 0)
@@ -565,41 +649,79 @@ class RAGEvaluator:
                             "context_precision": float(
                                 scores_row.get("context_precision", 0)
                             ),
-                        },
-                        "timestamp": datetime.now().isoformat(),
-                    }
+                        }
 
-                    # Calculate RAGAS score (average of all metrics, excluding NaN values)
-                    metrics = result["metrics"]
-                    valid_metrics = [v for v in metrics.values() if not _is_nan(v)]
-                    ragas_score = (
-                        sum(valid_metrics) / len(valid_metrics) if valid_metrics else 0
+                        # Calculate RAGAS score (average of all metrics, excluding NaN values)
+                        metrics = result["metrics"]
+                        valid_metrics = [v for v in metrics.values() if not _is_nan(v)]
+                        ragas_score = (
+                            sum(valid_metrics) / len(valid_metrics)
+                            if valid_metrics
+                            else 0
+                        )
+                        result["ragas_score"] = round(ragas_score, 4)
+
+                    except Exception as e:
+                        logger.error(
+                            "RAGAS evaluation failed for test %s: %s", idx, str(e)
+                        )
+                        result["metrics"] = {}
+                        result["ragas_score"] = 0
+                    finally:
+                        # Force close progress bar to ensure completion
+                        if pbar is not None:
+                            pbar.close()
+                        # Release the position back to the pool for reuse
+                        if position is not None:
+                            await position_pool.put(position)
+
+            # Run GroundedAI evaluation if available
+            if self.grounded_ai_evaluator:
+                try:
+                    # Combine retrieved contexts for GroundedAI evaluation
+                    combined_context = " ".join(retrieved_contexts)
+
+                    grounded_ai_result = (
+                        self.grounded_ai_evaluator.evaluate_comprehensive(
+                            query=question,
+                            response=rag_response["answer"],
+                            context=combined_context,
+                        )
                     )
-                    result["ragas_score"] = round(ragas_score, 4)
 
-                    # Update progress counter
-                    progress_counter["completed"] += 1
+                    result["grounded_ai"] = grounded_ai_result
 
-                    return result
+                    # Add GroundedAI summary for comparison
+                    if "summary" in grounded_ai_result:
+                        ga_summary = grounded_ai_result["summary"]
+                        result["grounded_ai_summary"] = {
+                            "overall_score": ga_summary.get("overall_score", 0.0),
+                            "evaluation_time": ga_summary.get("evaluation_time", 0.0),
+                            "successful_evaluations": ga_summary.get(
+                                "successful_evaluations", 0
+                            ),
+                            "model_id": ga_summary.get("model_id", "unknown"),
+                        }
+
+                        logger.info(
+                            "GroundedAI scores - Hallucination: %.2f, Toxicity: %.2f, RAG Relevance: %.2f",
+                            grounded_ai_result.get("hallucination", {}).get(
+                                "score", 0.0
+                            ),
+                            grounded_ai_result.get("toxicity", {}).get("score", 0.0),
+                            grounded_ai_result.get("rag_relevance", {}).get(
+                                "score", 0.0
+                            ),
+                        )
 
                 except Exception as e:
-                    logger.error("Error evaluating test %s: %s", idx, str(e))
-                    progress_counter["completed"] += 1
-                    return {
-                        "test_number": idx,
-                        "question": question,
-                        "error": str(e),
-                        "metrics": {},
-                        "ragas_score": 0,
-                        "timestamp": datetime.now().isoformat(),
-                    }
-                finally:
-                    # Force close progress bar to ensure completion
-                    if pbar is not None:
-                        pbar.close()
-                    # Release the position back to the pool for reuse
-                    if position is not None:
-                        await position_pool.put(position)
+                    logger.error("GroundedAI evaluation failed: %s", str(e))
+                    result["grounded_ai"] = {"error": str(e)}
+
+            # Update progress counter
+            progress_counter["completed"] += 1
+
+            return result
 
     async def evaluate_responses(self) -> list[dict[str, Any]]:
         """
@@ -1057,15 +1179,81 @@ Examples:
             help="Limit the number of test cases to evaluate",
         )
 
+        # GroundedAI SLM evaluation options
+        parser.add_argument(
+            "--use-grounded-ai",
+            action="store_true",
+            help="Use GroundedAI SLM evaluation instead of RAGAS (100% local, no API costs)",
+        )
+
+        parser.add_argument(
+            "--grounded-ai-model",
+            type=str,
+            default="grounded-ai/phi4-mini-judge",
+            help="GroundedAI model identifier (default: grounded-ai/phi4-mini-judge)",
+        )
+
+        parser.add_argument(
+            "--grounded-ai-device",
+            type=str,
+            default=None,
+            help="Device for GroundedAI evaluation (cuda/cpu, auto-detect if not specified)",
+        )
+
+        parser.add_argument(
+            "--grounded-ai-quantization",
+            action="store_true",
+            help="Enable 8-bit quantization for GroundedAI models (reduces memory usage)",
+        )
+
+        parser.add_argument(
+            "--hybrid-evaluation",
+            action="store_true",
+            help="Run both RAGAS and GroundedAI evaluation for comparison",
+        )
+
         args = parser.parse_args()
 
-        logger.info("%s", "=" * 70)
-        logger.info("🔍 RAGAS Evaluation - Using Real LightRAG API")
-        logger.info("%s", "=" * 70)
+        # Determine evaluation mode
+        use_grounded_ai = args.use_grounded_ai
+        use_hybrid = args.hybrid_evaluation
 
-        evaluator = RAGEvaluator(
-            test_dataset_path=args.dataset, rag_api_url=args.ragendpoint
-        )
+        if use_grounded_ai and not GROUNDED_AI_AVAILABLE:
+            logger.error(
+                "❌ GroundedAI not available. Install with: pip install 'lightrag-hku[evaluation]'"
+            )
+            sys.exit(1)
+
+        # Log evaluation mode
+        if use_hybrid:
+            logger.info("%s", "=" * 70)
+            logger.info("🔍 Hybrid Evaluation - RAGAS + GroundedAI SLM")
+            logger.info("%s", "=" * 70)
+        elif use_grounded_ai:
+            logger.info("%s", "=" * 70)
+            logger.info("🔍 GroundedAI SLM Evaluation - 100% Local, No API Costs")
+            logger.info("%s", "=" * 70)
+        else:
+            logger.info("%s", "=" * 70)
+            logger.info("🔍 RAGAS Evaluation - Using Real LightRAG API")
+            logger.info("%s", "=" * 70)
+
+        # Create appropriate evaluator
+        if use_grounded_ai or use_hybrid:
+            evaluator = RAGEvaluator(
+                test_dataset_path=args.dataset,
+                rag_api_url=args.ragendpoint,
+                use_grounded_ai=use_grounded_ai,
+                grounded_ai_model=args.grounded_ai_model,
+                grounded_ai_device=args.grounded_ai_device,
+                grounded_ai_quantization=args.grounded_ai_quantization,
+                hybrid_mode=use_hybrid,
+            )
+        else:
+            evaluator = RAGEvaluator(
+                test_dataset_path=args.dataset, rag_api_url=args.ragendpoint
+            )
+
         await evaluator.run(limit=args.limit)
     except Exception as e:
         logger.exception("❌ Error: %s", e)

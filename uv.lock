@@ -1645,6 +1645,21 @@ wheels = [
 ]
 
 [[package]]
+name = "grounded-ai"
+version = "1.0.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "jinja2" },
+    { name = "openai" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e0/c0/be435f0ac017551fcb8a82ee85f4443f10cce61e5c4b55d576d9e66c997a/grounded_ai-1.0.9.tar.gz", hash = "sha256:2e03e3fa68c4d244e30407ca7bb6b9f1d02a9642a3627e010016a49d1652b772", size = 31380, upload-time = "2026-02-01T03:20:49.359Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/87/bb/4af858955132e3355d235a5affafc9ba0e5c3a5a6b10ea758bea8bf09410/grounded_ai-1.0.9-py3-none-any.whl", hash = "sha256:df37f2d3314b9c0d1ecca952293821df5c5f8e062e153ba9bdc2c934d5861069", size = 25859, upload-time = "2026-02-01T03:20:47.642Z" },
+]
+
+[[package]]
 name = "grpcio"
 version = "1.76.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2870,6 +2885,52 @@ evaluation = [
     { name = "fastapi" },
     { name = "google-api-core" },
     { name = "google-genai" },
+    { name = "grounded-ai" },
+    { name = "gunicorn" },
+    { name = "httpcore" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "json-repair" },
+    { name = "nano-vectordb" },
+    { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "networkx", version = "3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "numpy" },
+    { name = "openai" },
+    { name = "openpyxl" },
+    { name = "pandas" },
+    { name = "pipmaster" },
+    { name = "psutil" },
+    { name = "pycryptodome" },
+    { name = "pydantic" },
+    { name = "pyjwt" },
+    { name = "pypdf" },
+    { name = "pypinyin" },
+    { name = "python-docx" },
+    { name = "python-dotenv" },
+    { name = "python-jose", extra = ["cryptography"] },
+    { name = "python-multipart" },
+    { name = "python-pptx" },
+    { name = "pytz" },
+    { name = "ragas" },
+    { name = "setuptools" },
+    { name = "tenacity" },
+    { name = "tiktoken" },
+    { name = "uvicorn" },
+    { name = "xlsxwriter" },
+]
+evaluation-slm = [
+    { name = "aiofiles" },
+    { name = "aiohttp" },
+    { name = "ascii-colors" },
+    { name = "asyncpg" },
+    { name = "bcrypt" },
+    { name = "configparser" },
+    { name = "datasets" },
+    { name = "distro" },
+    { name = "fastapi" },
+    { name = "google-api-core" },
+    { name = "google-genai" },
+    { name = "grounded-ai" },
     { name = "gunicorn" },
     { name = "httpcore" },
     { name = "httpx" },
@@ -3068,6 +3129,8 @@ requires-dist = [
     { name = "google-genai", specifier = ">=1.0.0,<2.0.0" },
     { name = "google-genai", marker = "extra == 'api'", specifier = ">=1.0.0,<2.0.0" },
     { name = "google-genai", marker = "extra == 'offline-llm'", specifier = ">=1.0.0,<2.0.0" },
+    { name = "grounded-ai", marker = "extra == 'evaluation'", specifier = ">=1.0.9" },
+    { name = "grounded-ai", marker = "extra == 'evaluation-slm'", specifier = ">=1.0.9" },
     { name = "gunicorn", marker = "extra == 'api'" },
     { name = "httpcore", marker = "extra == 'api'" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.28.1" },
@@ -3079,6 +3142,7 @@ requires-dist = [
     { name = "lightrag-hku", extras = ["api"], marker = "extra == 'evaluation'" },
     { name = "lightrag-hku", extras = ["api", "offline-llm", "offline-storage"], marker = "extra == 'offline'" },
     { name = "lightrag-hku", extras = ["api", "offline-storage"], marker = "extra == 'test'" },
+    { name = "lightrag-hku", extras = ["evaluation"], marker = "extra == 'evaluation-slm'" },
     { name = "llama-index", marker = "extra == 'offline-llm'", specifier = ">=0.9.0,<1.0.0" },
     { name = "nano-vectordb" },
     { name = "nano-vectordb", marker = "extra == 'api'" },
@@ -3144,7 +3208,7 @@ requires-dist = [
     { name = "xlsxwriter", marker = "extra == 'api'", specifier = ">=3.1.0" },
     { name = "zhipuai", marker = "extra == 'offline-llm'", specifier = ">=2.0.0,<3.0.0" },
 ]
-provides-extras = ["pytest", "api", "docling", "offline-storage", "offline-llm", "offline", "test", "evaluation", "observability"]
+provides-extras = ["pytest", "api", "docling", "offline-storage", "offline-llm", "offline", "test", "evaluation", "evaluation-slm", "observability"]
 
 [[package]]
 name = "llama-cloud"

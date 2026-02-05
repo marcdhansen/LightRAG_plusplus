@@ -32,6 +32,12 @@ emergency_bypass:
   require_justification: true
   log_bypasses: true
 
+implementation_ready:
+  enabled: true
+  require_beads: true
+  require_feature_branch: true
+  block_direct_main_edits: true
+
 file_mappings:
   # Expected test file locations for source files
   lightrag/core.py: tests/test_core.py

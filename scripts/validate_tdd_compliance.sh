@@ -1,0 +1,1 @@
+.agent/scripts/validate_tdd_compliance.sh

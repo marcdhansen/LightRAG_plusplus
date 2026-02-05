@@ -15,10 +15,58 @@ import json
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+
+# Integration with Adaptive SOP System
+def get_adaptive_tdd_config():
+    """Get TDD configuration recommendations from adaptive system"""
+    try:
+        script_dir = Path(__file__).parent
+        engine_script = script_dir / "adaptive_sop_engine.sh"
+
+        if engine_script.exists():
+            result = subprocess.run(
+                [str(engine_script), "--action", "analyze"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+
+            if result.returncode == 0:
+                analysis = json.loads(result.stdout)
+                return analysis.get("recommendations", [])
+    except Exception as e:
+        print(f"Warning: Could not get adaptive TDD config: {e}", file=sys.stderr)
+
+    return []
+
+
+def record_tdd_performance(performance_data):
+    """Record TDD gate performance for adaptive learning"""
+    try:
+        script_dir = Path(__file__).parent
+        learn_dir = script_dir.parent / "learn"
+        learn_dir.mkdir(exist_ok=True)
+
+        performance_file = learn_dir / "tdd_performance.jsonl"
+
+        with open(performance_file, "a") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "performance": performance_data,
+                    }
+                )
+                + "\n"
+            )
+    except Exception as e:
+        print(f"Warning: Could not record TDD performance: {e}", file=sys.stderr)
 
 
 class TDDValidator:

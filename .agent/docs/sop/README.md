@@ -48,6 +48,29 @@ The SOP directory provides:
 2. **Agent Skills** - Standardized capabilities and workflows
 3. **Workspace Rules** - Project-specific procedures and guidelines
 
+## ⛔ **MANDATORY TDD GATE**
+
+**🚫 CRITICAL**: [TDD Mandatory Gate](./TDD_MANDATORY_GATE.md) - **CANNOT BYPASS**
+
+All new features **MUST** follow Test-Driven Development methodology:
+- **Failing Tests First** - Define expectations before implementation
+- **Performance Benchmarks** - Measure against baseline with quantifiable metrics
+- **Tradeoff Documentation** - Analyze speed, memory, and scalability tradeoffs
+- **Automated Enforcement** - System blocks non-compliant work automatically
+
+**Validation Script**: `./scripts/validate_tdd_compliance.sh <feature_name>`
+
+## 🔄 Multi-Phase Implementation Hand-offs
+
+**🚫 MANDATORY**: [Multi-Phase Hand-off Protocol](./MULTI_PHASE_HANDOFF_PROTOCOL.md) - **CANNOT PROCEED** without compliance
+
+All multi-phase implementations **MUST** complete hand-off procedures:
+- **Complete Documentation**: Comprehensive hand-off document with all required sections
+- **Automated Verification**: Script validation blocks phase transitions
+- **Quality Assessment**: Hand-off quality evaluated in reflect and mission debriefing
+
+**Validation Script**: `./scripts/verify_handoff_compliance.sh --phase <phase-id> --feature <feature-name>`
+
 ## Usage
 
 All agents must:

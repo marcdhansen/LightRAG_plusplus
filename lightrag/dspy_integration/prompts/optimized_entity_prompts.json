@@ -1,0 +1,9 @@
+{
+  "entity_extraction_system_prompt_dspy_predict_lite_BootstrapFewShot": "---DSPy dspy_predict_lite_BootstrapFewShot optimized with unknown---",
+  "_metadata": {
+    "generated_by": "DSPy Integration Phase 1",
+    "optimization_date": "unknown",
+    "modules_count": 4,
+    "dspy_version": "3.1.2"
+  }
+}
