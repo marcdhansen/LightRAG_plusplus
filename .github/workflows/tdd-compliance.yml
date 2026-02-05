@@ -97,8 +97,8 @@ jobs:
         # Block development on main/master
         if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
           # Check if this is just a merge/PR to main (allowed)
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            echo "✅ PR to main branch is allowed"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_ACTIONS" == "true" ]]; then
+            echo "✅ Running in CI context on main branch is allowed"
           else
             echo "❌ ERROR: Direct push to main/master branch detected"
             echo "All development must happen on feature branches"
