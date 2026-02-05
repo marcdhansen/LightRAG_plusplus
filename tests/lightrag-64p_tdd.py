@@ -3,11 +3,9 @@ TDD tests for lightrag-64p feature.
 Test-Driven Development tests for LightRAG integration with Gemini 1.5 Flash (64p support).
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-import json
-from pathlib import Path
 
 
 class TestLightRAG64PIntegration:

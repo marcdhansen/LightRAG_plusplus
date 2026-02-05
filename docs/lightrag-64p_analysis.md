@@ -132,17 +132,17 @@ response = await rag.query(
 ### Technical Risks
 1. **Memory Overload**: Large contexts may exceed available memory
    - **Mitigation**: Streaming processing and intelligent chunking
-   
+
 2. **Performance Degradation**: Large contexts may slow query response
    - **Mitigation**: Context optimization and caching strategies
-   
+
 3. **Model Limitations**: Gemini 1.5 Flash may have usage limits
    - **Mitigation**: Rate limiting and fallback models
 
 ### Operational Risks
 1. **Resource Contention**: Large context processing may impact other services
    - **Mitigation**: Resource isolation and monitoring
-   
+
 2. **Cost Management**: Increased token usage may raise costs
    - **Mitigation**: Usage monitoring and optimization
 
@@ -221,6 +221,6 @@ The phased approach ensures gradual rollout with proper testing and validation a
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: 2026-02-05*  
+*Document Version: 1.0*
+*Last Updated: 2026-02-05*
 *Author: Agent Marchansen*

@@ -33,7 +33,7 @@ if command -v bd >/dev/null 2>&1; then
     # Check if there are any beads issues
     ISSUE_COUNT=$(bd list --all 2>/dev/null | wc -l | tr -d ' ' || echo "0")
     echo "Available beads issues: $ISSUE_COUNT"
-    
+
     if [[ $ISSUE_COUNT -eq 0 ]]; then
         echo "⚠️  No beads issues found"
         echo "💡 Consider creating a beads issue for tracking:"
@@ -65,7 +65,7 @@ else
     echo "✅ TDD test file exists"
 fi
 
-# Check functional test file  
+# Check functional test file
 if [[ ! -f "tests/${FEATURE_NAME}_functional.py" ]]; then
     MISSING_ARTIFACTS+=("tests/${FEATURE_NAME}_functional.py")
 else

@@ -167,7 +167,7 @@ This document analyzes the implementation of the $FEATURE_NAME feature for Light
 - [ ] Task 2
 - [ ] Task 3
 
-### Phase 2: Advanced Features  
+### Phase 2: Advanced Features
 - [ ] Feature 1
 - [ ] Feature 2
 - [ ] Feature 3
@@ -203,8 +203,8 @@ This document analyzes the implementation of the $FEATURE_NAME feature for Light
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: $(date +%Y-%m-%d)*  
+*Document Version: 1.0*
+*Last Updated: $(date +%Y-%m-%d)*
 *Author: $(git config user.name || echo "Developer")*
 EOF
     echo "✅ Created documentation file: $DOC_FILE"
