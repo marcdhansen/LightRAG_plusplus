@@ -355,11 +355,7 @@ determine_check_necessity() {
                 fi
                 ;;
             "quality_gates")
-                # Skip for emergency sessions
-                if [[ "$SESSION_TYPE" == "emergency" ]]; then
-                    echo "skip"
-                    return
-                fi
+                # Quality gates are now critical and cannot be bypassed
                 ;;
         esac
 
@@ -504,7 +500,7 @@ EOF
     # Define available checks using simple arrays
     local check_names=("git_status" "git_hooks" "resource_allocation" "symlink_health" "tdd_gates" "beads_validation" "implementation_ready" "quality_gates" "branch_protection" "version_consistency" "session_locks" "markdown_integrity")
     local check_scripts=("check_git_status.sh" "install_git_hooks.sh" "allocate_safe_resources.sh" "validate_symlink_health.sh" "validate_tdd_compliance.sh" "validate_beads_issue.sh" "validate_implementation_ready.py" "tdd_gate_validator.py" "main_branch_protection.sh" "validate_version_consistency.py" "enhanced_session_locks.sh" "verify_markdown_duplicates.sh")
-    local check_criticalities=("critical" "critical" "critical" "critical" "critical" "critical" "critical" "optional" "critical" "optional" "critical" "optional")
+    local check_criticalities=("critical" "critical" "critical" "critical" "critical" "critical" "critical" "critical" "critical" "critical" "critical" "critical")
     local check_categories=("core" "core" "core" "core" "core" "core" "core" "quality" "git" "quality" "core" "cleanup")
 
     if [[ "$VERBOSE" == "true" ]]; then
