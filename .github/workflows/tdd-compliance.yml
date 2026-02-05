@@ -59,17 +59,20 @@ jobs:
         echo "🌿 Branch detected: $BRANCH_NAME"
 
         # Try to extract feature name from feature/agent/task branch patterns
-        if [[ "$BRANCH_NAME" =~ ^(feature|agent|task)/ ]]; then
-          # Standardize on last part of branch path, stripping prefix and 'task-'
-          # Matches scripts/hooks/tdd-compliance-check.sh logic
-          FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/^\(feature\|agent\|task\)\///' | sed 's/.*\///' | sed 's/^task-//')
-          echo "✨ Extracted feature from branch: $FEATURE_NAME"
+        # Standardize logic across CI and scripts
+        if [[ "$BRANCH_NAME" =~ ^(feature|agent|task)/(.+)$ ]]; then
+          FEATURE_NAME="${BASH_REMATCH[2]}"
+        elif [[ "$BRANCH_NAME" =~ ^([^/]+)/(feature|agent|task)-(.+)$ ]]; then
+          FEATURE_NAME="${BASH_REMATCH[3]}"
+        else
+          FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/.*\///')
         fi
 
-        # Minimal fallback from changed files ONLY if not on a feature branch
-        # but triggered on something we want to validate (though usually these skip)
-        if [[ -z "$FEATURE_NAME" ]]; then
-          # Only fallback for specific source directories, ignore root docs/configs
+        # Strip 'task-' prefix if present
+        FEATURE_NAME=$(echo "$FEATURE_NAME" | sed 's/^task-//')
+
+        # Fallback from changed files ONLY if no feature detected and not on main
+        if [[ -z "$FEATURE_NAME" && "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "master" ]]; then
           FEATURE_FILE=$(git diff --name-only HEAD~5..HEAD | grep -E '^(lightrag|src)/' | head -1 | sed 's/.*\///' | sed 's/\.[^.]*$//' || echo "")
           if [[ -n "$FEATURE_FILE" ]]; then
             FEATURE_NAME="$FEATURE_FILE"
@@ -90,15 +93,19 @@ jobs:
     - name: Validate Git Branch Usage
       run: |
         echo "🔍 Checking git branch usage..."
+        echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+        echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+        echo "GITHUB_REF: $GITHUB_REF"
 
         CURRENT_BRANCH=${GITHUB_REF#refs/heads/}
         echo "Current branch: $CURRENT_BRANCH"
 
         # Block development on main/master
         if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
-          # Check if this is just a merge/PR to main (allowed)
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_ACTIONS" == "true" ]]; then
-            echo "✅ Running in CI context on main branch is allowed"
+          # Check if this is a context where pushes to main are allowed
+          # (e.g., CI runs, PR merges, or specific automation)
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_ACTIONS" == "true" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "✅ Action on main branch is allowed in this context ($GITHUB_EVENT_NAME)"
           else
             echo "❌ ERROR: Direct push to main/master branch detected"
             echo "All development must happen on feature branches"
