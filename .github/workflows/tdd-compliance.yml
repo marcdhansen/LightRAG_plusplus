@@ -162,7 +162,16 @@ jobs:
             echo "  - $artifact"
           done
           echo ""
-          echo "Required TDD artifacts must exist before implementation"
+          echo "🛠️  SOLUTION: Auto-create missing artifacts"
+          echo "Run locally: ./scripts/create-tdd-artifacts.sh $FEATURE_NAME"
+          echo ""
+          echo "📋 Manual creation steps:"
+          echo "1. Create tests/${FEATURE_NAME}_tdd.py with unit tests"
+          echo "2. Create tests/${FEATURE_NAME}_functional.py with integration tests"
+          echo "3. Create docs/${FEATURE_NAME}_analysis.md with technical analysis"
+          echo ""
+          echo "🚨 Required TDD artifacts must exist before implementation"
+          echo "💡 Use: ./scripts/dev-start-check.sh to validate before committing"
           exit 1
         fi
 
