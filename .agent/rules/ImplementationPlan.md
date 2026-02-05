@@ -206,3 +206,99 @@ To ensure coordination and safety in multi-agent environments, the following gat
 
 * [ ] **LightRAG as MCP Server**: Expose retrieval/indexing capabilities.
 * [ ] **LightRAG as MCP Client**: Allow the extractor to browse the web or read local files via MCP.
+
+## Phase 8: Safety Guardrails Enhancement (Planned)
+
+**Target**: Implement comprehensive, production-ready safety guardrails to protect users and ensure compliance across all deployment scenarios.
+
+**Objective**: Build multi-layered safety system combining GroundedAI local processing with complementary protection mechanisms for enterprise-grade security and user protection.
+
+### 8.1 GroundedAI Real-time Integration (Priority: P1)
+
+**Goal**: Convert existing GroundedAI evaluation capabilities into real-time safety enforcement.
+
+* [ ] **Real-time Safety Middleware**:
+  * Convert `GroundedAIRAGEvaluator` from evaluation to prevention mode
+  * Implement pre/post-response filtering with configurable thresholds
+  * Add safety middleware to FastAPI application pipeline
+  * **Success Criteria**: <50ms safety response time, 95% harmful content blocked
+
+* [ ] **API Integration & Caching**:
+  * Integrate safety checks into existing API routes (`/query`, `/extract`)
+  * Implement safety evaluation caching for repeated content
+  * Add safety metrics collection and monitoring
+  * **Success Criteria**: <20% system overhead, comprehensive safety logging
+
+### 8.2 Complementary Safety Layer (Priority: P1)
+
+**Goal**: Add protection capabilities beyond GroundedAI's scope (prompt injection, PII, content filtering).
+
+* [ ] **Prompt Injection Protection**:
+  * Implement Llama Prompt Guard 2 or equivalent
+  * Add adversarial input detection and sanitization
+  * Create prompt pattern validation pipeline
+  * **Success Criteria**: 95% prompt injection detection rate, <2% false positives
+
+* [ ] **PII Detection & Redaction**:
+  * Integrate spaCy/presidio for comprehensive PII detection
+  * Implement automatic redaction with configurable policies
+  * Add support for custom PII entity types
+  * **Success Criteria**: 99% PII detection accuracy, minimal false positives
+
+* [ ] **Content Filtering Enhancement**:
+  * Add hate speech, violence, explicit content detection
+  * Implement content category-based filtering policies
+  * Create multi-modal content safety (text, images, documents)
+  * **Success Criteria**: Block >90% harmful content categories
+
+* [ ] **Rate Limiting & Abuse Detection**:
+  * Implement multi-dimensional rate limiting (user, IP, token)
+  * Add abuse pattern detection and automated blocking
+  * Create adaptive rate limiting based on behavior
+  * **Success Criteria**: Prevent abuse while minimizing legitimate user impact
+
+### 8.3 Advanced Safety Features (Priority: P2)
+
+**Goal**: Implement enterprise-grade safety capabilities for regulated industries.
+
+* [ ] **Context-Aware Safety Policies**:
+  * Domain-specific safety rules (healthcare, finance, education)
+  * Role-based safety policies and access controls
+  * Contextual content filtering based on use case
+  * **Success Criteria**: Flexible policy engine supporting multiple domains
+
+* [ ] **Audit Trails & Compliance**:
+  * Comprehensive security event logging with immutable records
+  * Compliance reporting for HIPAA, GDPR, SOX, etc.
+  * Automated compliance validation and reporting
+  * **Success Criteria**: Full audit trail coverage, automated compliance checks
+
+* [ ] **Multi-Vendor Safety Orchestration**:
+  * Combine GroundedAI, AWS Bedrock, Azure AI Content Safety
+  * Implement safety priority routing and fallback mechanisms
+  * Create unified safety management interface
+  * **Success Criteria**: Seamless integration across multiple safety providers
+
+* [ ] **Safety Performance Analytics**:
+  * Safety effectiveness monitoring and optimization
+  * Performance impact analysis and tuning
+  * Continuous improvement through machine learning
+  * **Success Criteria**: Data-driven safety optimization, minimal performance impact
+
+### Phase 8 Success Metrics
+
+* **Safety Coverage**: >95% of harmful content blocked across all categories
+* **Performance Impact**: <20% overhead on baseline query response times
+* **False Positive Rate**: <5% for legitimate content
+* **Compliance**: 100% audit trail coverage, automated compliance reporting
+* **User Experience**: >90% user satisfaction with safety measures
+* **Reliability**: >99.9% safety system uptime, graceful degradation on failures
+
+### Dependencies & Integration
+
+* **Prerequisites**: Phase 6 (ACE Optimizer) completion
+* **Integration Points**: API middleware, query pipeline, configuration system
+* **Cross-Functional Requirements**: Legal, compliance, security teams
+* **Documentation**: User safety guidelines, admin configuration guides
+
+**Documentation**: See [Safety Guardrails Analysis](../../docs/project/SAFETY_GUARDRAILS_ANALYSIS.md) for comprehensive technical details and implementation guidance.

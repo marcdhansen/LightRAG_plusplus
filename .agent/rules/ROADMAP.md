@@ -23,6 +23,7 @@ This is the central directory for all project-specific planning, tracking, and i
 ## 📖 Instructions & Guides (Local)
 
 - **[Project README](../../README.md)**: Main project documentation.
+- **[🔒 Safety Guardrails Analysis](../../docs/project/SAFETY_GUARDRAILS_ANALYSIS.md)**: Comprehensive evaluation of GroundedAI and safety enhancement roadmap.
 - **[Observability & Langfuse](../../docs/project/OBSERVABILITY.md)**: Setup and benefits of Langfuse tracing.
 - **[Evaluation & RAGAS](../../docs/project/EVALUATION.md)**: How to run and interpret RAGAS benchmarks.
 - **[ACE Framework](../../docs/project/ACE_FRAMEWORK.md)**: High-level overview of Agentic Context Evolution.
@@ -70,4 +71,7 @@ This is the central directory for all project-specific planning, tracking, and i
 - ✓ **Baseline RAGAS Evaluation** (2026-01-22): Preliminary pass successful.
 
 ---
-Last Updated: 2026-01-28
+- ✓ **Safety Guardrails Analysis** (2026-02-05): Created comprehensive analysis of GroundedAI vs alternative safety solutions, identified critical gaps in current LightRAG safety capabilities, and outlined implementation roadmap for production-ready guardrails (see [Safety Guardrails Analysis](../../docs/project/SAFETY_GUARDRAILS_ANALYSIS.md)).
+
+---
+Last Updated: 2026-02-05
