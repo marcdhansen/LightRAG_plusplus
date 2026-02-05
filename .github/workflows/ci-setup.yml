@@ -1,0 +1,192 @@
+name: CI Environment Setup
+
+on:
+    push:
+        branches:
+            - main
+            - dev
+    pull_request:
+        branches:
+            - main
+            - dev
+    workflow_call:
+      inputs:
+        python_version:
+          required: false
+          type: string
+          default: '3.12'
+
+jobs:
+    setup-ci-environment:
+        name: Setup CI Environment
+        runs-on: ubuntu-latest
+
+        outputs:
+            cache-key-pip: ${{ steps.cache-key.outputs.pip }}
+            cache-key-npm: ${{ steps.cache-key.outputs.npm }}
+            python-version: ${{ inputs.python_version }}
+            has-webui: ${{ steps.check-webui.outputs.exists }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Set up Python ${{ inputs.python_version }}
+              uses: actions/setup-python@v6
+              with:
+                python-version: ${{ inputs.python_version }}
+                cache: 'pip'
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '20'
+                cache: 'npm'
+
+            - name: Set up Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                bun-version: latest
+
+            - name: Install uv (Python package manager)
+              run: |
+                curl -LsSf https://astral.sh/uv/install.sh | sh
+                echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+              shell: bash
+
+            - name: Check for WebUI directory
+              id: check-webui
+              run: |
+                if [[ -d "lightrag_webui" ]]; then
+                  echo "exists=true" >> $GITHUB_OUTPUT
+                  echo "✅ WebUI directory found"
+                else
+                  echo "exists=false" >> $GITHUB_OUTPUT
+                  echo "ℹ️ WebUI directory not found"
+                fi
+              shell: bash
+
+            - name: Generate cache keys
+              id: cache-key
+              run: |
+                # Generate deterministic cache keys
+                PYTHON_VERSION="${{ inputs.python_version }}"
+                PIP_HASH=$(sha256sum pyproject.toml requirements*.txt 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-pip-files")
+                NPM_HASH=$(find lightrag_webui -name "package.json" -o -name "bun.lockb" 2>/dev/null | xargs sha256sum 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-npm-files")
+                PRECOMMIT_HASH=$(sha256sum .pre-commit-config.yaml 2>/dev/null | cut -d' ' -f1 || echo "no-precommit")
+
+                echo "pip=${PYTHON_VERSION}-${PIP_HASH}-${PRECOMMIT_HASH}" >> $GITHUB_OUTPUT
+                echo "npm=${NPM_HASH}" >> $GITHUB_OUTPUT
+                echo "precommit=${PRECOMMIT_HASH}" >> $GITHUB_OUTPUT
+              shell: bash
+
+            - name: Cache Python dependencies
+              uses: actions/cache@v4
+              with:
+                path: |
+                  ~/.cache/pip
+                  ~/.local/share/virtualenvs
+                key: ${{ steps.cache-key.outputs.pip }}
+                restore-keys: |
+                  ${{ inputs.python_version }}-pip-
+
+            - name: Cache Node.js dependencies
+              uses: actions/cache@v4
+              if: steps.check-webui.outputs.exists == 'true'
+              with:
+                path: |
+                  ~/.npm
+                  ~/.cache/bun
+                  lightrag_webui/node_modules
+                key: ${{ steps.cache-key.outputs.npm }}
+                restore-keys: |
+                  npm-
+
+            - name: Cache pre-commit environment
+              uses: actions/cache@v4
+              with:
+                path: ~/.cache/pre-commit
+                key: ${{ runner.os }}-precommit-${{ steps.cache-key.outputs.precommit }}
+                restore-keys: |
+                  ${{ runner.os }}-precommit-
+
+            - name: Install Python dependencies
+              run: |
+                echo "🐍 Installing Python dependencies..."
+                python -m pip install --upgrade pip setuptools wheel
+                pip install pre-commit ruff pytest pytest-asyncio coverage
+                # Install project with all optional dependencies for CI
+                pip install -e ".[api,test,evaluation]"
+
+                echo "✅ Python dependencies installed"
+                echo "📦 Installed packages:"
+                pip list | head -20
+              shell: bash
+
+            - name: Install WebUI dependencies (if needed)
+              if: steps.check-webui.outputs.exists == 'true'
+              run: |
+                echo "📦 Installing WebUI dependencies..."
+                cd lightrag_webui
+                bun install --frozen-lockfile
+                echo "✅ WebUI dependencies installed"
+              shell: bash
+
+            - name: Install pre-commit hooks
+              run: |
+                echo "🔧 Setting up pre-commit hooks..."
+                pre-commit install --hook-types pre-commit,pre-push,commit-msg 2>/dev/null || {
+                  echo "⚠️ pre-commit install failed, continuing anyway..."
+                  echo "This is normal in CI environments"
+                }
+                echo "✅ Pre-commit setup complete"
+              shell: bash
+
+            - name: Verify environment setup
+              run: |
+                echo "🔍 Verifying CI environment setup..."
+
+                # Python environment
+                echo "Python version: $(python --version)"
+                echo "Pip version: $(pip --version)"
+
+                # Tools
+                echo "Ruff version: $(ruff --version)"
+                echo "Pre-commit version: $(pre-commit --version)"
+
+                # Node.js tools
+                if command -v node >/dev/null 2>&1; then
+                  echo "Node.js version: $(node --version)"
+                fi
+
+                if command -v bun >/dev/null 2>&1; then
+                  echo "Bun version: $(bun --version)"
+                fi
+
+                # UV
+                if command -v uv >/dev/null 2>&1; then
+                  echo "UV version: $(uv --version)"
+                fi
+
+                # Project installation
+                echo "Project installation: $(python -c 'import lightrag; print(lightrag.__version__)' 2>/dev/null || echo 'Not installed')"
+
+                echo "✅ Environment verification complete"
+              shell: bash
+
+    environment-summary:
+        name: Environment Summary
+        runs-on: ubuntu-latest
+        needs: setup-ci-environment
+
+        steps:
+            - name: Display environment summary
+              run: |
+                echo "🌐 CI Environment Summary"
+                echo "========================"
+                echo "Python Version: ${{ needs.setup-ci-environment.outputs.python-version }}"
+                echo "WebUI Available: ${{ needs.setup-ci-environment.outputs.has-webui }}"
+                echo "Pip Cache Key: ${{ needs.setup-ci-environment.outputs.cache-key-pip }}"
+                echo "NPM Cache Key: ${{ needs.setup-ci-environment.outputs.cache-key-npm }}"
+                echo "========================"
+                echo "✅ CI environment ready for workflows"

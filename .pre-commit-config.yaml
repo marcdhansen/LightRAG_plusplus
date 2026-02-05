@@ -45,8 +45,8 @@ repos:
     hooks:
       - id: webui-lint
         name: WebUI Linting
-        entry: bash -c "cd lightrag_webui && bun run lint"
-        language: system
+        entry: bash -c "scripts/hooks/webui-lint-check.sh"
+        language: script
         files: ^lightrag_webui/
         pass_filenames: false
         stages: [pre-push, manual]
