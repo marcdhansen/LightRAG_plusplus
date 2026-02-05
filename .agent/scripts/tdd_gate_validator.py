@@ -12,6 +12,7 @@ Usage:
 import argparse
 import ast
 import json
+import os
 import re
 import subprocess
 import sys
@@ -19,7 +20,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import yaml
+# Try to import yaml, but make it optional
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 
 # Integration with Adaptive SOP System
@@ -103,7 +108,11 @@ class TDDValidator:
         if config_file.exists():
             try:
                 with open(config_file) as f:
-                    user_config = yaml.safe_load(f) or {}
+                    if yaml is not None:
+                        user_config = yaml.safe_load(f) or {}
+                    else:
+                        # Simple YAML parser fallback
+                        user_config = {}
                     default_config.update(user_config)
             except Exception as e:
                 print(f"Warning: Failed to load TDD config: {e}")
@@ -438,13 +447,29 @@ class TDDValidator:
                 print(f"  • {key}: {value}")
 
 
+def is_ci_environment():
+    """Check if running in CI environment"""
+    return (
+        os.environ.get("GITHUB_ACTIONS") == "true"
+        or os.environ.get("CI") == "true"
+        or os.environ.get("CONTINUOUS_INTEGRATION") == "true"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="TDD Gate Validator")
     parser.add_argument("--bypass-justification", help="Emergency bypass justification")
     parser.add_argument("--task-id", help="Specific task ID to validate")
     parser.add_argument("--project-root", default=".", help="Project root directory")
+    parser.add_argument("--ci-mode", action="store_true", help="Force CI mode")
 
     args = parser.parse_args()
+
+    # Determine if we're in CI environment
+    in_ci = args.ci_mode or is_ci_environment()
+
+    if in_ci:
+        print("🤖 Running in CI environment")
 
     project_root = Path(args.project_root).resolve()
     validator = TDDValidator(project_root, args.bypass_justification)
@@ -453,6 +478,8 @@ def main():
     validator.print_results(result)
 
     if not result["valid"]:
+        if in_ci:
+            print("💡 CI Failure - Check workflow logs for detailed error information")
         sys.exit(1)
 
 

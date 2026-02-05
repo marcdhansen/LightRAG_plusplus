@@ -12,7 +12,7 @@ BRANCH_NAME=$(git branch --show-current)
 echo "Current branch: $BRANCH_NAME"
 
 # Check if we're on a feature branch
-if [[ ! "$BRANCH_NAME" =~ ^(feature|agent|task)/.+ ]]; then
+if [[ ! "$BRANCH_NAME" =~ ^(feature|agent|task)/.+ ]] && [[ ! "$BRANCH_NAME" =~ ^[^/]+/(feature|agent|task)-.+ ]]; then
     echo "ℹ️ Not on a feature/agent/task branch"
     echo "Consider creating a feature branch for new work:"
     echo "  git checkout -b feature/your-feature-name"
@@ -21,8 +21,17 @@ if [[ ! "$BRANCH_NAME" =~ ^(feature|agent|task)/.+ ]]; then
     exit 0
 fi
 
-# Extract feature name (get last part after slashes)
-FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/^\(feature\|agent\|task\)\///' | sed 's/.*\///' | sed 's/^task-//')
+# Extract feature name (Standardized logic across CI and scripts)
+if [[ "$BRANCH_NAME" =~ ^(feature|agent|task)/(.+)$ ]]; then
+    FEATURE_NAME="${BASH_REMATCH[2]}"
+elif [[ "$BRANCH_NAME" =~ ^([^/]+)/(feature|agent|task)-(.+)$ ]]; then
+    FEATURE_NAME="${BASH_REMATCH[3]}"
+else
+    FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/.*\///')
+fi
+
+# Strip 'task-' prefix if present
+FEATURE_NAME=$(echo "$FEATURE_NAME" | sed 's/^task-//')
 echo "📋 Feature detected: $FEATURE_NAME"
 
 # Check for beads issue
