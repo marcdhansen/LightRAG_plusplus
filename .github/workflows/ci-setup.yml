@@ -75,9 +75,9 @@ jobs:
                 NPM_HASH=$(find lightrag_webui -name "package.json" -o -name "bun.lock" 2>/dev/null | xargs sha256sum 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-npm-files")
                 PRECOMMIT_HASH=$(sha256sum .pre-commit-config.yaml 2>/dev/null | cut -d' ' -f1 || echo "no-precommit")
 
-                echo "pip=${PYTHON_VERSION}-${PIP_HASH}-${PRECOMMIT_HASH}" >> $GITHUB_OUTPUT
-                echo "npm=${NPM_HASH}" >> $GITHUB_OUTPUT
-                echo "precommit=${PRECOMMIT_HASH}" >> $GITHUB_OUTPUT
+                echo "pip=${PYTHON_VERSION}-${PIP_HASH:0:8}-${PRECOMMIT_HASH:0:8}" >> $GITHUB_OUTPUT
+                echo "npm=${NPM_HASH:0:8}" >> $GITHUB_OUTPUT
+                echo "precommit=${PRECOMMIT_HASH:0:8}" >> $GITHUB_OUTPUT
               shell: bash
 
             - name: Cache Python dependencies
