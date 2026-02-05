@@ -76,7 +76,7 @@
       - [Baseline Report](../antigravity_lightrag/LightRAG/lightrag/evaluation/baseline_report.md)
       - [RAGAS Evaluation](../antigravity_lightrag/LightRAG/lightrag/evaluation/README_EVALUASTION_RAGAS.md)
 
-    - [Project Roadmap](../antigravity_lightrag/LightRAG/.agent/rules/ROADMAP.md)
+    - [Project Roadmap](../../rules/ROADMAP.md)
     - [Project Self-Evolution](../antigravity_lightrag/LightRAG/.agent/SELF_EVOLUTION.md)
 
 ## 🧰 Skills

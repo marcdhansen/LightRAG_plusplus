@@ -7,6 +7,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 DOCS_DIR = PROJECT_ROOT / "docs"
 
+# Global index location
+GLOBAL_INDEX_PATH = PROJECT_ROOT / ".agent" / "GLOBAL" / "index" / "GLOBAL_INDEX.md"
+
 # Source files that should reference other documentation
 PRIMARY_SOURCES = [
     PROJECT_ROOT / "README.md",
@@ -14,6 +17,11 @@ PRIMARY_SOURCES = [
     PROJECT_ROOT / ".agent" / "rules" / "ROADMAP.md",
     PROJECT_ROOT / ".agent" / "rules" / "ImplementationPlan.md",
 ]
+
+# Add global index if it exists
+if GLOBAL_INDEX_PATH.exists():
+    PRIMARY_SOURCES.append(GLOBAL_INDEX_PATH)
+    print(f"🌍 Added GLOBAL_INDEX.md to primary sources: {GLOBAL_INDEX_PATH}")
 
 # Files to ignore in orphaned check
 IGNORE_FILES = {
@@ -42,6 +50,15 @@ def resolve_link(source_file: Path, target_link: str) -> Path:
     """
     if target_link.startswith("/"):
         return (PROJECT_ROOT / target_link.lstrip("/")).resolve()
+
+    # For GLOBAL_INDEX.md, the relative paths start from .agent/GLOBAL/index/
+    # but the links are relative to the project root
+    if "GLOBAL_INDEX.md" in str(source_file):
+        # Global index links are relative to the .agent/GLOBAL/index/ directory
+        # but most links in the global index point to locations relative to project root
+        # with the ../ prefix pattern
+        return (source_file.parent / target_link).resolve()
+
     return (source_file.parent / target_link).resolve()
 
 
