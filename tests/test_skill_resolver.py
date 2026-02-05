@@ -4,7 +4,7 @@ Tests for Universal Skill Resolver.
 
 import pytest
 
-from lightrag.core.skill_resolver import SkillNotFoundError, UniversalSkillResolver
+from lightrag.skill_resolver import SkillNotFoundError, UniversalSkillResolver
 
 
 def test_resolver_initialization():
