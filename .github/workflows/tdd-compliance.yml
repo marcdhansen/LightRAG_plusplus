@@ -7,6 +7,12 @@ on:
     branches: [ main, dev ]
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+
 jobs:
   tdd-compliance-check:
     name: TDD Compliance Validation
