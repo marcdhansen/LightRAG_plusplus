@@ -47,17 +47,34 @@ jobs:
       run: |
         # Detect feature name from branch or changes
         FEATURE_NAME=""
+        BRANCH_NAME=""
 
-        # Try branch name
-        if [[ "$GITHUB_REF" =~ ^refs/heads/(feature|agent|task)/(.+)$ ]]; then
-          FEATURE_NAME="${BASH_REMATCH[2]}"
+        # Determine effective branch name
+        if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+          BRANCH_NAME="$GITHUB_HEAD_REF"
+        else
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
         fi
 
-        # Try from changed files if no feature name from branch
+        echo "🌿 Branch detected: $BRANCH_NAME"
+
+        # Try to extract feature name from feature/agent/task branch patterns
+        if [[ "$BRANCH_NAME" =~ ^(feature|agent|task)/ ]]; then
+          # Standardize on last part of branch path, stripping prefix and 'task-'
+          # Matches scripts/hooks/tdd-compliance-check.sh logic
+          FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/^\(feature\|agent\|task\)\///' | sed 's/.*\///' | sed 's/^task-//')
+          echo "✨ Extracted feature from branch: $FEATURE_NAME"
+        fi
+
+        # Minimal fallback from changed files ONLY if not on a feature branch
+        # but triggered on something we want to validate (though usually these skip)
         if [[ -z "$FEATURE_NAME" ]]; then
-          # Get most recently changed file
-          FEATURE_FILE=$(git diff --name-only HEAD~5..HEAD | head -1 | sed 's/.*\///' | sed 's/\.[^.]*$//' || echo "")
-          FEATURE_NAME="$FEATURE_FILE"
+          # Only fallback for specific source directories, ignore root docs/configs
+          FEATURE_FILE=$(git diff --name-only HEAD~5..HEAD | grep -E '^(lightrag|src)/' | head -1 | sed 's/.*\///' | sed 's/\.[^.]*$//' || echo "")
+          if [[ -n "$FEATURE_FILE" ]]; then
+            FEATURE_NAME="$FEATURE_FILE"
+            echo "🔍 Detected potential feature from file diff: $FEATURE_NAME"
+          fi
         fi
 
         # Set environment variables
@@ -67,7 +84,8 @@ jobs:
         echo "feature_name=$FEATURE_NAME" >> $GITHUB_OUTPUT
         echo "feature_detected=$([ -n "$FEATURE_NAME" ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
-        echo "🔍 Feature context: $FEATURE_NAME"
+        echo "🎯 Final Feature context: ${FEATURE_NAME:-NONE}"
+
 
     - name: Validate Git Branch Usage
       run: |

@@ -31,22 +31,22 @@ jobs:
       run: |
         FEATURE_NAME="${{ steps.feature-extract.outputs.feature_name }}"
         MISSING_COUNT=0
-        
+
         if [[ ! -f "tests/${FEATURE_NAME}_tdd.py" ]]; then
           ((MISSING_COUNT++))
           echo "missing_tdd=true" >> $GITHUB_OUTPUT
         fi
-        
+
         if [[ ! -f "tests/${FEATURE_NAME}_functional.py" ]]; then
           ((MISSING_COUNT++))
           echo "missing_functional=true" >> $GITHUB_OUTPUT
         fi
-        
+
         if [[ ! -f "docs/${FEATURE_NAME}_analysis.md" ]]; then
           ((MISSING_COUNT++))
           echo "missing_docs=true" >> $GITHUB_OUTPUT
         fi
-        
+
         echo "missing_count=$MISSING_COUNT" >> $GITHUB_OUTPUT
         echo "📊 Missing artifacts: $MISSING_COUNT"
 
@@ -60,11 +60,11 @@ jobs:
           const missingTdd = '${{ steps.artifact-check.outputs.missing_tdd }}' === 'true';
           const missingFunctional = '${{ steps.artifact-check.outputs.missing_functional }}' === 'true';
           const missingDocs = '${{ steps.artifact-check.outputs.missing_docs }}' === 'true';
-          
+
           let issueBody = `## 🚀 Feature Branch Setup: ${featureName}\n\n`;
           issueBody += `New feature branch \`${{ github.ref_name }}\` created! 🎉\n\n`;
           issueBody += `### 📋 Missing TDD Artifacts (${missingCount}/3)\n\n`;
-          
+
           if (missingTdd) {
             issueBody += `- ❌ \`tests/${featureName}_tdd.py\` (Unit tests)\n`;
           }
@@ -74,31 +74,31 @@ jobs:
           if (missingDocs) {
             issueBody += `- ❌ \`docs/${featureName}_analysis.md\` (Technical analysis)\n`;
           }
-          
+
           issueBody += `\n### 🛠️ Quick Setup Solutions\n\n`;
           issueBody += `**Option 1: Auto-generate templates**\n`;
           issueBody += `\`\`\`bash\n`;
           issueBody += `./scripts/create-tdd-artifacts.sh ${featureName}\n`;
           issueBody += `\`\`\`\n\n`;
-          
+
           issueBody += `**Option 2: Run development check**\n`;
           issueBody += `\`\`\`bash\n`;
           issueBody += `./scripts/dev-start-check.sh\n`;
           issueBody += `\`\`\`\n\n`;
-          
+
           issueBody += `**Option 3: Manual creation**\n`;
           issueBody += `1. Create the missing files listed above\n`;
           issueBody += `2. Follow the TDD test structure from other features\n`;
           issueBody += `3. Commit the artifacts before starting implementation\n\n`;
-          
+
           issueBody += `### 📚 Resources\n\n`;
           issueBody += `- [TDD Guidelines](.github/workflows/tdd-compliance.yml)\n`;
           issueBody += `- [Development Workflow](AGENTS.md)\n`;
           issueBody += `- [Project Roadmap](.agent/rules/ROADMAP.md)\n\n`;
-          
+
           issueBody += `---\n`;
           issueBody += `*This issue was automatically created to help set up your feature branch for success!*`;
-          
+
           github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,

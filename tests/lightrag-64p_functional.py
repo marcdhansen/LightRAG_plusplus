@@ -3,12 +3,11 @@ Functional tests for lightrag-64p feature.
 End-to-end functional tests for LightRAG integration with Gemini 1.5 Flash (64p support).
 """
 
-import pytest
-import asyncio
 import tempfile
-import json
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 
 class TestLightRAG64PFunctional:
@@ -141,8 +140,9 @@ class TestLightRAG64PFunctional:
 
     def test_memory_usage_monitoring(self, integration_config):
         """Test memory usage monitoring during large context processing."""
-        import psutil
         import os
+
+        import psutil
 
         # Get current process
         process = psutil.Process(os.getpid())
@@ -265,7 +265,7 @@ class TestLightRAG64PFunctional:
 
         for metric in required_metrics:
             assert metric in metrics
-            assert isinstance(metrics[metric], (int, float))
+            assert isinstance(metrics[metric], int | float)
             assert metrics[metric] >= 0
 
     @pytest.mark.asyncio
