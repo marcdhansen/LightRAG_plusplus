@@ -7,6 +7,7 @@
 ## 🚫 **MANDATORY REQUIREMENT**
 
 **All new features MUST follow TDD methodology**:
+
 1. **Write Tests First** - Define expectations before implementation
 2. **Implement Features** - Code to pass failing tests
 3. **Validate Performance** - Measure against baseline benchmarks
@@ -17,6 +18,7 @@
 ## 🛑 **ENFORCEMENT MECHANISMS**
 
 ### 1. **Pre-Flight Validation** (PFC Gate)
+
 **Mandatory Implementation Readiness Checklist**: Every agent must validate before starting work:
 
 ```yaml
@@ -34,11 +36,13 @@ TDD_Requirements:
 ```
 
 **Blocking Behavior**:
+
 - ❌ **Any Implementation Readiness "false"** → **WORK BLOCKED**
 - ❌ **Any TDD "false"** → **WORK BLOCKED**
 - ✅ **All "true"** → **WORK PROCEEDS**
 
 ### 2. **Return-to-Base Validation** (RTB Gate)
+
 **Mandatory TDD Completion Verification**:
 
 ```yaml
@@ -59,6 +63,7 @@ TDD_Completion_Gate:
 ```
 
 **Blocking Behavior**:
+
 - ❌ **Missing Artifacts** → **SESSION INCOMPLETE**
 - ⚠️ **Incomplete Analysis** → **REQUIRE FIXES**
 - ✅ **All Validated** → **SESSION COMPLETE**
@@ -70,6 +75,7 @@ TDD_Completion_Gate:
 ### **Automated Checks**
 
 #### **1. Implementation Readiness Check**
+
 ```bash
 # Must run before any implementation
 python .agent/scripts/validate_implementation_ready.py
@@ -79,11 +85,13 @@ python .agent/scripts/validate_implementation_ready.py
 ### **Implementation Readiness Requirements**
 
 #### **1. Beads Issue Exists (MANDATORY)**
+
 - [ ] **Active beads issue** assigned to current work
 - [ ] **Issue status** is "open" or "in-progress"
 - [ ] **Issue metadata** properly configured with type and priority
 
 #### **2. Feature Branch Active (MANDATORY)**
+
 - [ ] **Not on protected branch** (main, master, develop, dev)
 - [ ] **Feature branch created** with descriptive name
 - [ ] **Code changes isolated** from main development line
@@ -91,6 +99,7 @@ python .agent/scripts/validate_implementation_ready.py
 ### **Manual Validation Points**
 
 #### **Implementation Readiness Evidence**
+
 - [ ] **Beads Issue ID**: Valid issue exists in tracking system
 - [ ] **Branch Name**: Feature branch follows naming conventions
 - [ ] **Git Status**: Clean isolation from main branch
@@ -103,6 +112,7 @@ python .agent/scripts/validate_implementation_ready.py
 ### **Automated Checks**
 
 #### **1. Test Structure Validation**
+
 ```bash
 # Must run before any implementation
 python -m pytest tests/feature_*_tdd.py --dry-run
@@ -110,6 +120,7 @@ python -m pytest tests/feature_*_tdd.py --dry-run
 ```
 
 #### **2. Implementation Validation**
+
 ```bash
 # Must run after implementation
 python -m pytest tests/feature_*_tdd.py tests/feature_*_functional.py
@@ -117,6 +128,7 @@ python -m pytest tests/feature_*_tdd.py tests/feature_*_functional.py
 ```
 
 #### **3. Performance Validation**
+
 ```bash
 # Must run for performance features
 python -m pytest tests/feature_*_benchmarks.py
@@ -126,18 +138,21 @@ python -m pytest tests/feature_*_benchmarks.py
 ### **Manual Validation Points**
 
 #### **1. Test-First Evidence**
+
 - [ ] **Failing Tests Written** BEFORE any implementation code
 - [ ] **Test Commit Exists** with failing test results
 - [ ] **Test Names Follow Convention**: `test_*_tdd.py`
 - [ ] **Tests Define Expectations**: Clear performance thresholds
 
 #### **2. Performance-First Evidence**
+
 - [ ] **Baseline Measurements**: Document current performance
 - [ ] **Speed Assertions**: Minimum % improvement defined
 - [ ] **Memory Assertions**: Maximum overhead thresholds defined
 - [ ] **Scalability Assertions**: Degradation limits defined
 
 #### **3. Tradeoff Analysis Evidence**
+
 - [ ] **Speed vs Memory**: Quantified tradeoff analysis
 - [ ] **Algorithm Comparison**: Multiple options benchmarked
 - [ ] **Use Case Guidelines**: When to use/not use feature
@@ -150,6 +165,7 @@ python -m pytest tests/feature_*_benchmarks.py
 ### **System-Level Enforcement**
 
 #### **1. Pre-Flight Gate Blocking**
+
 ```python
 def validate_tdd_compliance(feature_name):
     """Automatic TDD validation - CANNOT BYPASS"""
@@ -168,6 +184,7 @@ def validate_tdd_compliance(feature_name):
 ```
 
 #### **2. Work Session Validation**
+
 ```python
 def validate_session_tdd_compliance():
     """Session completion validation - CANNOT PROCEED WITHOUT"""
@@ -194,6 +211,7 @@ def validate_session_tdd_compliance():
 ```
 
 ### **3. Quality Gate Enforcement**
+
 ```python
 def enforce_tdd_quality_gates():
     """Quality gates - CANNOT SKIP"""
@@ -222,6 +240,7 @@ def enforce_tdd_quality_gates():
 ## 📋 **TDD COMPLIANCE CHECKLIST**
 
 ### **Phase 1: Test Design (RED)**
+
 - [ ] **Write Failing Tests First**: Define expectations that initially fail
 - [ ] **Document Baseline Performance**: Measure current system behavior
 - [ ] **Define Success Metrics**: Quantifiable improvement targets
@@ -229,6 +248,7 @@ def enforce_tdd_quality_gates():
 - [ ] **Establish Tradeoff Framework**: Analysis structure prepared
 
 ### **Phase 2: Implementation (GREEN)**
+
 - [ ] **Implement to Pass Tests**: Code makes failing tests pass
 - [ ] **Maintain Test Integrity**: Don't modify test expectations
 - [ ] **Run Benchmark Validation**: Measure against baseline
@@ -236,6 +256,7 @@ def enforce_tdd_quality_gates():
 - [ ] **Verify Performance Claims**: All assertions should pass
 
 ### **Phase 3: Validation (REFACTOR)**
+
 - [ ] **Complete Performance Analysis**: Full benchmarking report
 - [ ] **Document Production Guidelines**: When/how to use feature
 - [ ] **Create Monitoring Plan**: Ongoing performance tracking
@@ -247,12 +268,14 @@ def enforce_tdd_quality_gates():
 ## 🚨 **TDD VIOLATION CONSEQUENCES**
 
 ### **Automatic Blocks**
+
 - **Work Cannot Start**: PFC gate blocks non-compliant features
 - **Session Cannot Complete**: RTB gate blocks incomplete TDD
 - **Deployment Blocked**: Quality gates prevent non-validated features
 - **Merge Rejected**: Quality checks fail without TDD evidence
 
 ### **Manual Override Process** (IMPOSSIBLE)
+
 ```python
 # THERE IS NO MANUAL OVERRIDE FOR TDD GATES
 
@@ -268,6 +291,7 @@ def attempt_tdd_override(reason: str):
 ```
 
 ### **Escalation Path** (IF VIOLATION)
+
 1. **Immediate Block**: All work stops at point of violation
 2. **Violation Logged**: Permanent record of TDD bypass attempt
 3. **Review Required**: Team lead review before any further work
@@ -278,6 +302,7 @@ def attempt_tdd_override(reason: str):
 ## 🔧 **IMPLEMENTATION INTEGRATION**
 
 ### **1. Agent Integration**
+
 ```bash
 # Built into all agent workflows
 ./agent/scripts/validate_tdd_compliance.sh --feature <feature_name>
@@ -286,6 +311,7 @@ def attempt_tdd_override(reason: str):
 ```
 
 ### **2. Development Workflow Integration**
+
 ```bash
 # Pre-commit hooks for TDD validation
 .git/hooks/pre-commit:
@@ -301,6 +327,7 @@ def attempt_tdd_override(reason: str):
 ```
 
 ### **3. CI/CD Integration**
+
 ```yaml
 # GitHub Actions or similar CI/CD
 TDD_Validation_Pipeline:
@@ -318,6 +345,7 @@ Blocking: true  # Pipeline fails if any stage fails
 ## 📚 **REFERENCES & EXAMPLES**
 
 ### **Valid TDD Implementation Example**
+
 - **Reference**: Community Detection Feature (`lightrag-bkj.2`)
 - **Timeline**:
   - ❌ Week 1: Failing tests written (RED)
@@ -327,6 +355,7 @@ Blocking: true  # Pipeline fails if any stage fails
 - **Result**: ✅ All TDD requirements met, feature delivered
 
 ### **Invalid TDD Bypass Attempt**
+
 - **What Happens**: Agent tries to implement without failing tests
 - **System Response**: Work blocked at PFC gate
 - **Required Action**: Complete TDD process before continuation
@@ -339,18 +368,21 @@ Blocking: true  # Pipeline fails if any stage fails
 Every feature MUST meet these minimum standards:
 
 ### **Test Coverage Requirements**
+
 - **Functional Tests**: ≥90% code coverage
 - **Benchmark Tests**: 100% of performance claims validated
 - **Edge Case Tests**: All error conditions covered
 - **Integration Tests**: Real-world usage scenarios validated
 
 ### **Performance Documentation Requirements**
+
 - **Speed Claims**: Must have measured % improvement
 - **Memory Claims**: Must have measured overhead analysis
 - **Scalability Claims**: Must have growth rate analysis
 - **Tradeoff Analysis**: Must document all resource costs
 
 ### **Documentation Completeness Requirements**
+
 - **Usage Guidelines**: Clear when/how to use feature
 - **Performance Tradeoffs**: Detailed speed vs resource analysis
 - **Production Readiness**: Deployment and monitoring guidelines
@@ -361,6 +393,7 @@ Every feature MUST meet these minimum standards:
 ## 🔐 **SECURITY & COMPLIANCE**
 
 ### **TDD Gate Tampering Prevention**
+
 ```python
 class TDDGateSecurity:
     """Prevents any attempt to bypass TDD requirements"""
@@ -384,6 +417,7 @@ class TDDGateSecurity:
 ```
 
 ### **Audit Trail**
+
 - **All TDD Decisions Logged**: Immutable audit trail
 - **Bypass Attempts Recorded**: Security violations tracked
 - **Compliance Reports**: Regular TDD adherence reporting
@@ -394,18 +428,21 @@ class TDDGateSecurity:
 ## 📞 **SUPPORT & ESCALATION**
 
 ### **TDD Process Help**
+
 - **Documentation**: This SOP provides complete TDD guidance
 - **Examples**: Reference implementations available
 - **Templates**: TDD test and benchmark templates
 - **Training**: Regular TDD methodology training
 
 ### **When TDD Block Occurs**
+
 1. **Don't Panic**: Block is expected behavior
 2. **Review SOP**: Follow this TDD gate documentation
 3. **Complete Missing Requirements**: Use checklist to identify gaps
 4. **Request Help**: Escalate if genuinely unclear on requirements
 
 ### **TDD Success Criteria**
+
 - **All Gates Pass**: PFC and RTB validation successful
 - **Quality Metrics Met**: Coverage and performance standards achieved
 - **Documentation Complete**: All required artifacts created
