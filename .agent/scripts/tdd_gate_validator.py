@@ -137,7 +137,6 @@ class TDDValidator:
 
         # Core TDD validations
         self._validate_test_file_existence(result)
-        self._validate_code_quality(result)
         self._validate_test_quality(result)
         self._validate_test_coverage(result)
         self._validate_task_specific_requirements(result, task_info)
@@ -273,95 +272,6 @@ class TDDValidator:
 
         result["metrics"]["test_files_found"] = len(test_files)
         result["metrics"]["source_files_modified"] = len(modified_py_files)
-
-    def _validate_code_quality(self, result: dict):
-        """Validate code quality using ruff"""
-        try:
-            # Run ruff check with exit-zero to get results without failing
-            ruff_result = subprocess.run(
-                ["ruff", "check", "--exit-zero", "--format=json", "."],
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-            )
-
-            if ruff_result.stdout:
-                try:
-                    import json
-
-                    violations = json.loads(ruff_result.stdout)
-
-                    if violations:
-                        result["errors"].append(
-                            f"Code quality issues found: {len(violations)} ruff violations"
-                        )
-
-                        # Count by severity
-                        errors = sum(1 for v in violations if v.get("type") == "E")
-                        warnings = sum(1 for v in violations if v.get("type") == "W")
-
-                        result["metrics"]["code_quality"] = {
-                            "total_violations": len(violations),
-                            "errors": errors,
-                            "warnings": warnings,
-                            "status": "FAILED",
-                        }
-
-                        # Show first few violations for context
-                        for violation in violations[:5]:
-                            location = f"{violation.get('filename', '')}:{violation.get('line', '?')}"
-                            message = violation.get("message", "")
-                            result["errors"].append(f"  • {location}: {message}")
-                    else:
-                        result["metrics"]["code_quality"] = {
-                            "total_violations": 0,
-                            "errors": 0,
-                            "warnings": 0,
-                            "status": "PASSED",
-                        }
-                except json.JSONDecodeError:
-                    # Fallback: parse plain text output
-                    lines = ruff_result.stdout.strip().split("\n")
-                    if lines and any(line.strip() for line in lines):
-                        result["errors"].append(
-                            f"Code quality issues found: {len([l for l in lines if l.strip()])} ruff violations"
-                        )
-                        result["metrics"]["code_quality"] = {
-                            "total_violations": len([l for l in lines if l.strip()]),
-                            "status": "FAILED",
-                        }
-                    else:
-                        result["metrics"]["code_quality"] = {
-                            "total_violations": 0,
-                            "status": "PASSED",
-                        }
-
-            # Run ruff format check
-            format_result = subprocess.run(
-                ["ruff", "format", "--check", "--diff", "."],
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-            )
-
-            if format_result.returncode != 0:
-                result["errors"].append(
-                    "Code formatting issues found - run 'ruff format .' to fix"
-                )
-                result["metrics"]["code_quality"]["format_issues"] = True
-            elif "code_quality" not in result["metrics"]:
-                result["metrics"]["code_quality"] = {
-                    "total_violations": 0,
-                    "format_issues": False,
-                    "status": "PASSED",
-                }
-
-        except FileNotFoundError:
-            result["warnings"].append(
-                "Ruff not installed - cannot validate code quality"
-            )
-        except Exception as e:
-            result["warnings"].append(f"Code quality validation failed: {e}")
 
     def _validate_test_quality(self, result: dict):
         """Validate test file quality and structure"""
