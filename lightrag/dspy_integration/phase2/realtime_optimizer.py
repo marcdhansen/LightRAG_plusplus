@@ -7,19 +7,19 @@ creating a self-improving system that continuously adapts to changing conditions
 
 import asyncio
 import json
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Callable
-from dataclasses import dataclass, asdict
-from enum import Enum
-from collections import defaultdict, deque
 import logging
+from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any
 
 from ..config import get_dspy_config
-from .realtime_monitoring import RealTimeMonitor, PerformanceMetrics
-from .prompt_replacement import PromptReplacementPipeline
 from .production_pipeline import ProductionDataPipeline
+from .prompt_replacement import PromptReplacementPipeline
+from .realtime_monitoring import PerformanceMetrics, RealTimeMonitor
 
 
 class OptimizationTrigger(Enum):
@@ -45,12 +45,12 @@ class OptimizationEvent:
     performance_drop: float
     feedback_score: float
     timestamp: datetime
-    optimization_started: Optional[datetime] = None
-    optimization_completed: Optional[datetime] = None
-    result: Optional[Dict[str, Any]] = None
+    optimization_started: datetime | None = None
+    optimization_completed: datetime | None = None
+    result: dict[str, Any] | None = None
     status: str = "pending"  # pending, running, completed, failed
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         data["trigger"] = self.trigger.value
@@ -80,7 +80,7 @@ class OptimizationConfig:
 class RealTimeOptimizer:
     """Real-time optimization engine for DSPy prompts."""
 
-    def __init__(self, config: Optional[OptimizationConfig] = None):
+    def __init__(self, config: OptimizationConfig | None = None):
         self.config = config or OptimizationConfig()
         self.dspy_config = get_dspy_config()
 
@@ -90,20 +90,20 @@ class RealTimeOptimizer:
         self.replacement_pipeline = PromptReplacementPipeline()
 
         # Optimization state
-        self.active_optimizations: Dict[str, OptimizationEvent] = {}
+        self.active_optimizations: dict[str, OptimizationEvent] = {}
         self.optimization_history: deque = deque(maxlen=1000)
         self.feedback_buffer: deque = deque(maxlen=10000)
 
         # Performance baselines
-        self.performance_baselines: Dict[str, Dict[str, float]] = {}
-        self.last_optimization_times: Dict[str, datetime] = {}
+        self.performance_baselines: dict[str, dict[str, float]] = {}
+        self.last_optimization_times: dict[str, datetime] = {}
 
         # Optimization callbacks
-        self.optimization_callbacks: List[Callable] = []
+        self.optimization_callbacks: list[Callable] = []
 
         # State tracking
         self.optimization_active = False
-        self.scheduler_task: Optional[asyncio.Task] = None
+        self.scheduler_task: asyncio.Task | None = None
 
         self.logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class RealTimeOptimizer:
         model: str,
         feedback_score: float,
         feedback_type: str = "quality",
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Add user feedback to the optimization buffer."""
 
@@ -294,7 +294,7 @@ class RealTimeOptimizer:
         current_time = datetime.now()
 
         # Check each variant/model combination
-        for key, baseline in self.performance_baselines.items():
+        for key, _baseline in self.performance_baselines.items():
             variant, model = key.split("_", 1)
 
             # Check if optimization is due
@@ -473,7 +473,7 @@ class RealTimeOptimizer:
 
     async def _gather_optimization_data(
         self, variant: str, model: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Gather recent data for optimization."""
 
         # Get recent performance metrics
@@ -504,8 +504,8 @@ class RealTimeOptimizer:
         }
 
     async def _create_optimization_candidates(
-        self, event: OptimizationEvent, data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, event: OptimizationEvent, data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Create optimization candidates based on the trigger type."""
 
         candidates = []
@@ -525,8 +525,8 @@ class RealTimeOptimizer:
         return candidates
 
     async def _create_performance_candidates(
-        self, event: OptimizationEvent, data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, _event: OptimizationEvent, _data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Create candidates focused on performance improvement."""
 
         candidates = []
@@ -558,8 +558,8 @@ class RealTimeOptimizer:
         return candidates
 
     async def _create_quality_candidates(
-        self, event: OptimizationEvent, data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, _event: OptimizationEvent, data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Create candidates focused on quality improvement."""
 
         candidates = []
@@ -595,8 +595,8 @@ class RealTimeOptimizer:
         return candidates
 
     async def _create_comprehensive_candidates(
-        self, event: OptimizationEvent, data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, event: OptimizationEvent, data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Create comprehensive optimization candidates."""
 
         candidates = []
@@ -620,8 +620,8 @@ class RealTimeOptimizer:
         return candidates
 
     def _analyze_feedback_issues(
-        self, feedback: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, feedback: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Analyze feedback to identify common issues."""
 
         if not feedback:
@@ -654,8 +654,8 @@ class RealTimeOptimizer:
         }
 
     async def _evaluate_optimization_candidates(
-        self, event: OptimizationEvent, candidates: List[Dict[str, Any]]
-    ) -> Optional[Dict[str, Any]]:
+        self, event: OptimizationEvent, candidates: list[dict[str, Any]]
+    ) -> dict[str, Any] | None:
         """Evaluate optimization candidates and return the best one."""
 
         if not candidates:
@@ -683,7 +683,7 @@ class RealTimeOptimizer:
         return best_candidate
 
     def _calculate_candidate_score(
-        self, event: OptimizationEvent, candidate: Dict[str, Any]
+        self, event: OptimizationEvent, candidate: dict[str, Any]
     ) -> float:
         """Calculate score for an optimization candidate."""
 
@@ -725,21 +725,13 @@ class RealTimeOptimizer:
         return successful / max(total, 1) - 0.5  # Center around 0
 
     async def _deploy_optimization(
-        self, event: OptimizationEvent, candidate: Dict[str, Any]
+        self, event: OptimizationEvent, candidate: dict[str, Any]
     ) -> bool:
         """Deploy the optimization candidate."""
 
         try:
             # This would integrate with the actual deployment system
             # For now, simulate deployment
-
-            deployment_config = {
-                "variant": event.variant,
-                "model": event.model,
-                "candidate": candidate,
-                "event_id": event.event_id,
-                "deployment_strategy": "gradual",
-            }
 
             # Simulate deployment time
             await asyncio.sleep(2)
@@ -777,7 +769,7 @@ class RealTimeOptimizer:
             self.logger.error(f"Rollback failed: {e}")
 
     def _update_performance_baseline(
-        self, key: str, optimization_result: Dict[str, Any]
+        self, key: str, optimization_result: dict[str, Any]
     ):
         """Update performance baseline after successful optimization."""
 
@@ -827,7 +819,7 @@ class RealTimeOptimizer:
         """Add a callback to be called when optimization completes."""
         self.optimization_callbacks.append(callback)
 
-    def get_optimization_status(self) -> Dict[str, Any]:
+    def get_optimization_status(self) -> dict[str, Any]:
         """Get current optimization status."""
 
         return {
@@ -884,7 +876,7 @@ class RealTimeOptimizer:
             return
 
         try:
-            with open(state_file, "r") as f:
+            with open(state_file) as f:
                 state = json.load(f)
 
             # Restore performance baselines
@@ -980,7 +972,7 @@ async def main():
 
     elif args.status:
         status = optimizer.get_optimization_status()
-        print(f"📊 Real-time Optimizer Status:")
+        print("📊 Real-time Optimizer Status:")
         print(f"  Active: {status['active']}")
         print(f"  Active Optimizations: {status['active_optimizations']}")
         print(f"  Feedback Buffer: {status['feedback_buffer_size']} items")

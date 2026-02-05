@@ -4,17 +4,14 @@ Implementation Readiness Validator
 Single unified validator for minimal implementation requirements
 """
 
-import os
-import sys
 import json
 import subprocess
-import re
+import sys
 from pathlib import Path
-from typing import Tuple, Optional
 
 
 class ImplementationReadinessValidator:
-    def __init__(self, repo_root: Optional[str] = None):
+    def __init__(self, repo_root: str | None = None):
         self.repo_root = Path(repo_root) if repo_root else Path.cwd()
         self.config = self._load_config()
 
@@ -36,7 +33,7 @@ class ImplementationReadinessValidator:
         try:
             import yaml
 
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 config = yaml.safe_load(f)
             return config.get("implementation_ready", {})
         except ImportError:
@@ -60,7 +57,7 @@ class ImplementationReadinessValidator:
                 }
             }
 
-    def check_beads_issue_exists(self) -> Tuple[bool, str]:
+    def check_beads_issue_exists(self) -> tuple[bool, str]:
         """Check if beads issue exists and is properly configured"""
         try:
             # Check if beads directory exists
@@ -73,7 +70,7 @@ class ImplementationReadinessValidator:
             issues_file = beads_dir / "issues.jsonl"
 
             if current_file.exists():
-                with open(current_file, "r") as f:
+                with open(current_file) as f:
                     current = json.load(f)
                     if current.get("id"):
                         return True, f"Current task: {current['id']}"
@@ -108,7 +105,7 @@ class ImplementationReadinessValidator:
                 pass
 
             if issues_file.exists():
-                with open(issues_file, "r") as f:
+                with open(issues_file) as f:
                     # Check last few lines for any open issues
                     lines = f.readlines()[-20:]  # Last 20 lines
                     for line in lines:
@@ -125,7 +122,7 @@ class ImplementationReadinessValidator:
         except Exception as e:
             return False, f"Error checking beads: {str(e)}"
 
-    def check_not_main_for_code_changes(self) -> Tuple[bool, str]:
+    def check_not_main_for_code_changes(self) -> tuple[bool, str]:
         """Check if not on main branch for code changes"""
         try:
             # Get current branch
@@ -213,7 +210,7 @@ class ImplementationReadinessValidator:
         # Default to code if unclear
         return True
 
-    def validate_all(self) -> Tuple[bool, str, dict]:
+    def validate_all(self) -> tuple[bool, str, dict]:
         """Run all validations and return combined result"""
         if not self.config.get("enabled", True):
             return True, "Implementation readiness validation disabled", {}

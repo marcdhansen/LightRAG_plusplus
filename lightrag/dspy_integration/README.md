@@ -6,7 +6,7 @@ This directory contains the phased DSPy integration approach for LightRAG.
 
 ### Goals:
 - Use DSPy optimizers to generate improved prompt variants
-- Feed optimized prompts back into existing AB testing framework  
+- Feed optimized prompts back into existing AB testing framework
 - Validate improvements with current metrics
 - No disruption to existing infrastructure
 

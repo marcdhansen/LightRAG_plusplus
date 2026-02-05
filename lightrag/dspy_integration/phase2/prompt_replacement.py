@@ -5,16 +5,14 @@ This module handles automated replacement of top-performing DSPy prompts,
 enabling seamless migration from existing prompts to optimized variants.
 """
 
-import os
-import json
-import shutil
 import asyncio
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+import json
 import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 from ..config import get_dspy_config
 from ..optimizers.ab_integration import DSPyABIntegration
@@ -42,7 +40,7 @@ class ReplacementCandidate:
     model: str
     performance_improvement: float
     confidence_score: float
-    validation_metrics: Dict[str, float]
+    validation_metrics: dict[str, float]
     risk_score: float
     status: ReplacementStatus = ReplacementStatus.PENDING
     created_at: datetime = None
@@ -51,7 +49,7 @@ class ReplacementCandidate:
         if self.created_at is None:
             self.created_at = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         data["status"] = self.status.value
@@ -59,7 +57,7 @@ class ReplacementCandidate:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ReplacementCandidate":
+    def from_dict(cls, data: dict[str, Any]) -> "ReplacementCandidate":
         """Create from dictionary."""
         if isinstance(data.get("status"), str):
             data["status"] = ReplacementStatus(data["status"])
@@ -84,7 +82,7 @@ class DeploymentConfig:
 class PromptReplacementPipeline:
     """Automated pipeline for replacing prompts with DSPy variants."""
 
-    def __init__(self, config: Optional[DeploymentConfig] = None):
+    def __init__(self, config: DeploymentConfig | None = None):
         self.config = config or DeploymentConfig()
         self.dspy_config = get_dspy_config()
         self.ab_integration = DSPyABIntegration()
@@ -102,8 +100,8 @@ class PromptReplacementPipeline:
         self.logger = logging.getLogger(__name__)
 
     async def identify_replacement_candidates(
-        self, days_back: int = 7, min_improvement: Optional[float] = None
-    ) -> List[ReplacementCandidate]:
+        self, days_back: int = 7, min_improvement: float | None = None
+    ) -> list[ReplacementCandidate]:
         """Identify candidates for prompt replacement based on performance."""
         min_improvement = min_improvement or self.config.min_improvement_threshold
 
@@ -164,7 +162,7 @@ class PromptReplacementPipeline:
 
         return candidates
 
-    def _find_original_prompt_for_model(self, model: str) -> Optional[str]:
+    def _find_original_prompt_for_model(self, model: str) -> str | None:
         """Find the original prompt used for a specific model."""
         # This would typically query the AB testing configuration
         # For now, we'll use a mapping based on model sizes
@@ -176,8 +174,8 @@ class PromptReplacementPipeline:
         return prompt_mappings.get(model)
 
     async def _get_baseline_performance(
-        self, prompt_name: str, model: str, days_back: int
-    ) -> Optional[float]:
+        self, prompt_name: str, _model: str, _days_back: int
+    ) -> float | None:
         """Get baseline performance for original prompt."""
         # This would query historical performance data
         # For now, return placeholder values
@@ -188,7 +186,7 @@ class PromptReplacementPipeline:
         }
         return baseline_scores.get(prompt_name, 0.65)
 
-    def _calculate_confidence_score(self, variant_data: Dict[str, Any]) -> float:
+    def _calculate_confidence_score(self, variant_data: dict[str, Any]) -> float:
         """Calculate confidence score based on data quality and sample size."""
         sample_size = variant_data.get("total_samples", 0)
         evaluation_count = variant_data.get("evaluation_count", 0)
@@ -202,7 +200,7 @@ class PromptReplacementPipeline:
         return sample_confidence + consistency_confidence
 
     def _calculate_risk_score(
-        self, variant_data: Dict[str, Any], improvement: float
+        self, variant_data: dict[str, Any], improvement: float
     ) -> float:
         """Calculate risk score for replacement."""
         # Risk from high variance (placeholder calculation)
@@ -219,8 +217,8 @@ class PromptReplacementPipeline:
         return min(1.0, risk_from_variance + risk_from_outlier + risk_from_sample_size)
 
     async def _get_validation_metrics(
-        self, variant: str, model: str, original_prompt: str
-    ) -> Dict[str, float]:
+        self, _variant: str, _model: str, _original_prompt: str
+    ) -> dict[str, float]:
         """Get detailed validation metrics for variant comparison."""
         # This would run a validation comparison
         # For now, return placeholder metrics
@@ -298,7 +296,7 @@ class PromptReplacementPipeline:
             return False
 
     async def _validate_model_compatibility(
-        self, candidate: ReplacementCandidate
+        self, _candidate: ReplacementCandidate
     ) -> bool:
         """Validate model compatibility for the candidate."""
         # Check if model supports the DSPy variant
@@ -308,7 +306,7 @@ class PromptReplacementPipeline:
     async def deploy_candidate(
         self,
         candidate: ReplacementCandidate,
-        rollout_percentage: Optional[float] = None,
+        rollout_percentage: float | None = None,
     ) -> bool:
         """Deploy a replacement candidate with gradual rollout."""
         if candidate.status != ReplacementStatus.APPROVED:
@@ -375,7 +373,6 @@ class PromptReplacementPipeline:
         # to gradually shift traffic to the new variant
 
         rollout_steps = [0.1, 0.25, 0.5, 0.75, 1.0]
-        current_rollout = 0.0
 
         for step in rollout_steps:
             if step > rollout_percentage:
@@ -393,7 +390,6 @@ class PromptReplacementPipeline:
                     self.logger.warning(f"Rollout health check failed at {step:.1%}")
                     return False
 
-                current_rollout = step
                 self.logger.info(f"Rollout progressed to {step:.1%}")
 
             except Exception as e:
@@ -412,7 +408,7 @@ class PromptReplacementPipeline:
             f"Updated AB weights: {candidate.dspy_variant} at {percentage:.1%}"
         )
 
-    async def _monitor_rollout_health(self, candidate: ReplacementCandidate) -> bool:
+    async def _monitor_rollout_health(self, _candidate: ReplacementCandidate) -> bool:
         """Monitor health during rollout."""
         # This would check performance metrics, error rates, etc.
         # For now, assume healthy
@@ -451,7 +447,7 @@ class PromptReplacementPipeline:
 
     async def run_automated_replacement(
         self, days_back: int = 7, max_deployments: int = 3, auto_deploy: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run the complete automated replacement pipeline."""
         self.logger.info("Starting automated prompt replacement pipeline")
 
@@ -566,8 +562,8 @@ async def main():
             auto_deploy=args.auto_deploy,
         )
 
-        print(f"✅ Automated replacement pipeline completed!")
-        print(f"📊 Summary:")
+        print("✅ Automated replacement pipeline completed!")
+        print("📊 Summary:")
         print(f"   Total candidates: {results['total_candidates']}")
         print(f"   Validated: {results['validated_candidates']}")
         print(f"   Deployed: {results['deployed_candidates']}")

@@ -44,7 +44,7 @@ def check_global_index_links():
         print(f"❌ Global index not found: {GLOBAL_INDEX_PATH}")
         sys.exit(1)
 
-    print(f"🔍 Checking links in GLOBAL_INDEX.md...")
+    print("🔍 Checking links in GLOBAL_INDEX.md...")
     print(f"📍 Global Index: {GLOBAL_INDEX_PATH}")
     print(f"📂 Project Root: {PROJECT_ROOT}")
 
@@ -70,7 +70,7 @@ def check_global_index_links():
                 print(f"  ✅ {link} -> {resolved_path}")
 
     # Report results
-    print(f"\n--- Results ---")
+    print("\n--- Results ---")
 
     if broken_links:
         print(f"❌ Found {len(broken_links)} broken links in GLOBAL_INDEX.md:")

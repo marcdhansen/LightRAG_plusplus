@@ -5,11 +5,11 @@ This module integrates DSPy with the ACE (Agentic Context Evolution) Chain-of-Th
 enabling optimized reasoning templates for graph verification and reflection tasks.
 """
 
+import asyncio
 import json
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
-from enum import Enum
+from typing import Any
 
 from ..config import get_dspy_config
 from ..optimizers.ab_integration import DSPyABIntegration
@@ -77,7 +77,7 @@ class CoTOptimizer:
 
     def _convert_template_to_dspy_module(
         self, template: str, task_type: str, depth_level: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Convert ACE CoT template to DSPy module format."""
 
         # Extract reasoning steps from template
@@ -99,7 +99,7 @@ class CoTOptimizer:
             "depth_level": depth_level,
         }
 
-    def _extract_reasoning_steps(self, template: str) -> List[str]:
+    def _extract_reasoning_steps(self, template: str) -> list[str]:
         """Extract structured reasoning steps from ACE template."""
         import re
 
@@ -127,7 +127,7 @@ class CoTOptimizer:
 
         return steps
 
-    def _infer_reasoning_steps(self, template: str) -> List[str]:
+    def _infer_reasoning_steps(self, template: str) -> list[str]:
         """Infer reasoning steps from unstructured template."""
         # Split by common section headers
         sections = []
@@ -149,8 +149,8 @@ class CoTOptimizer:
         return sections[:5]  # Limit to top 5 sections
 
     def _create_graph_verification_signature(
-        self, reasoning_steps: List[str]
-    ) -> Dict[str, Any]:
+        self, reasoning_steps: list[str]
+    ) -> dict[str, Any]:
         """Create DSPy signature for graph verification tasks."""
         return {
             "input_fields": [
@@ -166,20 +166,20 @@ class CoTOptimizer:
             "instructions": f"""
             Perform knowledge graph verification using the following reasoning steps:
             {chr(10).join(f"{i + 1}. {step}" for i, step in enumerate(reasoning_steps))}
-            
+
             Analyze entities and relationships against source text to identify:
             1. Entities not found in sources (hallucinations)
             2. Duplicate entities that should be merged
             3. Relationships not supported by sources
             4. Missing entities or relationships
-            
+
             Provide detailed reasoning for each decision and output actions in the specified JSON format.
             """,
         }
 
     def _create_general_reflection_signature(
-        self, reasoning_steps: List[str]
-    ) -> Dict[str, Any]:
+        self, reasoning_steps: list[str]
+    ) -> dict[str, Any]:
         """Create DSPy signature for general reflection tasks."""
         return {
             "input_fields": [
@@ -195,18 +195,18 @@ class CoTOptimizer:
             "instructions": f"""
             Perform reflection analysis using the following reasoning steps:
             {chr(10).join(f"{i + 1}. {step}" for i, step in enumerate(reasoning_steps))}
-            
+
             Evaluate the generated response across multiple dimensions:
             - Accuracy and factual correctness
             - Relevance to query
             - Completeness of coverage
             - Clarity and coherence
-            
+
             Provide detailed reasoning and generate actionable insights for improvement.
             """,
         }
 
-    def _create_generic_signature(self, reasoning_steps: List[str]) -> Dict[str, Any]:
+    def _create_generic_signature(self, reasoning_steps: list[str]) -> dict[str, Any]:
         """Create generic DSPy signature for other task types."""
         return {
             "input_fields": ["task_input", "context", "format_instructions"],
@@ -214,18 +214,18 @@ class CoTOptimizer:
             "instructions": f"""
             Process the task using the following reasoning steps:
             {chr(10).join(f"{i + 1}. {step}" for i, step in enumerate(reasoning_steps))}
-            
+
             Provide step-by-step reasoning and output in the specified format.
             """,
         }
 
     def _optimize_cot_module(
         self,
-        dspy_module: Dict[str, Any],
+        dspy_module: dict[str, Any],
         optimizer_name: str,
         task_type: str,
         depth_level: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Optimize CoT module using DSPy optimizer."""
 
         # This is a placeholder for the actual DSPy optimization
@@ -255,7 +255,7 @@ class CoTOptimizer:
 
     def _generate_few_shot_examples(
         self, task_type: str, depth_level: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate few-shot examples for the CoT module."""
 
         if task_type == "graph_verification":
@@ -267,7 +267,7 @@ class CoTOptimizer:
 
     def _generate_graph_verification_examples(
         self, depth_level: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate examples for graph verification tasks."""
         examples = [
             {
@@ -358,7 +358,7 @@ class CoTOptimizer:
 
         return examples
 
-    def _generate_reflection_examples(self, depth_level: str) -> List[Dict[str, Any]]:
+    def _generate_reflection_examples(self, _depth_level: str) -> list[dict[str, Any]]:
         """Generate examples for reflection tasks."""
         examples = [
             {
@@ -384,7 +384,7 @@ class CoTOptimizer:
 
         return examples
 
-    def _generate_generic_examples(self, depth_level: str) -> List[Dict[str, Any]]:
+    def _generate_generic_examples(self, _depth_level: str) -> list[dict[str, Any]]:
         """Generate generic examples for other task types."""
         return [
             {
@@ -418,7 +418,7 @@ class CoTOptimizer:
             # Return DSPy module format
             return json.dumps(dspy_module, indent=2)
 
-    def _convert_to_ace_template(self, dspy_module: Dict[str, Any]) -> str:
+    def _convert_to_ace_template(self, dspy_module: dict[str, Any]) -> str:
         """Convert optimized DSPy module back to ACE template format."""
 
         original_template = dspy_module.get("original_template", "")
@@ -449,7 +449,7 @@ class CoTOptimizer:
 
         return enhanced_template.strip()
 
-    def _format_examples_for_ace(self, examples: List[Dict[str, Any]]) -> str:
+    def _format_examples_for_ace(self, examples: list[dict[str, Any]]) -> str:
         """Format few-shot examples for ACE template."""
         if not examples:
             return "No examples generated."
@@ -469,7 +469,7 @@ class CoTOptimizer:
         return "\n".join(formatted_examples)
 
     def evaluate_cot_performance(
-        self, module_name: str, test_cases: List[Dict[str, Any]]
+        self, module_name: str, test_cases: list[dict[str, Any]]
     ) -> CoTPerformanceMetrics:
         """Evaluate performance of a CoT module."""
 
@@ -505,9 +505,9 @@ class CoTOptimizer:
     def get_best_cot_variant(
         self,
         task_type: str,
-        depth_level: Optional[str] = None,
+        depth_level: str | None = None,
         metric: str = "accuracy_score",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get the best performing CoT variant for a task."""
 
         candidates = []
@@ -526,7 +526,7 @@ class CoTOptimizer:
         best_module = max(candidates, key=lambda x: x[1])
         return best_module[0]
 
-    def create_ace_dspy_integration_config(self) -> Dict[str, Any]:
+    def create_ace_dspy_integration_config(self) -> dict[str, Any]:
         """Create configuration for ACE-DSPy integration."""
 
         integration_config = {
@@ -589,7 +589,7 @@ class ACECoTIntegration:
             f"Integrated {len(cot_modules)} DSPy-optimized CoT modules with ACE"
         )
 
-    def _create_optimized_ace_modules(self) -> Dict[str, Any]:
+    def _create_optimized_ace_modules(self) -> dict[str, Any]:
         """Create optimized CoT modules for ACE framework."""
 
         # Graph verification templates
@@ -862,7 +862,7 @@ Generate specific, actionable lessons:
         """
 
     def _register_cot_module_with_ace(
-        self, module_name: str, module_info: Dict[str, Any], ace_curator
+        self, module_name: str, module_info: dict[str, Any], _ace_curator
     ):
         """Register a CoT module with ACE curator."""
 
@@ -932,7 +932,7 @@ async def main():
             metrics = integration.optimizer.evaluate_cot_performance(
                 module_name, test_cases
             )
-            print(f"📊 Performance Metrics:")
+            print("📊 Performance Metrics:")
             print(f"   Accuracy: {metrics.accuracy_score:.2f}")
             print(f"   Reasoning Quality: {metrics.reasoning_quality:.2f}")
             print(f"   Efficiency: {metrics.efficiency_score:.2f}")

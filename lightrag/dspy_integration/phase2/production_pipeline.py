@@ -5,17 +5,17 @@ This module handles large-scale evaluation of DSPy prompts using production data
 enabling data-driven optimization and automated prompt replacement decisions.
 """
 
-import os
-import json
 import asyncio
+import json
+import logging
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from typing import Any
+
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import logging
 
 from ..config import get_dspy_config
 from ..evaluators.prompt_evaluator import DSPyPromptEvaluator
@@ -31,11 +31,11 @@ class ProductionExample:
     model: str
     timestamp: datetime
     source_prompt: str
-    expected_output: Optional[str] = None
-    actual_output: Optional[str] = None
-    metrics: Optional[Dict[str, float]] = None
+    expected_output: str | None = None
+    actual_output: str | None = None
+    metrics: dict[str, float] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         if isinstance(self.timestamp, datetime):
@@ -43,7 +43,7 @@ class ProductionExample:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ProductionExample":
+    def from_dict(cls, data: dict[str, Any]) -> "ProductionExample":
         """Create from dictionary."""
         if isinstance(data.get("timestamp"), str):
             data["timestamp"] = datetime.fromisoformat(data["timestamp"])
@@ -55,13 +55,13 @@ class EvaluationBatch:
     """Batch of production examples for evaluation."""
 
     batch_id: str
-    examples: List[ProductionExample]
-    dspy_variants: List[str]
-    models: List[str]
+    examples: list[ProductionExample]
+    dspy_variants: list[str]
+    models: list[str]
     created_at: datetime
     status: str = "pending"  # pending, running, completed, failed
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "batch_id": self.batch_id,
@@ -76,7 +76,7 @@ class EvaluationBatch:
 class ProductionDataPipeline:
     """Production data pipeline for large-scale DSPy evaluation."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         self.config = get_dspy_config()
         self.evaluator = DSPyPromptEvaluator()
         self.ab_integration = DSPyABIntegration()
@@ -140,9 +140,9 @@ class ProductionDataPipeline:
     async def collect_production_data(
         self,
         hours_back: int = 24,
-        models: Optional[List[str]] = None,
-        min_text_length: int = 100,
-    ) -> List[ProductionExample]:
+        models: list[str] | None = None,
+        _min_text_length: int = 100,
+    ) -> list[ProductionExample]:
         """Collect production data for evaluation.
 
         This is a placeholder implementation. In practice, this would:
@@ -219,16 +219,16 @@ class ProductionDataPipeline:
 
     async def create_evaluation_batch(
         self,
-        examples: List[ProductionExample],
-        dspy_variants: Optional[List[str]] = None,
+        examples: list[ProductionExample],
+        dspy_variants: list[str] | None = None,
         batch_size: int = 50,
-    ) -> List[EvaluationBatch]:
+    ) -> list[EvaluationBatch]:
         """Create evaluation batches from production examples."""
         if dspy_variants is None:
             dspy_variants = ["DSPY_A", "DSPY_B", "DSPY_C", "DSPY_D"]
 
         # Get unique models from examples
-        models = list(set(ex.model for ex in examples))
+        models = list({ex.model for ex in examples})
 
         # Split examples into batches
         batches = []
@@ -250,7 +250,7 @@ class ProductionDataPipeline:
 
     async def run_evaluation_batch(
         self, batch: EvaluationBatch, max_workers: int = 4
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run evaluation on a batch of production examples."""
         batch.status = "running"
         self._save_batch(batch)
@@ -310,8 +310,8 @@ class ProductionDataPipeline:
             raise
 
     def _evaluate_variant_on_batch(
-        self, variant: str, model: str, examples: List[ProductionExample]
-    ) -> Dict[str, Any]:
+        self, variant: str, model: str, examples: list[ProductionExample]
+    ) -> dict[str, Any]:
         """Evaluate a specific DSPy variant on a batch of examples."""
         results = {
             "variant": variant,
@@ -395,7 +395,7 @@ class ProductionDataPipeline:
         return results
 
     def _store_variant_performance(
-        self, task_key: str, variant_results: Dict[str, Any], batch_id: str
+        self, task_key: str, variant_results: dict[str, Any], batch_id: str
     ):
         """Store variant performance metrics in database."""
         if "error" in variant_results:
@@ -409,7 +409,7 @@ class ProductionDataPipeline:
                 if isinstance(stats, dict) and "mean" in stats:
                     conn.execute(
                         """
-                        INSERT INTO variant_performance 
+                        INSERT INTO variant_performance
                         (variant, model, metric_name, metric_value, sample_size, batch_id)
                         VALUES (?, ?, ?, ?, ?, ?)
                     """,
@@ -425,8 +425,8 @@ class ProductionDataPipeline:
             conn.commit()
 
     def _generate_batch_summary(
-        self, variant_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, variant_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate summary statistics for the batch."""
         summary = {
             "total_variants_evaluated": len(variant_results),
@@ -477,7 +477,7 @@ class ProductionDataPipeline:
         return summary
 
     def _save_batch(
-        self, batch: EvaluationBatch, results: Optional[Dict[str, Any]] = None
+        self, batch: EvaluationBatch, results: dict[str, Any] | None = None
     ):
         """Save batch status and results to database."""
         with sqlite3.connect(self.db_path) as conn:
@@ -498,7 +498,7 @@ class ProductionDataPipeline:
 
             conn.execute(
                 """
-                INSERT OR REPLACE INTO evaluation_batches 
+                INSERT OR REPLACE INTO evaluation_batches
                 (batch_id, examples, dspy_variants, models, created_at, started_at, completed_at, status, results)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -522,21 +522,21 @@ class ProductionDataPipeline:
         metric: str = "overall_score",
         days_back: int = 7,
         min_sample_size: int = 50,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get top performing DSPy variants from recent evaluations."""
         cutoff_date = datetime.now() - timedelta(days=days_back)
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 """
-                SELECT 
+                SELECT
                     variant,
                     model,
                     AVG(metric_value) as avg_metric,
                     SUM(sample_size) as total_samples,
                     COUNT(*) as evaluation_count
-                FROM variant_performance 
-                WHERE metric_name = ? 
+                FROM variant_performance
+                WHERE metric_name = ?
                 AND evaluated_at >= ?
                 AND total_samples >= ?
                 GROUP BY variant, model
@@ -563,10 +563,10 @@ class ProductionDataPipeline:
     async def run_production_evaluation(
         self,
         hours_back: int = 24,
-        models: Optional[List[str]] = None,
+        models: list[str] | None = None,
         batch_size: int = 50,
         max_workers: int = 4,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run complete production evaluation pipeline."""
         self.logger.info(f"Starting production evaluation for last {hours_back} hours")
 
@@ -619,13 +619,13 @@ class ProductionDataPipeline:
 
         return summary
 
-    async def _store_examples(self, examples: List[ProductionExample]):
+    async def _store_examples(self, examples: list[ProductionExample]):
         """Store production examples in database."""
         with sqlite3.connect(self.db_path) as conn:
             for example in examples:
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO production_examples 
+                    INSERT OR REPLACE INTO production_examples
                     (example_id, text, model, timestamp, source_prompt, expected_output, actual_output, metrics)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -683,7 +683,7 @@ async def main():
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
 
-    print(f"✅ Production evaluation completed!")
+    print("✅ Production evaluation completed!")
     print(f"📊 Results saved to: {results_path}")
     print(
         f"🏆 Top performing variant: {results['top_variants'][0] if results['top_variants'] else 'None'}"

@@ -72,7 +72,7 @@ lightrag/dspy_integration/
    - Optimized for: Small models (1.5b), medium models (3b)
 
 2. **DSPY_B** (`dspy_predict_lite_BootstrapFewShot`)
-   - Simple Predict with BootstrapFewShot optimization  
+   - Simple Predict with BootstrapFewShot optimization
    - Optimized for: All model sizes (highest weight)
 
 3. **DSPY_C** (`dspy_program_of_thought_MIPROv2`)
@@ -139,7 +139,7 @@ export ANTHROPIC_API_KEY=your_key_here       # Alternative API
 ### Performance Improvements (Projected)
 Based on DSPy research and our initial evaluation:
 - **15-25% improvement** in entity F1 scores
-- **10-20% improvement** in relationship F1 scores  
+- **10-20% improvement** in relationship F1 scores
 - **30-40% reduction** in hallucination rates
 - **20-30% improvement** in format compliance
 - **5-15% latency reduction** through optimized prompts

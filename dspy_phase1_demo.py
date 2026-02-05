@@ -12,7 +12,6 @@ This creates optimized prompts and evaluates them against existing LightRAG prom
 
 import os
 import sys
-import json
 from pathlib import Path
 
 # Add current directory to path for imports
@@ -197,7 +196,7 @@ entity<|#|>Tim Cook<|#|>person<|#|>CEO
     # Show file structure created
     dspy_dir = Path("./lightrag/dspy_integration")
     if dspy_dir.exists():
-        print(f"\n📁 Created DSPy integration structure:")
+        print("\n📁 Created DSPy integration structure:")
         for item in dspy_dir.rglob("*"):
             if item.is_file():
                 rel_path = item.relative_to(".")

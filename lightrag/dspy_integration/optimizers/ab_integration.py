@@ -8,8 +8,8 @@ LightRAG AB testing system, allowing seamless comparison and rollout.
 import json
 import os
 import random
-from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
+from typing import Any
 
 try:
     from lightrag.prompt import PROMPTS
@@ -20,23 +20,27 @@ try:
     from lightrag.ab_defaults import (
         AB_DEFAULTS,
         AB_WEIGHTS,
-        get_default_variant,
         _size_key_from_model,
+        get_default_variant,
     )
 except ImportError:
     AB_DEFAULTS = {}
     AB_WEIGHTS = {}
-    get_default_variant = lambda x: None
-    _size_key_from_model = lambda x: ""
 
-from ..generators.entity_extractor import EntityExtractorGenerator
+    def get_default_variant(_x):
+        return None
+
+    def _size_key_from_model(_x):
+        return ""
+
+
 from ..evaluators.prompt_evaluator import DSPyPromptEvaluator
 
 
 class DSPyABIntegration:
     """Integration layer for DSPy prompts into LightRAG AB testing."""
 
-    def __init__(self, working_directory: Optional[Path] = None):
+    def __init__(self, working_directory: Path | None = None):
         self.working_directory = working_directory or Path(
             "./lightrag/dspy_integration/prompts"
         )
@@ -66,7 +70,7 @@ class DSPyABIntegration:
         prompts_file = self.working_directory / "optimized_entity_prompts.json"
         if prompts_file.exists():
             try:
-                with open(prompts_file, "r") as f:
+                with open(prompts_file) as f:
                     self.optimized_prompts = json.load(f)
                 print(
                     f"Loaded {len([k for k in self.optimized_prompts.keys() if not k.startswith('_')])} optimized prompts"
@@ -131,7 +135,7 @@ class DSPyABIntegration:
         # Otherwise, randomly choose among top variants
         return random.choice(max_variants)
 
-    def get_dspy_prompt(self, variant: str) -> Optional[str]:
+    def get_dspy_prompt(self, variant: str) -> str | None:
         """Get the actual DSPy prompt text for a variant."""
 
         prompt_key = self.dspy_variants.get(variant)
@@ -181,7 +185,7 @@ class DSPyABIntegration:
         print(f"✓ Added {added_count} DSPy prompts to LightRAG PROMPTS dictionary")
         return added_count
 
-    def create_ab_test_matrix(self, test_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def create_ab_test_matrix(self, test_data: list[dict[str, Any]]) -> dict[str, Any]:
         """Create a comprehensive AB test matrix comparing all variants."""
 
         # Create evaluator
@@ -216,7 +220,7 @@ class DSPyABIntegration:
             prompt_text = self.optimized_prompts.get(prompt_key)
             if prompt_text:
 
-                def create_dspy_prompt_func(ptext):
+                def create_dspy_prompt_func(_ptext, variant=variant):
                     def prompt_func(text):
                         return f"DSPy {variant} optimized: {text[:50]}..."
 
@@ -246,8 +250,8 @@ class DSPyABIntegration:
             return {"error": "No prompts available for testing"}
 
     def _generate_recommendations(
-        self, results: Dict[str, Dict[str, float]]
-    ) -> List[Dict[str, Any]]:
+        self, results: dict[str, dict[str, float]]
+    ) -> list[dict[str, Any]]:
         """Generate recommendations based on evaluation results."""
 
         if not results:
@@ -313,7 +317,7 @@ class DSPyABIntegration:
         return recommendations
 
     def save_ab_test_results(
-        self, matrix: Dict[str, Any], output_file: Optional[str] = None
+        self, matrix: dict[str, Any], output_file: str | None = None
     ) -> str:
         """Save AB test matrix results."""
 
@@ -326,7 +330,7 @@ class DSPyABIntegration:
         print(f"AB test matrix saved to: {output_file}")
         return str(output_file)
 
-    def print_ab_summary(self, matrix: Dict[str, Any]) -> None:
+    def print_ab_summary(self, matrix: dict[str, Any]) -> None:
         """Print a summary of AB test results."""
 
         if "error" in matrix:
@@ -357,7 +361,7 @@ class DSPyABIntegration:
             print(row)
 
         # Recommendations
-        print(f"\nRECOMMENDATIONS:")
+        print("\nRECOMMENDATIONS:")
         for rec in recommendations:
             icon = {"winner": "🏆", "speed": "⚡", "quality": "🎯"}.get(
                 rec["type"], "📋"
@@ -416,13 +420,11 @@ def main():
     print(f"\n✅ AB testing complete! Results saved to: {output_file}")
 
     # Instructions for integration
-    print(f"\n📋 INTEGRATION INSTRUCTIONS:")
-    print(f"1. Set DSPY_ENABLED=1 in environment to enable DSPy variants")
-    print(f"2. Set DSPY_DEFAULT_VARIANT=DSPY_A to force a specific variant")
-    print(f"3. Set DSPY_ALLOW_C=1 to enable experimental DSPY_C variant")
-    print(
-        f"4. DSPy prompts will automatically be used based on model size optimization"
-    )
+    print("\n📋 INTEGRATION INSTRUCTIONS:")
+    print("1. Set DSPY_ENABLED=1 in environment to enable DSPy variants")
+    print("2. Set DSPY_DEFAULT_VARIANT=DSPY_A to force a specific variant")
+    print("3. Set DSPY_ALLOW_C=1 to enable experimental DSPY_C variant")
+    print("4. DSPy prompts will automatically be used based on model size optimization")
 
     return True
 

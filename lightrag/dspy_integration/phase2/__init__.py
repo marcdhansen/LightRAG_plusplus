@@ -7,23 +7,23 @@ integrating all components into a comprehensive production-ready optimization sy
 
 import asyncio
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import logging
+from typing import Any
 
-from .production_pipeline import ProductionDataPipeline
-from .realtime_monitoring import RealTimeMonitor, get_global_monitor
-from .prompt_replacement import PromptReplacementPipeline
 from .ace_cot_integration import ACECoTIntegration
+from .production_pipeline import ProductionDataPipeline
 from .prompt_family_optimization import PromptFamilyOptimizer
-from .realtime_optimizer import RealTimeOptimizer, OptimizationConfig
+from .prompt_replacement import PromptReplacementPipeline
+from .realtime_monitoring import get_global_monitor
+from .realtime_optimizer import OptimizationConfig, RealTimeOptimizer
 
 
 class DSPyPhase2Manager:
     """Main manager for DSPy Phase 2 integration."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class DSPyPhase2Manager:
 
             # Setup real-time monitoring alerts
             self.logger.info("📡 Setting up real-time monitoring...")
-            from .realtime_monitoring import setup_default_alerts, log_alert_callback
+            from .realtime_monitoring import log_alert_callback, setup_default_alerts
 
             setup_default_alerts(self.global_monitor)
             self.global_monitor.add_alert_callback(log_alert_callback)
@@ -140,7 +140,7 @@ class DSPyPhase2Manager:
         hours_back: int = 24,
         optimize_families: bool = True,
         deploy_improvements: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run a complete DSPy Phase 2 evaluation cycle."""
 
         self.logger.info(f"🔄 Running full evaluation (last {hours_back} hours)...")
@@ -166,7 +166,7 @@ class DSPyPhase2Manager:
             # Step 2: Prompt family optimization
             if optimize_families:
                 self.logger.info("🎯 Step 2: Prompt family optimization...")
-                from .prompt_family_optimization import PromptFamily
+                pass
 
                 family_results = await self.family_optimizer.optimize_all_families(
                     models=["1.5b", "3b", "7b"], parallel=True
@@ -212,7 +212,7 @@ class DSPyPhase2Manager:
 
         return results
 
-    async def get_system_status(self) -> Dict[str, Any]:
+    async def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive system status."""
 
         status = {
@@ -238,7 +238,7 @@ class DSPyPhase2Manager:
         model: str,
         feedback_score: float,
         feedback_type: str = "quality",
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Add production feedback to the optimization system."""
 
@@ -252,7 +252,7 @@ class DSPyPhase2Manager:
         model: str,
         latency_ms: float,
         success: bool = True,
-        quality_score: Optional[float] = None,
+        quality_score: float | None = None,
     ):
         """Add production metrics to the monitoring system."""
 
@@ -269,7 +269,7 @@ class DSPyPhase2Manager:
 
         await self.realtime_optimizer.add_performance_metric(metrics)
 
-    async def _save_evaluation_results(self, results: Dict[str, Any]):
+    async def _save_evaluation_results(self, results: dict[str, Any]):
         """Save evaluation results to file."""
 
         results_file = Path(f"dspy_phase2_evaluation_{results['evaluation_id']}.json")
@@ -278,7 +278,7 @@ class DSPyPhase2Manager:
 
         self.logger.info(f"📁 Evaluation results saved to {results_file}")
 
-    def get_deployment_recommendations(self) -> List[Dict[str, Any]]:
+    def get_deployment_recommendations(self) -> list[dict[str, Any]]:
         """Get deployment recommendations based on current analysis."""
 
         recommendations = []
@@ -331,11 +331,11 @@ class DSPyPhase2Manager:
 
 
 # Global manager instance
-_global_manager: Optional[DSPyPhase2Manager] = None
+_global_manager: DSPyPhase2Manager | None = None
 
 
 def get_dspy_phase2_manager(
-    config: Optional[Dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> DSPyPhase2Manager:
     """Get or create the global DSPy Phase 2 manager."""
     global _global_manager

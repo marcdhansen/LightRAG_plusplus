@@ -5,18 +5,18 @@ This module extends DSPy optimization to all prompt families beyond entity extra
 including summarization, query processing, document analysis, and more.
 """
 
-import json
 import asyncio
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Type
-from dataclasses import dataclass, asdict
-from enum import Enum
+import json
 import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any
 
 from ..config import get_dspy_config
-from ..generators.entity_extractor import DSPyEntityExtractor
 from ..evaluators.prompt_evaluator import DSPyPromptEvaluator
+from ..generators.entity_extractor import DSPyEntityExtractor
 
 
 class PromptFamily(Enum):
@@ -37,10 +37,10 @@ class PromptFamilyConfig:
     """Configuration for a prompt family."""
 
     family: PromptFamily
-    base_prompts: Dict[str, str]  # model_name -> base_prompt
-    dspy_variants: Dict[str, str]  # variant_name -> dspy_module_name
-    optimization_targets: List[str]  # metrics to optimize
-    evaluation_datasets: List[str]  # dataset names for evaluation
+    base_prompts: dict[str, str]  # model_name -> base_prompt
+    dspy_variants: dict[str, str]  # variant_name -> dspy_module_name
+    optimization_targets: list[str]  # metrics to optimize
+    evaluation_datasets: list[str]  # dataset names for evaluation
     optimization_schedule: str  # 'daily', 'weekly', 'monthly'
 
 
@@ -51,8 +51,8 @@ class OptimizationResult:
     family: PromptFamily
     variant_name: str
     model: str
-    baseline_performance: Dict[str, float]
-    optimized_performance: Dict[str, float]
+    baseline_performance: dict[str, float]
+    optimized_performance: dict[str, float]
     improvement_percentage: float
     optimization_time: timedelta
     sample_size: int
@@ -77,7 +77,7 @@ class PromptFamilyOptimizer:
         self.optimization_history = {}
         self.active_optimizations = {}
 
-    def _initialize_families(self) -> Dict[PromptFamily, PromptFamilyConfig]:
+    def _initialize_families(self) -> dict[PromptFamily, PromptFamilyConfig]:
         """Initialize all prompt families with their configurations."""
 
         families = {
@@ -213,9 +213,9 @@ class PromptFamilyOptimizer:
     async def optimize_family(
         self,
         family: PromptFamily,
-        models: Optional[List[str]] = None,
+        models: list[str] | None = None,
         optimizer_name: str = "BootstrapFewShot",
-    ) -> List[OptimizationResult]:
+    ) -> list[OptimizationResult]:
         """Optimize all prompts for a specific family."""
 
         if models is None:
@@ -289,7 +289,7 @@ class PromptFamilyOptimizer:
 
     async def _evaluate_baseline(
         self, family: PromptFamily, prompt: str, model: str
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Evaluate baseline prompt performance."""
 
         # Create test data based on family
@@ -308,7 +308,7 @@ class PromptFamilyOptimizer:
 
     async def _create_dspy_variants(
         self, family: PromptFamily, base_prompt: str, model: str, optimizer_name: str
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Create DSPy-optimized variants for a prompt family."""
 
         variants = {}
@@ -319,7 +319,7 @@ class PromptFamilyOptimizer:
             extractor = DSPyEntityExtractor()
             dspy_modules = extractor.create_dspy_modules()
 
-            for module_name, module in dspy_modules.items():
+            for module_name, _module in dspy_modules.items():
                 variants[f"dspy_{module_name}"] = module_name
 
         else:
@@ -333,8 +333,8 @@ class PromptFamilyOptimizer:
         return variants
 
     async def _create_family_specific_modules(
-        self, family: PromptFamily, base_prompt: str, model: str, optimizer_name: str
-    ) -> Dict[str, str]:
+        self, family: PromptFamily, _base_prompt: str, _model: str, optimizer_name: str
+    ) -> dict[str, str]:
         """Create DSPy modules for specific prompt families."""
 
         modules = {}
@@ -380,10 +380,10 @@ class PromptFamilyOptimizer:
     async def _evaluate_variants(
         self,
         family: PromptFamily,
-        variants: Dict[str, str],
+        variants: dict[str, str],
         model: str,
-        target_metrics: List[str],
-    ) -> Tuple[str, Dict[str, float]]:
+        target_metrics: list[str],
+    ) -> tuple[str, dict[str, float]]:
         """Evaluate all variants and return the best one."""
 
         test_data = await self._generate_test_data(family, sample_size=100)
@@ -423,7 +423,7 @@ class PromptFamilyOptimizer:
 
     async def _generate_test_data(
         self, family: PromptFamily, sample_size: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate test data for a specific prompt family."""
 
         test_data = []
@@ -472,10 +472,10 @@ class PromptFamilyOptimizer:
 
     async def _evaluate_metric(
         self,
-        family: PromptFamily,
+        _family: PromptFamily,
         prompt: str,
         model: str,
-        test_data: List[Dict[str, Any]],
+        test_data: list[dict[str, Any]],
         metric: str,
     ) -> float:
         """Evaluate a specific metric for a prompt."""
@@ -524,7 +524,7 @@ class PromptFamilyOptimizer:
 
         return sum(scores) / len(scores) if scores else 0.0
 
-    async def _run_prompt(self, prompt: str, input_text: str, model: str) -> str:
+    async def _run_prompt(self, _prompt: str, input_text: str, _model: str) -> str:
         """Run a prompt and get the result."""
         # This would use the actual LLM through LightRAG
         # For now, return a simulated result
@@ -573,8 +573,8 @@ class PromptFamilyOptimizer:
 
         elif rouge_type == "rouge_2":
             # Bigram overlap
-            pred_bigrams = set(zip(pred_tokens[:-1], pred_tokens[1:]))
-            exp_bigrams = set(zip(exp_tokens[:-1], exp_tokens[1:]))
+            pred_bigrams = set(zip(pred_tokens[:-1], pred_tokens[1:], strict=False))
+            exp_bigrams = set(zip(exp_tokens[:-1], exp_tokens[1:], strict=False))
             intersection = pred_bigrams.intersection(exp_bigrams)
             score = len(intersection) / len(exp_bigrams) if exp_bigrams else 0.0
 
@@ -588,7 +588,7 @@ class PromptFamilyOptimizer:
 
         return score
 
-    def _calculate_lcs_length(self, seq1: List[str], seq2: List[str]) -> int:
+    def _calculate_lcs_length(self, seq1: list[str], seq2: list[str]) -> int:
         """Calculate length of longest common subsequence."""
         m, n = len(seq1), len(seq2)
         dp = [[0] * (n + 1) for _ in range(m + 1)]
@@ -654,7 +654,7 @@ class PromptFamilyOptimizer:
         return overlap / len(exp_words)
 
     def _calculate_improvement(
-        self, baseline: Dict[str, float], optimized: Dict[str, float]
+        self, baseline: dict[str, float], optimized: dict[str, float]
     ) -> float:
         """Calculate percentage improvement over baseline."""
 
@@ -671,7 +671,7 @@ class PromptFamilyOptimizer:
         return sum(improvements) / len(improvements) if improvements else 0.0
 
     def _calculate_overall_score(
-        self, performance: Dict[str, float], family: PromptFamily
+        self, performance: dict[str, float], family: PromptFamily
     ) -> float:
         """Calculate overall score for a variant."""
 
@@ -705,15 +705,15 @@ class PromptFamilyOptimizer:
 
         return overall_score / total_weight if total_weight > 0 else 0.0
 
-    async def _get_dspy_prompt(self, module_name: str) -> Optional[str]:
+    async def _get_dspy_prompt(self, module_name: str) -> str | None:
         """Get DSPy prompt for a module name."""
         # This would retrieve the actual DSPy prompt
         # For now, return a simulated prompt
         return f"DSPy optimized prompt for {module_name}"
 
     async def optimize_all_families(
-        self, models: Optional[List[str]] = None, parallel: bool = True
-    ) -> Dict[PromptFamily, List[OptimizationResult]]:
+        self, models: list[str] | None = None, parallel: bool = True
+    ) -> dict[PromptFamily, list[OptimizationResult]]:
         """Optimize all prompt families."""
 
         all_results = {}
@@ -727,7 +727,9 @@ class PromptFamilyOptimizer:
 
             results_list = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for i, (family, result) in enumerate(zip(PromptFamily, results_list)):
+            for _i, (family, result) in enumerate(
+                zip(PromptFamily, results_list, strict=False)
+            ):
                 if isinstance(result, Exception):
                     self.logger.error(f"Failed to optimize {family.value}: {result}")
                     all_results[family] = []
@@ -750,7 +752,7 @@ class PromptFamilyOptimizer:
         return all_results
 
     async def _save_optimization_results(
-        self, all_results: Dict[PromptFamily, List[OptimizationResult]]
+        self, all_results: dict[PromptFamily, list[OptimizationResult]]
     ):
         """Save optimization results to file."""
 
@@ -774,7 +776,7 @@ class PromptFamilyOptimizer:
 
         self.logger.info(f"Optimization results saved to {results_file}")
 
-    def get_optimization_summary(self) -> Dict[str, Any]:
+    def get_optimization_summary(self) -> dict[str, Any]:
         """Get summary of optimization history and performance."""
 
         summary = {
@@ -868,7 +870,7 @@ async def main():
             models=args.models, parallel=args.parallel
         )
 
-        print(f"✅ Optimization completed!")
+        print("✅ Optimization completed!")
         for family, family_results in results.items():
             if family_results:
                 avg_improvement = sum(
@@ -880,7 +882,7 @@ async def main():
 
         # Show summary
         summary = optimizer.get_optimization_summary()
-        print(f"\n📊 Overall Statistics:")
+        print("\n📊 Overall Statistics:")
         print(f"  Total families: {summary['total_families']}")
         print(
             f"  Average improvement: {summary['overall_stats']['average_improvement']:.1%}"
@@ -902,7 +904,7 @@ async def main():
         print("❌ Please specify --family or --all")
         return
 
-    print(f"📁 Detailed results saved to: prompt_family_optimization_results.json")
+    print("📁 Detailed results saved to: prompt_family_optimization_results.json")
 
 
 if __name__ == "__main__":

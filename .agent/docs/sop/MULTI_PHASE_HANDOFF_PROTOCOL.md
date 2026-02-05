@@ -359,10 +359,10 @@ git tag phase-XX-complete
 
 ---
 
-**Status**: MANDATORY SOP  
-**Version**: 1.0.0  
-**Last Updated**: 2026-02-05  
-**Enforcement**: Automated verification blocks phase transitions  
-**Quality Assurance**: Reflect and Mission Debriefing evaluation includes hand-off quality  
+**Status**: MANDATORY SOP
+**Version**: 1.0.0
+**Last Updated**: 2026-02-05
+**Enforcement**: Automated verification blocks phase transitions
+**Quality Assurance**: Reflect and Mission Debriefing evaluation includes hand-off quality
 
 For questions or improvements, create a beads task with `handoff-sop` tag.

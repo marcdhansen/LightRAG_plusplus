@@ -5,13 +5,13 @@ This module provides comprehensive evaluation capabilities to compare
 DSPy-optimized prompts with existing LightRAG prompts.
 """
 
-import re
 import json
 import time
-from typing import Dict, List, Any, Tuple, Optional
-from pathlib import Path
-import numpy as np
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import numpy as np
 
 # Import DSPy components
 try:
@@ -51,7 +51,7 @@ class LightRAGEvaluator:
         self.tuple_delimiter = "<|#|>"
         self.completion_delimiter = "<|COMPLETE|>"
 
-    def parse_extraction_output(self, output: str) -> Dict[str, List[Dict[str, str]]]:
+    def parse_extraction_output(self, output: str) -> dict[str, list[dict[str, str]]]:
         """Parse LightRAG tuple-delimited output into structured data."""
 
         entities = []
@@ -87,8 +87,8 @@ class LightRAGEvaluator:
         return {"entities": entities, "relationships": relationships}
 
     def calculate_entity_metrics(
-        self, predicted: List[Dict[str, str]], expected: List[Dict[str, str]]
-    ) -> Tuple[float, float, float]:
+        self, predicted: list[dict[str, str]], expected: list[dict[str, str]]
+    ) -> tuple[float, float, float]:
         """Calculate entity-level precision, recall, and F1."""
 
         if not predicted and not expected:
@@ -127,8 +127,8 @@ class LightRAGEvaluator:
         return precision, recall, f1
 
     def calculate_relationship_metrics(
-        self, predicted: List[Dict[str, str]], expected: List[Dict[str, str]]
-    ) -> Tuple[float, float, float]:
+        self, predicted: list[dict[str, str]], expected: list[dict[str, str]]
+    ) -> tuple[float, float, float]:
         """Calculate relationship-level precision, recall, and F1."""
 
         if not predicted and not expected:
@@ -199,7 +199,7 @@ class LightRAGEvaluator:
         return max(0.0, score)
 
     def detect_hallucinations(
-        self, predicted: Dict[str, List[Dict[str, str]]], source_text: str
+        self, predicted: dict[str, list[dict[str, str]]], source_text: str
     ) -> float:
         """Simple hallucination detection based on source text presence."""
 
@@ -232,14 +232,14 @@ class LightRAGEvaluator:
 class DSPyPromptEvaluator:
     """Evaluator for comparing DSPy-optimized prompts with existing prompts."""
 
-    def __init__(self, working_directory: Optional[Path] = None):
+    def __init__(self, working_directory: Path | None = None):
         self.working_directory = working_directory or Path(
             "./lightrag/dspy_integration/evaluators"
         )
         self.working_directory.mkdir(parents=True, exist_ok=True)
         self.lightrag_evaluator = LightRAGEvaluator()
 
-    def create_evaluation_dataset(self, num_samples: int = 20) -> List[Dict[str, Any]]:
+    def create_evaluation_dataset(self, num_samples: int = 20) -> list[dict[str, Any]]:
         """Create a dataset for prompt evaluation."""
 
         evaluation_data = [
@@ -404,8 +404,8 @@ class DSPyPromptEvaluator:
         return evaluation_data[:num_samples]
 
     def evaluate_prompt_function(
-        self, prompt_function, test_data: List[Dict[str, Any]], prompt_name: str
-    ) -> List[EvaluationMetrics]:
+        self, prompt_function, test_data: list[dict[str, Any]], prompt_name: str
+    ) -> list[EvaluationMetrics]:
         """Evaluate a prompt function on test data."""
 
         results = []
@@ -418,7 +418,7 @@ class DSPyPromptEvaluator:
                 start_time = time.time()
 
                 # Call the prompt function
-                if hasattr(prompt_function, "__call__"):
+                if callable(prompt_function):
                     # DSPy module
                     output = prompt_function(
                         text=test_case["text"],
@@ -496,8 +496,8 @@ class DSPyPromptEvaluator:
         return results
 
     def compare_prompts(
-        self, prompts_to_test: Dict[str, Any], test_data: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, float]]:
+        self, prompts_to_test: dict[str, Any], test_data: list[dict[str, Any]]
+    ) -> dict[str, dict[str, float]]:
         """Compare multiple prompts and return aggregated results."""
 
         comparison_results = {}
@@ -537,7 +537,7 @@ class DSPyPromptEvaluator:
         return comparison_results
 
     def save_evaluation_results(
-        self, results: Dict[str, Dict[str, float]], output_file: Optional[str] = None
+        self, results: dict[str, dict[str, float]], output_file: str | None = None
     ) -> str:
         """Save evaluation results to file."""
 
@@ -573,7 +573,7 @@ class DSPyPromptEvaluator:
         print(f"Evaluation results saved to: {output_file}")
         return str(output_file)
 
-    def print_comparison_table(self, results: Dict[str, Dict[str, float]]) -> None:
+    def print_comparison_table(self, results: dict[str, dict[str, float]]) -> None:
         """Print a formatted comparison table of results."""
 
         print("\n" + "=" * 80)
@@ -625,10 +625,10 @@ def main():
     # Add existing LightRAG prompts
     if PROMPTS:
 
-        def lightrag_default_prompt(text):
+        def lightrag_default_prompt(_text):
             return "This would use the existing LightRAG prompt (simulated)"
 
-        def lightrag_variant_a_prompt(text):
+        def lightrag_variant_a_prompt(_text):
             return "This would use LightRAG variant A (simulated)"
 
         prompts_to_test["lightrag_default"] = lightrag_default_prompt

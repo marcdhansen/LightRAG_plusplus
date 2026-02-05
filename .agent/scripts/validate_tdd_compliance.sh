@@ -52,18 +52,18 @@ is_feature_session() {
 # Function to validate beads issue exists
 validate_beads_issue() {
     local feature_name=$1
-    
+
     log_validation "INFO" "Validating beads issue for feature: $feature_name"
-    
+
     # Check if beads is available
     if ! command -v bd &> /dev/null; then
         log_validation "ERROR" "Beads (bd) command not available - required for TDD validation"
         return 1
     fi
-    
+
     # Search for beads issue related to feature
     local issue_count=$(bd list --all 2>/dev/null | grep -i "$feature_name" | wc -l || echo "0")
-    
+
     if [[ $issue_count -eq 0 ]]; then
         log_validation "ERROR" "No beads issue found for feature: $feature_name"
         echo "  Required: Create beads issue before starting development"
@@ -78,11 +78,11 @@ validate_beads_issue() {
 # Function to validate git branch usage
 validate_git_branch() {
     local feature_name=$1
-    
+
     log_validation "INFO" "Validating git branch usage for feature: $feature_name"
-    
+
     local current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-    
+
     # Block work on main/master branch for new features
     if [[ "$current_branch" == "main" ]] || [[ "$current_branch" == "master" ]]; then
         log_validation "ERROR" "Cannot develop new features on main/master branch"
@@ -91,13 +91,13 @@ validate_git_branch() {
         echo "  Command: git checkout -b feature/$feature_name"
         return 1
     fi
-    
+
     # Check if branch is feature-related
     if [[ ! "$current_branch" =~ ^(feature|agent|task|feat|fix)/ ]]; then
         log_validation "WARN" "Branch does not follow feature naming convention: $current_branch"
         echo "  Recommended: feature/$feature_name or agent/<name>/task-<id>"
     fi
-    
+
     log_validation "SUCCESS" "Git branch validation passed: $current_branch"
     return 0
 }
@@ -105,19 +105,19 @@ validate_git_branch() {
 # Function to validate git worktree usage
 validate_git_worktree() {
     local feature_name=$1
-    
+
     log_validation "INFO" "Validating git worktree usage"
-    
+
     # Check if worktrees are being used appropriately
     local worktree_count=$(git worktree list 2>/dev/null | wc -l || echo "0")
-    
+
     if [[ $worktree_count -gt 1 ]]; then
         log_validation "INFO" "Multiple worktrees detected ($worktree_count)"
-        
+
         # Check if current worktree is properly isolated
         local current_path=$(pwd)
         local main_worktree=$(git worktree list --porcelain 2>/dev/null | grep "^worktree" | head -1 | cut -d' ' -f2)
-        
+
         if [[ "$current_path" == "$main_worktree" ]]; then
             log_validation "WARN" "Working in main worktree - consider using isolated worktree for feature development"
         else
@@ -126,7 +126,7 @@ validate_git_worktree() {
     else
         log_validation "INFO" "Single worktree configuration detected"
     fi
-    
+
     return 0
 }
 
@@ -335,7 +335,7 @@ validate_tdd_timeline() {
 
     # Check for beads issue references in commits
     local beads_refs=$(git log --oneline --grep="lightrag-" --grep-count || echo "0")
-    
+
     # Check branch creation vs implementation timing
     local branch_creation=$(git log --oneline --since="1 week ago" --grep="branch\|create.*branch" --grep-count || echo "0")
 
@@ -367,11 +367,11 @@ validate_tdd_timeline() {
     # Validate commit order (tests should precede implementation)
     local first_test_commit=$(git log --oneline --grep="test\|TDD" --reverse | head -1 | cut -d' ' -f1)
     local first_impl_commit=$(git log --oneline --grep="implement\|feat\|fix" --reverse | head -1 | cut -d' ' -f1)
-    
+
     if [[ -n "$first_test_commit" && -n "$first_impl_commit" ]]; then
         local test_date=$(git show -s --format=%ct "$first_test_commit" 2>/dev/null || echo "0")
         local impl_date=$(git show -s --format=%ct "$first_impl_commit" 2>/dev/null || echo "0")
-        
+
         if [[ $test_date -gt $impl_date ]]; then
             log_validation "ERROR" "Implementation commits appear before test commits - violates TDD"
             echo "  First implementation: $first_impl_commit"

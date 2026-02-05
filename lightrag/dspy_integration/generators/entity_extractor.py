@@ -5,11 +5,11 @@ This module creates DSPy-based entity extraction modules and optimizes them
 to generate improved prompt variants for integration with LightRAG's AB testing framework.
 """
 
-import os
 import json
-from typing import List, Dict, Any, Optional, Tuple
-import dspy
 from pathlib import Path
+from typing import Any
+
+import dspy
 
 from ..config import get_dspy_config
 
@@ -38,7 +38,7 @@ class RelationshipExtractionSignature(dspy.Signature):
     """DSPy signature for focused relationship extraction."""
 
     text: str = dspy.InputField(desc="Text containing relationships between entities")
-    entities: List[Dict[str, str]] = dspy.InputField(
+    entities: list[dict[str, str]] = dspy.InputField(
         desc="List of pre-extracted entities"
     )
     tuple_delimiter: str = dspy.InputField(desc="Delimiter for separating fields")
@@ -85,14 +85,14 @@ class EntityExtractionModule(dspy.Module):
 class EntityExtractorGenerator:
     """Generator for creating and optimizing entity extraction prompts."""
 
-    def __init__(self, working_directory: Optional[Path] = None):
+    def __init__(self, working_directory: Path | None = None):
         self.config = get_dspy_config()
         self.working_directory = (
             working_directory or self.config.get_working_directory()
         )
         self.working_directory.mkdir(parents=True, exist_ok=True)
 
-    def create_dspy_modules(self) -> Dict[str, dspy.Module]:
+    def create_dspy_modules(self) -> dict[str, dspy.Module]:
         """Create different DSPy modules for entity extraction."""
 
         modules = {}
@@ -141,7 +141,7 @@ class EntityExtractorGenerator:
                 )
 
             def _format_lightrag_output(
-                self, entities: List[Dict], relationships: str, kwargs: Dict
+                self, entities: list[dict], relationships: str, kwargs: dict
             ) -> str:
                 """Format DSPy output to LightRAG tuple format."""
 
@@ -160,7 +160,7 @@ class EntityExtractorGenerator:
 
         return MultiStepEntityExtraction()
 
-    def create_training_data(self, num_samples: int = 50) -> List[dspy.Example]:
+    def create_training_data(self, num_samples: int = 50) -> list[dspy.Example]:
         """Create synthetic training data for optimization.
 
         In Phase 1, we create a small dataset to demonstrate the concept.
@@ -246,7 +246,7 @@ class EntityExtractorGenerator:
         return training_examples
 
     def _format_expected_output(
-        self, entities: List[Tuple], relationships: List[Tuple]
+        self, entities: list[tuple], relationships: list[tuple]
     ) -> str:
         """Format expected output in LightRAG tuple format."""
 
@@ -274,10 +274,10 @@ class EntityExtractorGenerator:
 
     def optimize_prompts(
         self,
-        model_name: Optional[str] = None,
-        provider: Optional[str] = None,
+        model_name: str | None = None,
+        provider: str | None = None,
         num_samples: int = 20,
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         """Optimize entity extraction prompts using DSPy optimizers."""
 
         # Configure DSPy
@@ -290,7 +290,7 @@ class EntityExtractorGenerator:
         modules = self.create_dspy_modules()
 
         # Define evaluation metric
-        def entity_extraction_metric(example, prediction, trace=None):
+        def entity_extraction_metric(example, prediction, _trace=None):
             """Simple metric for entity extraction quality."""
             expected = example.entities_and_relationships.lower()
             actual = prediction.entities_and_relationships.lower()
@@ -380,7 +380,7 @@ class EntityExtractorGenerator:
         return optimized_modules
 
     def _evaluate_module(
-        self, module: dspy.Module, testset: List[dspy.Example]
+        self, module: dspy.Module, testset: list[dspy.Example]
     ) -> float:
         """Evaluate a module on a small test set."""
 
@@ -421,8 +421,8 @@ class EntityExtractorGenerator:
         return sum(scores) / len(scores) if scores else 0.0
 
     def generate_lightrag_prompts(
-        self, optimized_modules: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, optimized_modules: dict[str, Any]
+    ) -> dict[str, str]:
         """Convert optimized DSPy modules back to LightRAG prompt format."""
 
         generated_prompts = {}
@@ -439,7 +439,7 @@ class EntityExtractorGenerator:
                 if hasattr(module, "extractor") and hasattr(module.extractor, "lm"):
                     # Get the last used prompt from DSPy
                     with dspy.context(lm=module.extractor.lm):
-                        prediction = module(
+                        module(
                             text=sample_text,
                             language="English",
                             entity_types="organization,person,location",
@@ -520,7 +520,7 @@ Extract entities and relationships efficiently (DSPy-optimized).
 
 ---Instructions---
 1. Entities: name|type|description (per line, {tuple_delimiter} separator)
-2. Relationships: source|target|keywords|description (per line, {tuple_delimiter} separator)  
+2. Relationships: source|target|keywords|description (per line, {tuple_delimiter} separator)
 3. Language: {language}
 4. End with: {completion_delimiter}
 5. DSPy-optimized for speed and accuracy.""",
@@ -542,7 +542,7 @@ Fast entity extraction optimized by DSPy MIPROv2.
         )
 
     def save_optimized_prompts(
-        self, optimized_modules: Dict[str, Any], output_file: Optional[str] = None
+        self, optimized_modules: dict[str, Any], output_file: str | None = None
     ) -> str:
         """Save optimized prompts in LightRAG-compatible format."""
 
@@ -592,7 +592,7 @@ def main():
     # Save results
     output_file = generator.save_optimized_prompts(optimized_modules)
 
-    print(f"\nDSPy Phase 1 optimization complete!")
+    print("\nDSPy Phase 1 optimization complete!")
     print(f"Generated {len(optimized_modules)} optimized module variants")
     print(f"Prompts saved to: {output_file}")
 

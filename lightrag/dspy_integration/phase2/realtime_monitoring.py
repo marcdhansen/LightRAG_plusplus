@@ -7,15 +7,16 @@ in production, enabling continuous optimization and automated decision-making.
 
 import asyncio
 import json
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, asdict
-from collections import defaultdict, deque
 import logging
 import threading
+import time
+from collections import defaultdict, deque
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
 
 from ..config import get_dspy_config
 from ..optimizers.ab_integration import DSPyABIntegration
@@ -30,11 +31,11 @@ class PerformanceMetrics:
     timestamp: datetime
     latency_ms: float
     success: bool
-    quality_score: Optional[float] = None
-    token_usage: Optional[Dict[str, int]] = None
-    error_message: Optional[str] = None
+    quality_score: float | None = None
+    token_usage: dict[str, int] | None = None
+    error_message: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         data["timestamp"] = self.timestamp.isoformat()
@@ -75,8 +76,8 @@ class RealTimeMonitor:
         self.aggregated_metrics = defaultdict(lambda: defaultdict(list))
 
         # Alerting
-        self.alert_configs: List[AlertConfig] = []
-        self.alert_callbacks: List[Callable] = []
+        self.alert_configs: list[AlertConfig] = []
+        self.alert_callbacks: list[Callable] = []
         self.baseline_metrics = {}
 
         # Threading
@@ -141,7 +142,7 @@ class RealTimeMonitor:
 
                     self._trigger_alert(alert_data)
 
-    def _trigger_alert(self, alert_data: Dict[str, Any]):
+    def _trigger_alert(self, alert_data: dict[str, Any]):
         """Trigger performance alert."""
         # Write alert to file
         with open(self.alerts_file, "a") as f:
@@ -159,8 +160,8 @@ class RealTimeMonitor:
         )
 
     def _calculate_window_stats(
-        self, metrics: List[PerformanceMetrics]
-    ) -> Dict[str, float]:
+        self, metrics: list[PerformanceMetrics]
+    ) -> dict[str, float]:
         """Calculate statistics for a window of metrics."""
         if not metrics:
             return {}
@@ -179,7 +180,11 @@ class RealTimeMonitor:
             else 0,
             "throughput": len(metrics)
             / max(
-                (m.timestamp - min(m.timestamp for m in metrics)).total_seconds() / 60,
+                (
+                    max(m.timestamp for m in metrics)
+                    - min(m.timestamp for m in metrics)
+                ).total_seconds()
+                / 60,
                 1,
             ),
         }
@@ -188,10 +193,10 @@ class RealTimeMonitor:
 
     def get_current_performance(
         self,
-        variant: Optional[str] = None,
-        model: Optional[str] = None,
+        variant: str | None = None,
+        model: str | None = None,
         window_minutes: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get current performance statistics."""
         cutoff_time = datetime.now() - timedelta(minutes=window_minutes)
 
@@ -230,7 +235,7 @@ class RealTimeMonitor:
         """Add alert callback function."""
         self.alert_callbacks.append(callback)
 
-    def set_baseline_metrics(self, baseline: Dict[str, float]):
+    def set_baseline_metrics(self, baseline: dict[str, float]):
         """Set baseline metrics for comparison."""
         self.baseline_metrics.update(baseline)
         self.logger.info(f"Updated baseline metrics with {len(baseline)} values")
@@ -289,7 +294,7 @@ class RealTimeMonitor:
         """Clean up old metrics beyond window size."""
         cutoff_time = datetime.now() - self.window_size
 
-        for key, metrics_deque in self.metrics_buffer.items():
+        for _key, metrics_deque in self.metrics_buffer.items():
             while metrics_deque and metrics_deque[0].timestamp < cutoff_time:
                 metrics_deque.popleft()
 
@@ -334,8 +339,8 @@ class PerformanceFeedbackCollector:
         self,
         variant: str,
         model: str,
-        user_feedback: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        user_feedback: dict[str, Any],
+        context: dict[str, Any] | None = None,
     ):
         """Collect user feedback on prompt performance."""
         feedback_data = {
@@ -349,7 +354,7 @@ class PerformanceFeedbackCollector:
         self.feedback_buffer.append(feedback_data)
         self._process_feedback(feedback_data)
 
-    def _process_feedback(self, feedback_data: Dict[str, Any]):
+    def _process_feedback(self, feedback_data: dict[str, Any]):
         """Process feedback and identify optimization opportunities."""
         variant = feedback_data["variant"]
         feedback = feedback_data["feedback"]
@@ -378,7 +383,7 @@ class PerformanceFeedbackCollector:
                         }
                     )
 
-    def get_optimization_candidates(self) -> List[Dict[str, Any]]:
+    def get_optimization_candidates(self) -> list[dict[str, Any]]:
         """Get variants that need optimization."""
         # Sort by priority and recency
         candidates = sorted(
@@ -440,7 +445,7 @@ def monitor_performance(variant_getter: Callable):
 
 
 # Global monitor instance
-_global_monitor: Optional[RealTimeMonitor] = None
+_global_monitor: RealTimeMonitor | None = None
 
 
 def get_global_monitor() -> RealTimeMonitor:
@@ -465,7 +470,7 @@ def setup_default_alerts(monitor: RealTimeMonitor):
         monitor.add_alert_config(alert)
 
 
-def log_alert_callback(alert_data: Dict[str, Any]):
+def log_alert_callback(alert_data: dict[str, Any]):
     """Default alert callback that logs to file."""
     log_file = Path("performance_alerts.log")
     with open(log_file, "a") as f:

@@ -27,7 +27,7 @@ else
     echo "  ❌ Implementation Readiness: FAILED"
     echo ""
     echo "⚠️  BLOCKED - Fix implementation readiness issues before proceeding"
-    
+
     echo ""
     echo "Detailed results:"
     python .agent/scripts/validate_implementation_ready.py

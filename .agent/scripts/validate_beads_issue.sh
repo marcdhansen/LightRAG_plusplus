@@ -47,7 +47,7 @@ check_beads_availability() {
         echo "  Installation: npm install -g @beadsdev/beads"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "Beads command available"
     return 0
 }
@@ -60,7 +60,7 @@ check_beads_repository() {
         echo "  Command: bd init"
         return 1
     fi
-    
+
     log_validation "SUCCESS" "Beads repository detected"
     return 0
 }
@@ -71,30 +71,30 @@ detect_feature_context() {
     local has_code_changes=false
     local has_test_changes=false
     local has_doc_changes=false
-    
+
     # Analyze git changes to infer feature
     if git rev-parse --git-dir >/dev/null 2>&1; then
         local git_status=$(git status --porcelain=v1 2>/dev/null || echo "")
-        
+
         if [[ -n "$git_status" ]]; then
             # Look for patterns in changed files to infer feature name
             feature_name=$(echo "$git_status" | head -5 | grep -E "\.(py|js|ts|md)$" | head -1 | sed 's/.* //' | sed 's/\.[^.]*$//' | sed 's/.*\///' || echo "")
-            
+
             # Check for different types of changes
             if echo "$git_status" | grep -E "\.(py|js|ts|go|java|cpp|c)$" >/dev/null; then
                 has_code_changes=true
             fi
-            
+
             if echo "$git_status" | grep -E "test_.*\.py|.*_test\.py|.*\.test\.js|.*\.spec\.js" >/dev/null; then
                 has_test_changes=true
             fi
-            
+
             if echo "$git_status" | grep -E "\.md$" >/dev/null; then
                 has_doc_changes=true
             fi
         fi
     fi
-    
+
     # Try to get feature from environment or current task
     if [[ -z "$feature_name" ]]; then
         if [[ -n "${FEATURE_NAME:-}" ]]; then
@@ -103,7 +103,7 @@ detect_feature_context() {
             feature_name=$(jq -r '.title // ""' .beads/current.json 2>/dev/null | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 30 || echo "")
         fi
     fi
-    
+
     cat <<EOF
 {
   "feature_name": "$feature_name",
@@ -120,24 +120,24 @@ validate_beads_issue() {
     local feature_context=$1
     local feature_name=$(echo "$feature_context" | jq -r '.feature_name // ""')
     local has_changes=$(echo "$feature_context" | jq -r '.has_any_changes // false')
-    
+
     log_validation "INFO" "Validating beads issue for feature context"
     echo "  Feature name: $feature_name"
     echo "  Has changes: $has_changes"
-    
+
     # If no changes detected, this might be a setup/maintenance session
     if [[ "$has_changes" != "true" ]]; then
         log_validation "INFO" "No feature changes detected - beads validation not required"
         return 0
     fi
-    
+
     # Check if there are any open beads issues
     local open_issues=$(bd list --status open 2>/dev/null | wc -l | tr -d ' ' || echo "0")
     local all_issues=$(bd list --all 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-    
+
     echo "  Open issues: $open_issues"
     echo "  Total issues: $all_issues"
-    
+
     if [[ $all_issues -eq 0 ]]; then
         log_validation "ERROR" "No beads issues found in repository"
         echo ""
@@ -148,11 +148,11 @@ validate_beads_issue() {
         echo ""
         return 1
     fi
-    
+
     # If feature name is available, check for matching issues
     if [[ -n "$feature_name" ]]; then
         local matching_issues=$(bd list --all 2>/dev/null | grep -i "$feature_name" | wc -l | tr -d ' ' || echo "0")
-        
+
         if [[ $matching_issues -eq 0 ]]; then
             log_validation "WARN" "No beads issues found for feature: $feature_name"
             echo "  Consider creating specific issue for this feature"
@@ -161,14 +161,14 @@ validate_beads_issue() {
             log_validation "SUCCESS" "Found $matching_issues beads issue(s) for feature: $feature_name"
         fi
     fi
-    
+
     # Check current task
     if [[ -f ".beads/current.json" ]]; then
         local current_issue=$(jq -r '.id // "none"' .beads/current.json 2>/dev/null)
         local current_title=$(jq -r '.title // "none"' .beads/current.json 2>/dev/null)
-        
+
         log_validation "INFO" "Current beads task: $current_issue - $current_title"
-        
+
         if [[ "$current_issue" != "none" ]]; then
             log_validation "SUCCESS" "Active beads task detected"
         else
@@ -178,7 +178,7 @@ validate_beads_issue() {
     else
         log_validation "WARN" "No current beads task file found"
     fi
-    
+
     return 0
 }
 
@@ -186,7 +186,7 @@ validate_beads_issue() {
 suggest_beads_creation() {
     local feature_context=$1
     local feature_name=$(echo "$feature_context" | jq -r '.feature_name // ""')
-    
+
     if [[ -n "$feature_name" ]]; then
         echo ""
         echo "SUGGESTED BEADS ISSUE COMMANDS:"
@@ -205,7 +205,7 @@ suggest_beads_creation() {
 # Function to block work without beads compliance
 block_without_beads() {
     local reason=$1
-    
+
     log_validation "ERROR" "BEADS COMPLIANCE VIOLATION"
     echo "VIOLATION: $reason"
     echo ""
@@ -218,7 +218,7 @@ block_without_beads() {
     echo "4. Re-run validation when complete"
     echo ""
     echo "This work session is BLOCKED until beads compliance is achieved."
-    
+
     if [[ "$STRICT_MODE" == "true" ]]; then
         log_validation "ERROR" "EXITING due to beads violation - STRICT MODE ENABLED"
         exit 1
@@ -233,28 +233,28 @@ main() {
     echo "Timestamp: $(date)"
     echo "Strict Mode: $STRICT_MODE"
     echo ""
-    
+
     # Check beads availability
     if ! check_beads_availability; then
         block_without_beads "Beads command not available"
         return 1
     fi
-    
+
     # Check beads repository
     if ! check_beads_repository; then
         block_without_beads "Not a beads-enabled repository"
         return 1
     fi
-    
+
     # Detect feature context
     local feature_context=$(detect_feature_context)
-    
+
     if [[ "$VERBOSE" == "true" ]]; then
         echo "Feature Context:"
         echo "$feature_context" | jq .
         echo ""
     fi
-    
+
     # Validate beads issue
     if ! validate_beads_issue "$feature_context"; then
         local has_changes=$(echo "$feature_context" | jq -r '.has_any_changes // false')
@@ -264,7 +264,7 @@ main() {
             return 1
         fi
     fi
-    
+
     echo ""
     echo "=================================="
     log_validation "SUCCESS" "Beads compliance validation PASSED"

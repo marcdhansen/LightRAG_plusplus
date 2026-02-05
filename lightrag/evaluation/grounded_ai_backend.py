@@ -104,7 +104,11 @@ class GroundedAIRAGEvaluator:
         logger.info(f"GroundedAI evaluator initialized: {model_id} on {device}")
 
     def evaluate_hallucination(
-        self, query: str, response: str, context: str, confidence_threshold: float = 0.5
+        self,
+        query: str,
+        response: str,
+        context: str,
+        _confidence_threshold: float = 0.5,
     ) -> dict[str, float | str | bool]:
         """
         Evaluate response for hallucination using GroundedAI's specialized model.
@@ -169,7 +173,7 @@ class GroundedAIRAGEvaluator:
             }
 
     def evaluate_toxicity(
-        self, response: str, confidence_threshold: float = 0.5
+        self, response: str, _confidence_threshold: float = 0.5
     ) -> dict[str, float | str | bool]:
         """
         Evaluate response for toxicity using GroundedAI's specialized model.
@@ -205,7 +209,7 @@ class GroundedAIRAGEvaluator:
             }
 
     def evaluate_rag_relevance(
-        self, query: str, document: str, confidence_threshold: float = 0.5
+        self, query: str, document: str, _confidence_threshold: float = 0.5
     ) -> dict[str, float | str | bool]:
         """
         Evaluate document relevance to query using GroundedAI's specialized model.

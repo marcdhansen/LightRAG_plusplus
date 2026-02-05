@@ -6,9 +6,10 @@ ensuring compatibility with existing LLM configurations and optimization targets
 """
 
 import os
-from typing import Optional, Dict, Any
-import dspy
 from pathlib import Path
+from typing import Any
+
+import dspy
 
 
 class DSPyConfig:
@@ -18,7 +19,7 @@ class DSPyConfig:
         self.lightrag_config = self._load_lightrag_config()
         self.dspy_config = self._setup_dspy_config()
 
-    def _load_lightrag_config(self) -> Dict[str, Any]:
+    def _load_lightrag_config(self) -> dict[str, Any]:
         """Load existing LightRAG configuration to maintain compatibility."""
         config = {}
 
@@ -39,7 +40,7 @@ class DSPyConfig:
 
         return config
 
-    def _setup_dspy_config(self) -> Dict[str, Any]:
+    def _setup_dspy_config(self) -> dict[str, Any]:
         """Setup DSPy-specific configuration."""
         config = {
             "cache": True,  # Enable DSPy caching for optimization
@@ -57,7 +58,7 @@ class DSPyConfig:
         return config
 
     def configure_dspy_lm(
-        self, model_name: Optional[str] = None, provider: Optional[str] = None
+        self, model_name: str | None = None, provider: str | None = None
     ) -> dspy.LM:
         """Configure DSPy LM based on existing LightRAG settings."""
 
@@ -123,7 +124,7 @@ class DSPyConfig:
             raise ValueError("No supported LLM configuration found in environment")
 
     def configure_dspy(
-        self, model_name: Optional[str] = None, provider: Optional[str] = None
+        self, model_name: str | None = None, provider: str | None = None
     ) -> None:
         """Configure DSPy with LM and settings."""
 
@@ -141,7 +142,7 @@ class DSPyConfig:
 
         dspy.configure(**settings)
 
-    def get_optimizer_config(self, optimizer_name: str) -> Dict[str, Any]:
+    def get_optimizer_config(self, optimizer_name: str) -> dict[str, Any]:
         """Get configuration for specific DSPy optimizer."""
 
         base_config = self.dspy_config["optimization"].copy()

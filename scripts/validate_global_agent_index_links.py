@@ -44,7 +44,7 @@ def check_global_agent_index_links():
         print(f"❌ Global agent index not found: {GLOBAL_INDEX_PATH}")
         sys.exit(1)
 
-    print(f"🔍 Checking links in Global Agent Index...")
+    print("🔍 Checking links in Global Agent Index...")
     print(f"📍 Global Index: {GLOBAL_INDEX_PATH}")
     print(f"🏠 User Home: {USER_HOME}")
 
@@ -72,13 +72,13 @@ def check_global_agent_index_links():
                 print(f"  ✅ {link} -> {resolved_path}")
 
     # Report results
-    print(f"\n--- Results ---")
+    print("\n--- Results ---")
     print(f"📊 Total links checked: {len(links)}")
     print(f"✅ Valid links: {valid_links}")
     print(f"❌ Broken links: {len(broken_links)}")
 
     if broken_links:
-        print(f"\n❌ Broken links found:")
+        print("\n❌ Broken links found:")
         for bl in broken_links:
             try:
                 rel_path = bl["resolved"].relative_to(USER_HOME)
@@ -87,7 +87,7 @@ def check_global_agent_index_links():
                 print(f"  - {bl['link']} -> {bl['resolved']} (NOT FOUND)")
         return False
     else:
-        print(f"\n🎉 All links in Global Agent Index are valid!")
+        print("\n🎉 All links in Global Agent Index are valid!")
         return True
 
 

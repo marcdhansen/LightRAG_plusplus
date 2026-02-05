@@ -20,7 +20,7 @@ DSPy Phase 2 has been successfully implemented, providing a **production-ready o
 # Production data collection
 examples = await pipeline.collect_production_data(hours_back=24, models=["1.5b", "3b", "7b"])
 
-# Batch evaluation  
+# Batch evaluation
 batches = await pipeline.create_evaluation_batch(examples, batch_size=50)
 results = await pipeline.run_evaluation_batch(batch[0])
 
@@ -197,7 +197,7 @@ status = await manager.get_system_status()
 
 ### Expected Benefits
 - **15-25% improvement** in entity F1 scores
-- **20-30% improvement** in summarization ROUGE scores  
+- **20-30% improvement** in summarization ROUGE scores
 - **30-40% reduction** in hallucination rates
 - **20-30% improvement** in format compliance
 - **5-15% latency reduction** through optimized prompts
@@ -259,7 +259,7 @@ AlertConfig(
     min_samples=10
 )
 
-# Quality alerts  
+# Quality alerts
 AlertConfig(
     metric_name='quality_mean',
     threshold=0.7,                     # 70% quality minimum
@@ -344,7 +344,7 @@ python -m lightrag.dspy_integration.phase2 --metrics DSPY_B 7b 1200
 
 ### Performance Targets 🎯
 🎯 **15% entity F1 improvement** over baseline
-🎯 **20% summarization ROUGE improvement** over baseline  
+🎯 **20% summarization ROUGE improvement** over baseline
 🎯 **30% reduction in manual prompt effort** through automation
 🎯 **90% system uptime** with automatic recovery
 🎯 **5-minute optimization detection** and response time
@@ -399,11 +399,11 @@ while True:
     metrics = get_production_metrics()
     await manager.add_production_metrics(
         variant=metrics['variant'],
-        model=metrics['model'], 
+        model=metrics['model'],
         latency_ms=metrics['latency'],
         success=metrics['success']
     )
-    
+
     # Collect user feedback
     feedback = get_user_feedback()
     await manager.add_production_feedback(
@@ -411,7 +411,7 @@ while True:
         model=feedback['model'],
         feedback_score=feedback['score']
     )
-    
+
     await asyncio.sleep(60)  # Check every minute
 ```
 
@@ -421,7 +421,7 @@ while True:
 
 DSPy Phase 2 provides a comprehensive, production-ready optimization system that:
 - **Scales** to handle production data volumes
-- **Adapts** in real-time to performance changes  
+- **Adapts** in real-time to performance changes
 - **Integrates** seamlessly with existing LightRAG infrastructure
 - **Optimizes** all prompt families systematically
 - **Ensures** reliability through automated safeguards

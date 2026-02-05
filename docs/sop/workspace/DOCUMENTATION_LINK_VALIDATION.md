@@ -36,7 +36,7 @@ python scripts/validate_global_agent_index_links.py
 - Base directory: `/Users/marchansen/.agent/docs/`
 - Reports: Valid/broken links with relative paths
 
-#### Project Global Index Validator  
+#### Project Global Index Validator
 ```bash
 python scripts/validate_global_index_links.py
 ```
@@ -78,7 +78,7 @@ python scripts/check_docs_coverage.py
 - To skills: `skills/category/SKILL.md`
 
 ### From Project Global Index (`.agent/GLOBAL/index/`)
-- To project files: `../../path/to/file.md` 
+- To project files: `../../path/to/file.md`
 - To global standards: `../standards/FILENAME.md`
 
 ### From Project Documentation (`docs/`)
@@ -115,7 +115,7 @@ Add to `.pre-commit-config.yaml`:
       language: system
       pass_filenames: false
     - id: validate-global-index
-      name: Validate global index links  
+      name: Validate global index links
       entry: python scripts/validate_global_agent_index_links.py
       language: system
       pass_filenames: false
@@ -138,6 +138,6 @@ Add to `.pre-commit-config.yaml`:
 
 ---
 
-**Last Updated**: 2026-02-05  
-**Maintained by**: Librarian Skill  
+**Last Updated**: 2026-02-05
+**Maintained by**: Librarian Skill
 **Status**: Active

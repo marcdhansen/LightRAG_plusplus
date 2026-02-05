@@ -464,12 +464,12 @@ main() {
     echo "Fast Mode: $FAST_MODE"
     echo "Skip Optional: $SKIP_OPTIONAL"
     echo ""
-    
+
     # Initialize arrays in function scope
     SKIPPED_CHECKS=()
     REQUIRED_CHECKS=()
     CRITICAL_CHECKS=()
-    
+
     # Collect context data
     log "INFO" "Collecting context data for intelligent analysis"
 

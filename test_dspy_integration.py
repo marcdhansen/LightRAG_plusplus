@@ -5,9 +5,7 @@ This script validates that our DSPy integration works with LightRAG infrastructu
 without disrupting existing functionality.
 """
 
-import os
 import sys
-from pathlib import Path
 
 # Add current directory to path for imports
 sys.path.insert(0, ".")
@@ -33,8 +31,8 @@ def test_dspy_config():
 
     try:
         from lightrag.dspy_integration.config import (
-            get_dspy_config,
             configure_dspy_from_env,
+            get_dspy_config,
         )
 
         config = get_dspy_config()
