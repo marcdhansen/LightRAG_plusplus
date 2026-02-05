@@ -1,81 +1,142 @@
-# Standard Operating Procedures (SOP)
+# LightRAG Standard Operating Procedures (SOP)
 
-This directory contains standard operating procedures and protocols for agents working on the LightRAG project.
+> **📍 Hierarchy**: **Global SOP** (base) → **Local Extensions** (project-specific)
+>
+> This directory extends the **[Global SOP](~/.agent/docs/sop/)** with LightRAG-specific requirements while maintaining full compliance with universal protocols.
 
-## Structure
+## 🌐 **Global SOP Base Standards**
 
-- **global-configs/** - Global configuration and rules (symbolic links to ~/.agent/)
-- **skills/** - Agent skills and capabilities (symbolic link to ../.agent/skills/)
-- **workspace/** - Workspace-specific documentation and procedures
+**Mandatory Foundation**: All agents must follow the [Global SOP](~/.agent/docs/sop/) as the authoritative source:
 
-## 🌐 **Symlink Exception for Skills & Commands**
+- **[📖 Global SOP README](~/.agent/docs/sop/README.md)** - Universal standards
+- **[🚀 GEMINI.md](./global-configs/GEMINI.md)** - Global Agent Rules & SMP
+- **[🤝 COLLABORATION.md](./global-configs/COLLABORATION.md)** - Multi-agent coordination
+- **[🧪 tdd-workflow.md](./global-configs/tdd-workflow.md)** - Universal TDD workflow
+- **[📋 AGENT_ONBOARDING.md](./global-configs/AGENT_ONBOARDING.md)** - Universal onboarding
 
-**Critical Exception**: Skills and slash commands are exceptions to the normal `.agent` source-of-truth rule.
+### **Global Access Points**
 
-### **Why This Exception?**
-- **Prevents Breakage**: Antigravity breaks if `~/.gemini` directory contains symlinks
-- **Single Source**: Universal skills and commands maintained in `~/.gemini/antigravity/`
-- **Multi-Tool Access**: Different IDEs/tools access same resources via symlinks
-
-### **Skills Ecosystem**
+```bash
+.agent/docs/sop/global-configs/  # → symlinks to ~/.agent/docs/sop/
 ```
+
+---
+
+## 🔧 **LightRAG-Specific Extensions**
+
+### **Enhanced TDD Requirements**
+
+**🚫 MANDATORY**: [TDD Mandatory Gate](./TDD_MANDATORY_GATE.md) - **Cannot bypass**
+
+Project-specific TDD enforcement that extends the global `tdd-workflow.md`:
+
+- **Automated blocking** for non-compliant implementations
+- **Performance benchmarking** with speed-accuracy tradeoff analysis
+- **Quality gate enforcement** that prevents work continuation
+- **Integration validation** with LightRAG-specific testing patterns
+
+### **Multi-Phase Implementation**
+
+**🚫 MANDATORY**: [Multi-Phase Hand-off Protocol](./MULTI_PHASE_HANDOFF_PROTOCOL.md)
+
+Complex feature coordination beyond standard SMP:
+
+- **Agent responsibility definitions** for multi-phase implementations
+- **Comprehensive hand-off documentation** requirements
+- **Automated verification** that blocks phase transitions
+- **Quality assessment** integration with reflect and debriefing systems
+
+### **Project-Specific Performance**
+
+- **[KEYWORD_SEARCH_PERFORMANCE.md](./global-configs/KEYWORD_SEARCH_PERFORMANCE.md)** - Performance benchmarks
+- **LightRAG integration patterns** and optimization guidelines
+
+---
+
+## 🌐 **Skills & Commands Ecosystem**
+
+**Critical Note**: Skills and commands follow the global symlink architecture with `~/.gemini/antigravity/` as the universal source of truth.
+
+### **Access Points**
+
+```bash
 Source of Truth:  ~/.gemini/antigravity/skills/
-Access Points:
-├── .agent/skills/ → ~/.gemini/antigravity/skills/ (Project)
-├── ~/.config/opencode/skills/ → ~/.gemini/antigravity/skills/ (OpenCode)
-└── ~/.claude/skills/ → ~/.gemini/antigravity/skills/ (Legacy)
-```
+Project Access:    .agent/skills/ → ~/.gemini/antigravity/skills/
+OpenCode Global:   ~/.config/opencode/skills/ → ~/.gemini/antigravity/skills/
 
-### **Commands & Workflows Ecosystem**
-```
 Source of Truth:  ~/.gemini/antigravity/global_workflows/
-Access Points:
-├── ~/.agent/commands/ → ~/.gemini/antigravity/global_workflows/ (Agent)
-├── ~/.config/opencode/commands/ → ~/.gemini/antigravity/global_workflows/ (OpenCode)
-└── .agent/workflows/ → Project-specific commands (Local)
+Agent Global:      ~/.agent/commands/ → ~/.gemini/antigravity/global_workflows/
+OpenCode Global:   ~/.config/opencode/commands/ → ~/.gemini/antigravity/global_workflows/
 ```
 
-### **Documentation**
-→ **[Quick Reference](../workspace/QUICK_REFERENCE.md)** - Daily essential skills & commands
-→ **[Skills Ecosystem Guide](./SKILLS_ECOSYSTEM.md)** - Complete skills documentation
-→ **[Commands Ecosystem Guide](./COMMANDS_ECOSYSTEM.md)** - Complete command reference
+### **Ecosystem Documentation**
 
-## Purpose
+- **[Skills Ecosystem Guide](./SKILLS_ECOSYSTEM.md)** → Global documentation (symlink)
+- **[Commands Ecosystem Guide](./COMMANDS_ECOSYSTEM.md)** → Global documentation (symlink)
 
-The SOP directory provides:
+---
 
-1. **Global Standards** - Cross-project protocols and configurations
-2. **Agent Skills** - Standardized capabilities and workflows
-3. **Workspace Rules** - Project-specific procedures and guidelines
+## 📋 **Protocol Compliance Priority**
 
-## ⛔ **MANDATORY TDD GATE**
+When conflicts arise, this hierarchy applies:
 
-**🚫 CRITICAL**: [TDD Mandatory Gate](./TDD_MANDATORY_GATE.md) - **CANNOT BYPASS**
+1. **🥇 Global SOP** - Universal standards (never overridden)
+2. **🥈 Local Extensions** - Project-specific requirements (must respect global)
+3. **🥉 Workspace Rules** - Temporary/local rules (must respect both above)
 
-All new features **MUST** follow Test-Driven Development methodology:
-- **Failing Tests First** - Define expectations before implementation
-- **Performance Benchmarks** - Measure against baseline with quantifiable metrics
-- **Tradeoff Documentation** - Analyze speed, memory, and scalability tradeoffs
-- **Automated Enforcement** - System blocks non-compliant work automatically
+### **Validation Scripts**
 
-**Validation Script**: `./scripts/validate_tdd_compliance.sh <feature_name>`
+```bash
+# Validate TDD compliance (LightRAG extension)
+./scripts/validate_tdd_compliance.sh <feature-name>
 
-## 🔄 Multi-Phase Implementation Hand-offs
+# Verify hand-off compliance (LightRAG extension)
+./scripts/verify_handoff_compliance.sh --phase <phase> --feature <feature>
 
-**🚫 MANDATORY**: [Multi-Phase Hand-off Protocol](./MULTI_PHASE_HANDOFF_PROTOCOL.md) - **CANNOT PROCEED** without compliance
+# Global SOP compliance (base requirements)
+python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --init
+python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --finalize
+```
 
-All multi-phase implementations **MUST** complete hand-off procedures:
-- **Complete Documentation**: Comprehensive hand-off document with all required sections
-- **Automated Verification**: Script validation blocks phase transitions
-- **Quality Assessment**: Hand-off quality evaluated in reflect and mission debriefing
+---
 
-**Validation Script**: `./scripts/verify_handoff_compliance.sh --phase <phase-id> --feature <feature-name>`
+## 🚨 **Critical Requirements**
 
-## Usage
+### **For All Work Sessions**
 
-All agents must:
+1. **Read Global SOP** first - `~/.agent/docs/sop/README.md`
+2. **Follow global protocols** - GEMINI.md, COLLABORATION.md, tdd-workflow.md
+3. **Apply local extensions** - TDD Gate, Multi-Phase Hand-off
+4. **Maintain hierarchy** - Never override global standards
 
-1. Read the appropriate SOP documents before starting work
-2. Follow established protocols without deviation
-3. Update procedures only when necessary and with proper justification
-4. Maintain consistency across all work sessions
+### **For New Features**
+
+1. **Global TDD Workflow** - Follow `tdd-workflow.md` as base
+2. **LightRAG TDD Gate** - Additional mandatory requirements
+3. **Performance Benchmarks** - LightRAG-specific validation
+4. **Quality Gates** - Both global and local validation
+
+---
+
+## 📚 **Complete Documentation Navigation**
+
+### **Global Standards (Base)**
+
+- **[🌐 Global SOP Hub](~/.agent/docs/sop/README.md)** - Universal protocols
+- **[🚀 Global Agent Rules](./global-configs/GEMINI.md)** - SMP and procedures
+
+### **LightRAG Extensions**
+
+- **[🔧 TDD Mandatory Gate](./TDD_MANDATORY_GATE.md)** - Enhanced TDD requirements
+- **[🔄 Multi-Phase Hand-off](./MULTI_PHASE_HANDOFF_PROTOCOL.md)** - Complex coordination
+
+### **Skills & Commands (Universal)**
+
+- **[🧠 Skills Ecosystem](./SKILLS_ECOSYSTEM.md)** - Agent capabilities
+- **[⚡ Commands Ecosystem](./COMMANDS_ECOSYSTEM.md)** - Workflow commands
+
+---
+
+**Last Updated**: 2026-02-05
+**Hierarchy**: Global SOP (base) + LightRAG Extensions (project-specific)
+**Scope**: LightRAG Project - maintains full global SOP compliance

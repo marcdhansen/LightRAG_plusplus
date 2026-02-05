@@ -5,9 +5,11 @@ This directory contains symbolic links to the global configuration files and sta
 ## Linked Files
 
 - **[GEMINI.md](GEMINI.md)** → `~/.agent/docs/sop/GEMINI.md` - Global Agent Rules (SMP)
+- **[COLLABORATION.md](COLLABORATION.md)** → `~/.agent/docs/sop/COLLABORATION.md` - Multi-agent collaboration
+- **[AGENT_ONBOARDING.md](AGENT_ONBOARDING.md)** → `~/.agent/docs/sop/AGENT_ONBOARDING.md` - Universal onboarding guide
+- **[tdd-workflow.md](tdd-workflow.md)** → `~/.agent/docs/sop/tdd-workflow.md` - Universal TDD workflow
 - **[MISSION_NOMENCLATURE.md](MISSION_NOMENCLATURE.md)** → `~/.agent/docs/sop/MISSION_NOMENCLATURE.md` - Universal terminology
 - **[SELF_EVOLUTION_GLOBAL.md](SELF_EVOLUTION_GLOBAL.md)** → `~/.agent/docs/sop/SELF_EVOLUTION_GLOBAL.md` - Global self-evolution strategy
-- **[AGENT_ONBOARDING.md](AGENT_ONBOARDING.md)** → `~/.agent/docs/op/AGENT_ONBOARDING.md` - Universal onboarding guide
 - **[CROSS_COMPATIBILITY.md](CROSS_COMPATIBILITY.md)** → `~/.agent/docs/sop/CROSS_COMPATIBILITY.md` - Multi-IDE compatibility
 - **[HOW_TO_USE_BEADS.md](HOW_TO_USE_BEADS.md)** → `~/.agent/docs/sop/HOW_TO_USE_BEADS.md` - Beads usage guide
 
@@ -20,12 +22,14 @@ This directory contains symbolic links to the global configuration files and sta
 **Critical Note**: Skills and commands use a special symlink architecture where `~/.gemini/antigravity/` is the universal source of truth.
 
 ### **Skills Access Points**
+
 ```
 Project Access:      .agent/skills/ → ~/.gemini/antigravity/skills/
 OpenCode Global:     ~/.config/opencode/skills/ → ~/.gemini/antigravity/skills/
 ```
 
 ### **Commands & Workflows Access Points**
+
 ```
 Agent Global:        ~/.agent/commands/ → ~/.gemini/antigravity/global_workflows/
 OpenCode Global:     ~/.config/opencode/commands/ → ~/.gemini/antigravity/global_workflows/
@@ -33,6 +37,7 @@ Workspace-Specific:  .agent/workflows/ → Project-local commands
 ```
 
 ### **Why This Structure?**
+
 - Prevents Antigravity breakage (symlinks in `~/.gemini` cause failures)
 - Maintains single source of truth for universal capabilities
 - Enables multi-tool access to same resources
