@@ -42,8 +42,6 @@ jobs:
               if: steps.check-webui.outputs.exists == 'true'
               with:
                 node-version: '20'
-                cache: 'npm'
-                cache-dependency-path: 'lightrag_webui/package-lock.json'
 
             - name: Set up Bun
               uses: oven-sh/setup-bun@v2
@@ -74,7 +72,7 @@ jobs:
                 # Generate deterministic cache keys
                 PYTHON_VERSION="${{ inputs.python_version }}"
                 PIP_HASH=$(sha256sum pyproject.toml requirements*.txt 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-pip-files")
-                NPM_HASH=$(find lightrag_webui -name "package.json" -o -name "bun.lockb" 2>/dev/null | xargs sha256sum 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-npm-files")
+                NPM_HASH=$(find lightrag_webui -name "package.json" -o -name "bun.lock" 2>/dev/null | xargs sha256sum 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-npm-files")
                 PRECOMMIT_HASH=$(sha256sum .pre-commit-config.yaml 2>/dev/null | cut -d' ' -f1 || echo "no-precommit")
 
                 echo "pip=${PYTHON_VERSION}-${PIP_HASH}-${PRECOMMIT_HASH}" >> $GITHUB_OUTPUT
@@ -92,7 +90,7 @@ jobs:
                 restore-keys: |
                   ${{ inputs.python_version }}-pip-
 
-            - name: Cache Node.js dependencies
+            - name: Cache Bun dependencies
               uses: actions/cache@v4
               if: steps.check-webui.outputs.exists == 'true'
               with:
@@ -102,7 +100,7 @@ jobs:
                   lightrag_webui/node_modules
                 key: ${{ steps.cache-key.outputs.npm }}
                 restore-keys: |
-                  npm-
+                  bun-
 
             - name: Cache pre-commit environment
               uses: actions/cache@v4
