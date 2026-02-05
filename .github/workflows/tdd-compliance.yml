@@ -158,7 +158,9 @@ jobs:
         fi
 
         if [[ "${{ steps.feature-context.outputs.feature_detected }}" != "true" || -z "$FEATURE_NAME" ]]; then
-
+          echo "ℹ️ No feature detected, skipping TDD artifact validation"
+          exit 0
+        fi
 
         # Define required artifacts based on feature type
         MISSING_ARTIFACTS=()
