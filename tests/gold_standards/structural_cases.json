@@ -1,0 +1,442 @@
+[
+  {
+    "id": "structural_basic_1",
+    "name": "Basic Structural Connectivity Test",
+    "description": "Simple test case with connected entities and relationships",
+    "text": "Apple Inc. is a technology company founded by Steve Jobs. It is headquartered in Cupertino, California.",
+    "expected_entities": [
+      {
+        "name": "Apple Inc.",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Steve Jobs",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Cupertino",
+        "type": "Location",
+        "required": true
+      },
+      {
+        "name": "California",
+        "type": "Location",
+        "required": false
+      }
+    ],
+    "expected_relationships": [
+      {
+        "source": "Steve Jobs",
+        "target": "Apple Inc.",
+        "keywords": [
+          "founded"
+        ],
+        "required": true
+      },
+      {
+        "source": "Apple Inc.",
+        "target": "Cupertino",
+        "keywords": [
+          "headquartered",
+          "located"
+        ],
+        "required": true
+      },
+      {
+        "source": "Cupertino",
+        "target": "California",
+        "keywords": [
+          "in",
+          "located"
+        ],
+        "required": false
+      }
+    ],
+    "structural_checks": {
+      "min_entities": 3,
+      "min_relationships": 2,
+      "graph_connectivity": true,
+      "max_path_length": 3,
+      "allow_isolated_nodes": false
+    },
+    "tolerances": {
+      "entity_fuzzy_match": 0.8,
+      "relation_keyword_match": 0.7
+    },
+    "created_at": "2026-02-05T00:00:00",
+    "updated_at": "2026-02-05T00:00:00",
+    "tags": [
+      "structural",
+      "basic",
+      "connectivity"
+    ],
+    "difficulty": "easy",
+    "domain": "technology",
+    "expected_extraction_time": null,
+    "max_memory_usage": null
+  },
+  {
+    "id": "structural_complex_1",
+    "name": "Complex Multi-Entity Structural Test",
+    "description": "Complex test case with multiple interconnected entities",
+    "text": "Microsoft was founded by Bill Gates and Paul Allen in 1975. The company is headquartered in Redmond, Washington. Microsoft acquired LinkedIn in 2016 and GitHub in 2018. Satya Nadella is the current CEO of Microsoft.",
+    "expected_entities": [
+      {
+        "name": "Microsoft",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Bill Gates",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Paul Allen",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Redmond",
+        "type": "Location",
+        "required": true
+      },
+      {
+        "name": "Washington",
+        "type": "Location",
+        "required": false
+      },
+      {
+        "name": "LinkedIn",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "GitHub",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Satya Nadella",
+        "type": "Person",
+        "required": true
+      }
+    ],
+    "expected_relationships": [
+      {
+        "source": "Bill Gates",
+        "target": "Microsoft",
+        "keywords": [
+          "founded",
+          "co-founded"
+        ],
+        "required": true
+      },
+      {
+        "source": "Paul Allen",
+        "target": "Microsoft",
+        "keywords": [
+          "founded",
+          "co-founded"
+        ],
+        "required": true
+      },
+      {
+        "source": "Microsoft",
+        "target": "Redmond",
+        "keywords": [
+          "headquartered"
+        ],
+        "required": true
+      },
+      {
+        "source": "Redmond",
+        "target": "Washington",
+        "keywords": [
+          "in"
+        ],
+        "required": false
+      },
+      {
+        "source": "Microsoft",
+        "target": "LinkedIn",
+        "keywords": [
+          "acquired"
+        ],
+        "required": true
+      },
+      {
+        "source": "Microsoft",
+        "target": "GitHub",
+        "keywords": [
+          "acquired"
+        ],
+        "required": true
+      },
+      {
+        "source": "Satya Nadella",
+        "target": "Microsoft",
+        "keywords": [
+          "CEO",
+          "leads"
+        ],
+        "required": true
+      }
+    ],
+    "structural_checks": {
+      "min_entities": 6,
+      "min_relationships": 5,
+      "graph_connectivity": true,
+      "max_path_length": 4,
+      "min_density": 0.1,
+      "allow_isolated_nodes": false
+    },
+    "tolerances": {
+      "entity_fuzzy_match": 0.8,
+      "relation_keyword_match": 0.7
+    },
+    "created_at": "2026-02-05T00:00:00",
+    "updated_at": "2026-02-05T00:00:00",
+    "tags": [
+      "structural",
+      "complex",
+      "multi-entity"
+    ],
+    "difficulty": "medium",
+    "domain": "technology",
+    "expected_extraction_time": null,
+    "max_memory_usage": null
+  },
+  {
+    "id": "structural_scientific_1",
+    "name": "Scientific Concept Structure Test",
+    "description": "Test case involving scientific concepts and relationships",
+    "text": "Albert Einstein developed the theory of relativity while working at the Swiss Patent Office. He was born in Ulm, Germany and later moved to Princeton, New Jersey where he worked at the Institute for Advanced Study. His work revolutionized modern physics.",
+    "expected_entities": [
+      {
+        "name": "Albert Einstein",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Theory of Relativity",
+        "type": "Concept",
+        "required": true
+      },
+      {
+        "name": "Swiss Patent Office",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Ulm",
+        "type": "Location",
+        "required": true
+      },
+      {
+        "name": "Germany",
+        "type": "Location",
+        "required": true
+      },
+      {
+        "name": "Princeton",
+        "type": "Location",
+        "required": true
+      },
+      {
+        "name": "New Jersey",
+        "type": "Location",
+        "required": false
+      },
+      {
+        "name": "Institute for Advanced Study",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Modern Physics",
+        "type": "Concept",
+        "required": true
+      }
+    ],
+    "expected_relationships": [
+      {
+        "source": "Albert Einstein",
+        "target": "Theory of Relativity",
+        "keywords": [
+          "developed",
+          "created"
+        ],
+        "required": true
+      },
+      {
+        "source": "Albert Einstein",
+        "target": "Swiss Patent Office",
+        "keywords": [
+          "worked",
+          "employed"
+        ],
+        "required": true
+      },
+      {
+        "source": "Albert Einstein",
+        "target": "Ulm",
+        "keywords": [
+          "born"
+        ],
+        "required": true
+      },
+      {
+        "source": "Ulm",
+        "target": "Germany",
+        "keywords": [
+          "in",
+          "located"
+        ],
+        "required": false
+      },
+      {
+        "source": "Albert Einstein",
+        "target": "Princeton",
+        "keywords": [
+          "moved",
+          "lived"
+        ],
+        "required": true
+      },
+      {
+        "source": "Princeton",
+        "target": "New Jersey",
+        "keywords": [
+          "in"
+        ],
+        "required": false
+      },
+      {
+        "source": "Albert Einstein",
+        "target": "Institute for Advanced Study",
+        "keywords": [
+          "worked"
+        ],
+        "required": true
+      },
+      {
+        "source": "Theory of Relativity",
+        "target": "Modern Physics",
+        "keywords": [
+          "revolutionized",
+          "impacted"
+        ],
+        "required": true
+      }
+    ],
+    "structural_checks": {
+      "min_entities": 7,
+      "min_relationships": 6,
+      "graph_connectivity": true,
+      "max_path_length": 4,
+      "min_clustering": 0.2,
+      "allow_isolated_nodes": false
+    },
+    "tolerances": {
+      "entity_fuzzy_match": 0.75,
+      "relation_keyword_match": 0.6
+    },
+    "created_at": "2026-02-05T00:00:00",
+    "updated_at": "2026-02-05T00:00:00",
+    "tags": [
+      "structural",
+      "scientific",
+      "concept"
+    ],
+    "difficulty": "hard",
+    "domain": "science",
+    "expected_extraction_time": null,
+    "max_memory_usage": null
+  },
+  {
+    "id": "structural_isolation_test",
+    "name": "Structural Isolation Detection Test",
+    "description": "Test case with intentionally isolated entities to test isolation detection",
+    "text": "Main Corporation and Primary Company are competitors. John works at Main Corporation. Mary works at Primary Company. Unrelated Entity exists in isolation with no connections.",
+    "expected_entities": [
+      {
+        "name": "Main Corporation",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "Primary Company",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "John",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Mary",
+        "type": "Person",
+        "required": true
+      },
+      {
+        "name": "Unrelated Entity",
+        "type": "Organization",
+        "required": false
+      }
+    ],
+    "expected_relationships": [
+      {
+        "source": "John",
+        "target": "Main Corporation",
+        "keywords": [
+          "works",
+          "employed"
+        ],
+        "required": true
+      },
+      {
+        "source": "Mary",
+        "target": "Primary Company",
+        "keywords": [
+          "works",
+          "employed"
+        ],
+        "required": true
+      },
+      {
+        "source": "Main Corporation",
+        "target": "Primary Company",
+        "keywords": [
+          "competitors"
+        ],
+        "required": false
+      }
+    ],
+    "structural_checks": {
+      "min_entities": 4,
+      "min_relationships": 2,
+      "graph_connectivity": false,
+      "allow_isolated_nodes": true,
+      "expected_isolated_nodes": 1
+    },
+    "tolerances": {
+      "entity_fuzzy_match": 0.8,
+      "relation_keyword_match": 0.7
+    },
+    "created_at": "2026-02-05T00:00:00",
+    "updated_at": "2026-02-05T00:00:00",
+    "tags": [
+      "structural",
+      "isolation",
+      "edge_case"
+    ],
+    "difficulty": "medium",
+    "domain": "testing",
+    "expected_extraction_time": null,
+    "max_memory_usage": null
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "case_id": "clitestcase_20260205_214008",
+  "passed": false,
+  "score": 0.125,
+  "entity_validation": {
+    "expected_count": 2,
+    "actual_count": 0,
+    "matched_entities": [],
+    "missing_entities": [
+      "Test company",
+      "John Doe"
+    ],
+    "extra_entities": [],
+    "fuzzy_match_score": 0.0,
+    "type_consistency_score": 0.0
+  },
+  "relationship_validation": {
+    "expected_count": 0,
+    "actual_count": 0,
+    "matched_relationships": [],
+    "missing_relationships": [],
+    "extra_relationships": [],
+    "keyword_match_score": 0.0,
+    "direction_consistency_score": 0.0
+  },
+  "structural_validation": {
+    "graph_connectivity": false,
+    "connected_components": 0,
+    "max_path_length": null,
+    "clustering_coefficient": 0.0,
+    "density": 0.0,
+    "isolation_issues": [
+      "Empty graph - no entities found"
+    ]
+  },
+  "execution_time": 0.000393,
+  "timestamp": "2026-02-05T21:44:47.013845",
+  "recommendations": [
+    "Missing entities detected: Test company, John Doe",
+    "Graph structure issues: Empty graph - no entities found",
+    "Overall validation score below threshold"
+  ]
+}

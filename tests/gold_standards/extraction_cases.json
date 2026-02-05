@@ -1,0 +1,40 @@
+[
+  {
+    "id": "clitestcase_20260205_214008",
+    "name": "CLI Test Case",
+    "description": "Test case created via CLI",
+    "text": "Test company was founded by John Doe.",
+    "expected_entities": [
+      {
+        "name": "Test company",
+        "type": "Organization",
+        "required": true
+      },
+      {
+        "name": "John Doe",
+        "type": "Person",
+        "required": true
+      }
+    ],
+    "expected_relationships": [
+      {
+        "source": "John Doe",
+        "target": "Test company",
+        "keywords": [
+          "founded"
+        ]
+      }
+    ],
+    "structural_checks": {},
+    "tolerances": {},
+    "created_at": "2026-02-05T21:40:08.794720",
+    "updated_at": "2026-02-05T21:40:08.794722",
+    "tags": [
+      "cli,test"
+    ],
+    "difficulty": "medium",
+    "domain": "general",
+    "expected_extraction_time": null,
+    "max_memory_usage": null
+  }
+]
