@@ -64,18 +64,9 @@ jobs:
 
         echo "🌿 Branch detected: $BRANCH_NAME"
 
-        # Try to extract feature name from feature/agent/task branch patterns
-        # Standardize logic across CI and scripts
-        if [[ "$BRANCH_NAME" =~ ^(feature|agent|task)/(.+)$ ]]; then
-          FEATURE_NAME="${BASH_REMATCH[2]}"
-        elif [[ "$BRANCH_NAME" =~ ^([^/]+)/(feature|agent|task)-(.+)$ ]]; then
-          FEATURE_NAME="${BASH_REMATCH[3]}"
-        else
-          FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/.*\///')
-        fi
+        # Improved extraction logic - robustly handle nested paths and prefixes
+        FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/.*\///' | sed 's/^task-//' | sed 's/^feature-//' | sed 's/^agent-//')
 
-        # Strip 'task-' prefix if present
-        FEATURE_NAME=$(echo "$FEATURE_NAME" | sed 's/^task-//')
 
         # Fallback from changed files ONLY if no feature detected and not on main
         if [[ -z "$FEATURE_NAME" && "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "master" ]]; then
