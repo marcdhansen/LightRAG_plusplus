@@ -9,7 +9,7 @@
 **Mandatory Foundation**: All agents must follow the [Global SOP](~/.agent/docs/sop/) as the authoritative source:
 
 - **[📖 Global SOP README](~/.agent/docs/sop/README.md)** - Universal standards
-- **[🚀 GEMINI.md](./global-configs/GEMINI.md)** - Global Agent Rules & SMP
+- **[🚀 GEMINI.md](./global-configs/GEMINI.md)** - Global Agent Rules & Universal Agent Protocol
 - **[🤝 COLLABORATION.md](./global-configs/COLLABORATION.md)** - Multi-agent coordination
 - **[🧪 Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)** - Mandatory TDD with enforcement
 - **[📋 AGENT_ONBOARDING.md](./global-configs/AGENT_ONBOARDING.md)** - Universal onboarding
@@ -53,7 +53,7 @@ This guide provides LightRAG-specific context for the global mandatory TDD stand
 
 **🚫 MANDATORY**: [Multi-Phase Hand-off Protocol](./MULTI_PHASE_HANDOFF_PROTOCOL.md)
 
-Complex feature coordination beyond standard SMP:
+Complex feature coordination beyond standard Universal Agent Protocol:
 
 - **Agent responsibility definitions** for multi-phase implementations
 - **Comprehensive hand-off documentation** requirements
@@ -137,7 +137,7 @@ python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readines
 ### **Global Standards (Base)**
 
 - **[🌐 Global SOP Hub](~/.agent/docs/sop/README.md)** - Universal protocols
-- **[🚀 Global Agent Rules](./global-configs/GEMINI.md)** - SMP and procedures
+- **[🚀 Global Agent Rules](./global-configs/GEMINI.md)** - Universal Agent Protocol and procedures
 
 ### **LightRAG Extensions**
 

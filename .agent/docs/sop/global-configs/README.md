@@ -4,7 +4,7 @@ This directory contains symbolic links to the global configuration files and sta
 
 ## Linked Files
 
-- **[GEMINI.md](GEMINI.md)** → `~/.agent/docs/sop/GEMINI.md` - Global Agent Rules (SMP)
+- **[GEMINI.md](GEMINI.md)** → `~/.agent/docs/sop/GEMINI.md` - Global Agent Rules (Universal Agent Protocol)
 - **[COLLABORATION.md](COLLABORATION.md)** → `~/.agent/docs/sop/COLLABORATION.md` - Multi-agent collaboration
 - **[AGENT_ONBOARDING.md](AGENT_ONBOARDING.md)** → `~/.agent/docs/sop/AGENT_ONBOARDING.md` - Universal onboarding guide
 - **[tdd-workflow.md](tdd-workflow.md)** → `~/.agent/docs/sop/tdd-workflow.md` - Universal TDD workflow

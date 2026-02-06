@@ -105,7 +105,7 @@ Key settings:
 ### Enhanced Scripts
 - `sop_compliance_validator.py`: Gets recommendations from adaptive engine
 - `tdd_gate_validator.py`: Uses adaptive configuration for TDD settings
-- `universal_mission_debrief.py`: Triggers SOP evolution based on insights
+- `universal_session_debrief.py`: Triggers SOP evolution based on insights
 
 ### Learning System
 - Session history stored in `.agent/learn/session_history.jsonl`

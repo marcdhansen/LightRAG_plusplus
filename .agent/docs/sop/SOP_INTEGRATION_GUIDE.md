@@ -14,7 +14,7 @@ flowchart TD
     B -->|Yes| C[Read Global SOP First]
     B -->|No| D[Check Local Extensions]
 
-    C --> E[Follow GEMINI.md SMP]
+    C --> E[Follow GEMINI.md Universal Agent Protocol]
     E --> F[Apply Local Extensions]
 
     D --> G{TDD Development?}
@@ -37,7 +37,7 @@ flowchart TD
 |-------------|----------------|-------------------|-------------|
 | **Basic Development** | `tdd-workflow.md` (MANDATORY enforcement) | None | Global only |
 | **New Feature** | `tdd-workflow.md` (MANDATORY enforcement) | `TDD_IMPLEMENTATION_GUIDE.md` | Global mandatory → Local context |
-| **Multi-Phase Feature** | Standard SMP + Global TDD | `MULTI_PHASE_HANDOFF_PROTOCOL.md` | Global mandatory → Local coordination |
+| **Multi-Phase Feature** | Standard Universal Agent Protocol + Global TDD | `MULTI_PHASE_HANDOFF_PROTOCOL.md` | Global mandatory → Local coordination |
 | **Agent Coordination** | `COLLABORATION.md` | None | Global only |
 | **Session Management** | `GEMINI.md` (includes validation) | None | Global only |
 | **Performance Testing** | Global performance requirements (MANDATORY) | `KEYWORD_SEARCH_PERFORMANCE.md` | Global mandatory → Local baselines |
@@ -75,7 +75,7 @@ flowchart TD
 ~/.agent/docs/sop/README.md
 
 # Key global documents
-.agent/docs/sop/global-configs/GEMINI.md           # SMP & procedures
+.agent/docs/sop/global-configs/GEMINI.md           # Universal Agent Protocol & procedures
 .agent/docs/sop/global-configs/COLLABORATION.md    # Multi-agent rules
 ~/.agent/docs/sop/tdd-workflow.md                    # Mandatory TDD with enforcement
 .agent/docs/sop/global-configs/AGENT_ONBOARDING.md # Onboarding
@@ -95,7 +95,7 @@ flowchart TD
    - **Triggers**: All development (global mandatory) + LightRAG context when needed
 
 2. **Multi-Phase Implementation**
-   - **Global Base**: Standard SMP procedures
+   - **Global Base**: Standard Universal Agent Protocol procedures
    - **Local Extension**: `MULTI_PHASE_HANDOFF_PROTOCOL.md`
    - **Triggers**: Complex features, multi-agent hand-offs, architectural changes
 
@@ -150,7 +150,7 @@ flowchart TD
 #### **Multi-Phase Coordination**
 
 ```bash
-# Global requirement (GEMINI.md SMP)
+# Global requirement (GEMINI.md Universal Agent Protocol)
 - Complete task
 - Update documentation
 - Hand off to next phase
@@ -172,7 +172,7 @@ flowchart TD
 
 ```bash
 # 1. Check global protocols
-read .agent/docs/sop/global-configs/GEMINI.md  # SMP procedures
+read .agent/docs/sop/global-configs/GEMINI.md  # Universal Agent Protocol procedures
 read ~/.agent/docs/sop/tdd-workflow.md  # Enhanced TDD workflow
 
 # 2. Follow global TDD workflow
@@ -222,7 +222,7 @@ read .agent/docs/sop/global-configs/COLLABORATION.md
 # 2. Apply local extensions (complex coordination)
 read .agent/docs/sop/MULTI_PHASE_HANDOFF_PROTOCOL.md
 
-# 3. Phase 1 (global SMP + local hand-off preparation)
+# 3. Phase 1 (global Universal Agent Protocol + local hand-off preparation)
 complete_phase_1_work()
 create_handoff_documentation()  # ← Local extension
 prepare_automated_verification() # ← Local extension
@@ -287,7 +287,7 @@ python ~/.agent/scripts/validate_sop_alignment.py             # Global/Local ali
 
 ### **By Scenario**
 
-- **[🚀 Session Management](../global-configs/GEMINI.md)** - Global SMP procedures
+- **[🚀 Session Management](../global-configs/GEMINI.md)** - Global Universal Agent Protocol procedures
 - **[🧪 Development Workflows](~/.agent/docs/sop/tdd-workflow.md)** - Global TDD workflow (mandatory enforcement)
 - **[🔒 LightRAG TDD Guide](./TDD_MANDATORY_GATE.md)** - LightRAG implementation context
 - **[🤝 Multi-Phase Coordination](./MULTI_PHASE_HANDOFF_PROTOCOL.md)** - Complex implementation

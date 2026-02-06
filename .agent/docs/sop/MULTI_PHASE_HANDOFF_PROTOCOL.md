@@ -204,7 +204,7 @@ If hand-off quality is insufficient:
 3. **Mediation**: Project coordinator may facilitate resolution
 4. **Template Enforcement**: Use stricter templates for future hand-offs
 
-## 📈 Integration with Mission Debriefing
+## 📈 Integration with Retrospective
 
 ### **Reflect Evaluation Criteria**
 
@@ -219,9 +219,9 @@ Hand-off Procedure Quality:
 - ✅ Process efficiency (time to create vs. value delivered)
 ```
 
-### **Mission Debriefing Assessment**
+### **Retrospective Assessment**
 
-The `mission-debriefing` skill evaluates:
+The `retrospective` skill evaluates:
 
 ```
 Multi-Phase Implementation Effectiveness:
@@ -376,6 +376,6 @@ git tag phase-XX-complete
 **Version**: 1.0.0
 **Last Updated**: 2026-02-05
 **Enforcement**: Automated verification blocks phase transitions
-**Quality Assurance**: Reflect and Mission Debriefing evaluation includes hand-off quality
+**Quality Assurance**: Reflect and Retrospective evaluation includes hand-off quality
 
 For questions or improvements, create a beads task with `handoff-sop` tag.
