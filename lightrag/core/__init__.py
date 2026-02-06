@@ -1252,6 +1252,10 @@ class LightRAG:
             from lightrag.kg.json_doc_status_impl import JsonDocStatusStorage
 
             return JsonDocStatusStorage
+        elif storage_name == "NanoKeywordStorage":
+            from lightrag.kg.nano_vector_db_impl import NanoKeywordStorage
+
+            return NanoKeywordStorage
         else:
             # Fallback to dynamic import for other storage implementations
             import_path = STORAGES[storage_name]

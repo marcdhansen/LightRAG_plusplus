@@ -1,0 +1,147 @@
+{
+  "timestamp": "2026-02-06T01:28:01.090254",
+  "models_tested": [
+    "qwen2.5-coder:1.5b"
+  ],
+  "prompt_variants_tested": [
+    "ultra_lite"
+  ],
+  "test_cases": [
+    "basic_person_location",
+    "simple_org_founding",
+    "basic_concept_discovery"
+  ],
+  "individual_results": [
+    {
+      "case_id": "basic_person_location",
+      "model": "qwen2.5-coder:1.5b",
+      "prompt_variant": "ultra_lite",
+      "model_size_gb": 1.5,
+      "yaml_compliant": true,
+      "execution_time": 0.06962990760803223,
+      "entity_recall": 0.0,
+      "relation_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "quality_preservation_score": 0.2,
+      "entities_found": 0,
+      "entities_expected": 2,
+      "entities_extracted": 0,
+      "relations_found": 0,
+      "relations_expected": 1,
+      "text_complexity": "simple",
+      "text_tokens_estimated": 0
+    },
+    {
+      "case_id": "simple_org_founding",
+      "model": "qwen2.5-coder:1.5b",
+      "prompt_variant": "ultra_lite",
+      "model_size_gb": 1.5,
+      "yaml_compliant": true,
+      "execution_time": 0.11194896697998047,
+      "entity_recall": 0.0,
+      "relation_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "quality_preservation_score": 0.2,
+      "entities_found": 0,
+      "entities_expected": 3,
+      "entities_extracted": 0,
+      "relations_found": 0,
+      "relations_expected": 2,
+      "text_complexity": "simple",
+      "text_tokens_estimated": 0
+    },
+    {
+      "case_id": "basic_concept_discovery",
+      "model": "qwen2.5-coder:1.5b",
+      "prompt_variant": "ultra_lite",
+      "model_size_gb": 1.5,
+      "yaml_compliant": true,
+      "execution_time": 0.2254352569580078,
+      "entity_recall": 0.0,
+      "relation_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "quality_preservation_score": 0.2,
+      "entities_found": 0,
+      "entities_expected": 2,
+      "entities_extracted": 0,
+      "relations_found": 0,
+      "relations_expected": 1,
+      "text_complexity": "simple",
+      "text_tokens_estimated": 0
+    }
+  ],
+  "model_aggregates": {
+    "qwen2.5-coder:1.5b": {
+      "ultra_lite": {
+        "avg_entity_recall": 0.0,
+        "avg_relation_accuracy": 0.0,
+        "avg_hallucination_rate": 0.0,
+        "avg_quality_score": 0.20000000000000004,
+        "avg_execution_time": 0.13567137718200684,
+        "yaml_compliance_rate": 1.0,
+        "test_count": 3
+      }
+    }
+  },
+  "variant_aggregates": {},
+  "config": {
+    "track_tokens": true,
+    "total_tests": 3
+  },
+  "test_case_metadata": {
+    "basic_person_location": {
+      "complexity": "simple",
+      "text_tokens_estimated": 0,
+      "entities_expected": 2,
+      "relations_expected": 1
+    },
+    "simple_org_founding": {
+      "complexity": "simple",
+      "text_tokens_estimated": 0,
+      "entities_expected": 3,
+      "relations_expected": 2
+    },
+    "basic_concept_discovery": {
+      "complexity": "simple",
+      "text_tokens_estimated": 0,
+      "entities_expected": 2,
+      "relations_expected": 1
+    }
+  },
+  "dataset_metadata": {
+    "total_cases": 3,
+    "complexity_distribution": {
+      "simple": 3
+    },
+    "domain_distribution": {
+      "biography": 1,
+      "business": 1,
+      "science": 1
+    },
+    "difficulty_distribution": {
+      "easy": 3
+    },
+    "model_target_distribution": {
+      "1.5B": 3,
+      "7B": 3
+    },
+    "entity_counts": {
+      "min": 2,
+      "max": 3,
+      "avg": 2.3333333333333335
+    },
+    "relation_counts": {
+      "min": 1,
+      "max": 2,
+      "avg": 1.3333333333333333
+    },
+    "subset_type": "simple_only"
+  },
+  "phase": "1_baseline",
+  "models": [
+    "qwen2.5-coder:1.5b"
+  ],
+  "prompt_variants": [
+    "ultra_lite"
+  ]
+}

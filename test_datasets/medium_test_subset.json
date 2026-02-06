@@ -1,0 +1,470 @@
+{
+  "generated_at": "2026-02-06T01:08:42.315794",
+  "version": "1.0",
+  "purpose": "1.5B/7B model prompt optimization testing",
+  "metadata": {
+    "total_cases": 9,
+    "complexity_distribution": {
+      "simple": 3,
+      "medium": 6
+    },
+    "domain_distribution": {
+      "biography": 1,
+      "business": 2,
+      "science": 1,
+      "technology": 1,
+      "academic": 1,
+      "history": 1,
+      "legal/business": 1,
+      "nature": 1
+    },
+    "difficulty_distribution": {
+      "easy": 3,
+      "moderate": 6
+    },
+    "model_target_distribution": {
+      "1.5B": 3,
+      "7B": 9
+    },
+    "entity_counts": {
+      "min": 2,
+      "max": 5,
+      "avg": 3.5555555555555554
+    },
+    "relation_counts": {
+      "min": 1,
+      "max": 4,
+      "avg": 2.5555555555555554
+    },
+    "subset_type": "easy_to_medium"
+  },
+  "test_cases": [
+    {
+      "id": "basic_person_location",
+      "text": "Ada Lovelace was born in London.",
+      "expected_entities": [
+        {
+          "name": "Ada Lovelace",
+          "type": "Person"
+        },
+        {
+          "name": "London",
+          "type": "Location"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Ada Lovelace",
+          "target": "London",
+          "keywords": [
+            "born"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "biography",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    },
+    {
+      "id": "simple_org_founding",
+      "text": "Microsoft was founded by Bill Gates and Paul Allen.",
+      "expected_entities": [
+        {
+          "name": "Microsoft",
+          "type": "Organization"
+        },
+        {
+          "name": "Bill Gates",
+          "type": "Person"
+        },
+        {
+          "name": "Paul Allen",
+          "type": "Person"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Bill Gates",
+          "target": "Microsoft",
+          "keywords": [
+            "founded"
+          ]
+        },
+        {
+          "source": "Paul Allen",
+          "target": "Microsoft",
+          "keywords": [
+            "founded"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "business",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    },
+    {
+      "id": "basic_concept_discovery",
+      "text": "Isaac Newton discovered gravity.",
+      "expected_entities": [
+        {
+          "name": "Isaac Newton",
+          "type": "Person"
+        },
+        {
+          "name": "gravity",
+          "type": "Concept"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Isaac Newton",
+          "target": "gravity",
+          "keywords": [
+            "discovered"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "science",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    },
+    {
+      "id": "tech_startup_ecosystem",
+      "text": "OpenAI developed ChatGPT with funding from Microsoft. Sam Altman leads the company as CEO.",
+      "expected_entities": [
+        {
+          "name": "OpenAI",
+          "type": "Organization"
+        },
+        {
+          "name": "ChatGPT",
+          "type": "Product"
+        },
+        {
+          "name": "Microsoft",
+          "type": "Organization"
+        },
+        {
+          "name": "Sam Altman",
+          "type": "Person"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "OpenAI",
+          "target": "ChatGPT",
+          "keywords": [
+            "developed"
+          ]
+        },
+        {
+          "source": "Microsoft",
+          "target": "OpenAI",
+          "keywords": [
+            "funding"
+          ]
+        },
+        {
+          "source": "Sam Altman",
+          "target": "OpenAI",
+          "keywords": [
+            "leads",
+            "CEO"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "technology",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate"
+    },
+    {
+      "id": "scientific_research_paper",
+      "text": "Researchers at MIT published a study in Nature about quantum computing. The paper discusses qubit stability.",
+      "expected_entities": [
+        {
+          "name": "MIT",
+          "type": "Organization"
+        },
+        {
+          "name": "Nature",
+          "type": "Organization"
+        },
+        {
+          "name": "quantum computing",
+          "type": "Concept"
+        },
+        {
+          "name": "qubit stability",
+          "type": "Concept"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "MIT",
+          "target": "Nature",
+          "keywords": [
+            "published",
+            "study"
+          ]
+        },
+        {
+          "source": "paper",
+          "target": "quantum computing",
+          "keywords": [
+            "discusses"
+          ]
+        },
+        {
+          "source": "paper",
+          "target": "qubit stability",
+          "keywords": [
+            "discusses"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "academic",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate"
+    },
+    {
+      "id": "historical_event_chain",
+      "text": "The Wright Brothers achieved first flight at Kitty Hawk in 1903. This event revolutionized aviation.",
+      "expected_entities": [
+        {
+          "name": "Wright Brothers",
+          "type": "Person"
+        },
+        {
+          "name": "first flight",
+          "type": "Event"
+        },
+        {
+          "name": "Kitty Hawk",
+          "type": "Location"
+        },
+        {
+          "name": "1903",
+          "type": "Time"
+        },
+        {
+          "name": "aviation",
+          "type": "Concept"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Wright Brothers",
+          "target": "first flight",
+          "keywords": [
+            "achieved"
+          ]
+        },
+        {
+          "source": "first flight",
+          "target": "Kitty Hawk",
+          "keywords": [
+            "at"
+          ]
+        },
+        {
+          "source": "first flight",
+          "target": "1903",
+          "keywords": [
+            "in"
+          ]
+        },
+        {
+          "source": "first flight",
+          "target": "aviation",
+          "keywords": [
+            "revolutionized"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "history",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate"
+    },
+    {
+      "id": "ambiguous_entities",
+      "text": "Apple announced new features for Apple Watch while competing with Apple Records in court.",
+      "expected_entities": [
+        {
+          "name": "Apple",
+          "type": "Organization"
+        },
+        {
+          "name": "Apple Watch",
+          "type": "Product"
+        },
+        {
+          "name": "Apple Records",
+          "type": "Organization"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Apple",
+          "target": "Apple Watch",
+          "keywords": [
+            "announced",
+            "features"
+          ]
+        },
+        {
+          "source": "Apple",
+          "target": "Apple Records",
+          "keywords": [
+            "competing",
+            "with"
+          ]
+        },
+        {
+          "source": "competition",
+          "target": "court",
+          "keywords": [
+            "in"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "legal/business",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate",
+      "notes": "Entity disambiguation challenge"
+    },
+    {
+      "id": "implicit_relationships",
+      "text": "The morning sun rose over mountains. Birds began singing their daily songs.",
+      "expected_entities": [
+        {
+          "name": "morning sun",
+          "type": "Natural"
+        },
+        {
+          "name": "mountains",
+          "type": "Location"
+        },
+        {
+          "name": "Birds",
+          "type": "Natural"
+        },
+        {
+          "name": "songs",
+          "type": "Concept"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "morning sun",
+          "target": "mountains",
+          "keywords": [
+            "rose",
+            "over"
+          ]
+        },
+        {
+          "source": "Birds",
+          "target": "songs",
+          "keywords": [
+            "singing"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "nature",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate",
+      "notes": "Temporal and causal relationships"
+    },
+    {
+      "id": "corporate_structure",
+      "text": "Google's parent company Alphabet owns DeepMind, which acquired Dark Blue Labs. Sundar Pichai serves as Google's CEO.",
+      "expected_entities": [
+        {
+          "name": "Google",
+          "type": "Organization"
+        },
+        {
+          "name": "Alphabet",
+          "type": "Organization"
+        },
+        {
+          "name": "DeepMind",
+          "type": "Organization"
+        },
+        {
+          "name": "Dark Blue Labs",
+          "type": "Organization"
+        },
+        {
+          "name": "Sundar Pichai",
+          "type": "Person"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Alphabet",
+          "target": "Google",
+          "keywords": [
+            "parent",
+            "company"
+          ]
+        },
+        {
+          "source": "Alphabet",
+          "target": "DeepMind",
+          "keywords": [
+            "owns"
+          ]
+        },
+        {
+          "source": "DeepMind",
+          "target": "Dark Blue Labs",
+          "keywords": [
+            "acquired"
+          ]
+        },
+        {
+          "source": "Sundar Pichai",
+          "target": "Google",
+          "keywords": [
+            "CEO",
+            "serves"
+          ]
+        }
+      ],
+      "complexity": "medium",
+      "domain": "business",
+      "target_models": [
+        "7B"
+      ],
+      "extraction_difficulty": "moderate"
+    }
+  ]
+}

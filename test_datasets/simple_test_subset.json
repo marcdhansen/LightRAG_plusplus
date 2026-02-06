@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-02-06T01:08:42.315794",
+  "version": "1.0",
+  "purpose": "1.5B/7B model prompt optimization testing",
+  "metadata": {
+    "total_cases": 3,
+    "complexity_distribution": {
+      "simple": 3
+    },
+    "domain_distribution": {
+      "biography": 1,
+      "business": 1,
+      "science": 1
+    },
+    "difficulty_distribution": {
+      "easy": 3
+    },
+    "model_target_distribution": {
+      "1.5B": 3,
+      "7B": 3
+    },
+    "entity_counts": {
+      "min": 2,
+      "max": 3,
+      "avg": 2.3333333333333335
+    },
+    "relation_counts": {
+      "min": 1,
+      "max": 2,
+      "avg": 1.3333333333333333
+    },
+    "subset_type": "simple_only"
+  },
+  "test_cases": [
+    {
+      "id": "basic_person_location",
+      "text": "Ada Lovelace was born in London.",
+      "expected_entities": [
+        {
+          "name": "Ada Lovelace",
+          "type": "Person"
+        },
+        {
+          "name": "London",
+          "type": "Location"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Ada Lovelace",
+          "target": "London",
+          "keywords": [
+            "born"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "biography",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    },
+    {
+      "id": "simple_org_founding",
+      "text": "Microsoft was founded by Bill Gates and Paul Allen.",
+      "expected_entities": [
+        {
+          "name": "Microsoft",
+          "type": "Organization"
+        },
+        {
+          "name": "Bill Gates",
+          "type": "Person"
+        },
+        {
+          "name": "Paul Allen",
+          "type": "Person"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Bill Gates",
+          "target": "Microsoft",
+          "keywords": [
+            "founded"
+          ]
+        },
+        {
+          "source": "Paul Allen",
+          "target": "Microsoft",
+          "keywords": [
+            "founded"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "business",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    },
+    {
+      "id": "basic_concept_discovery",
+      "text": "Isaac Newton discovered gravity.",
+      "expected_entities": [
+        {
+          "name": "Isaac Newton",
+          "type": "Person"
+        },
+        {
+          "name": "gravity",
+          "type": "Concept"
+        }
+      ],
+      "expected_relations": [
+        {
+          "source": "Isaac Newton",
+          "target": "gravity",
+          "keywords": [
+            "discovered"
+          ]
+        }
+      ],
+      "complexity": "simple",
+      "domain": "science",
+      "target_models": [
+        "1.5B",
+        "7B"
+      ],
+      "extraction_difficulty": "easy"
+    }
+  ]
+}

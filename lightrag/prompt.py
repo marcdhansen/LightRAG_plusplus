@@ -106,6 +106,33 @@ PROMPTS["entity_extraction_system_prompt_variant_B"] = PROMPTS[
     "entity_extraction_system_prompt"
 ]
 
+PROMPTS["entity_extraction_system_prompt_optimized"] = """---Role---
+Knowledge Graph Extraction Specialist optimized for 7B models.
+
+---Instructions---
+1. Entity Extraction:
+   - Identify entities: Person, Location, Organization, Concept, Event, Theory
+   - Format: entity{tuple_delimiter}name{tuple_delimiter}type{tuple_delimiter}description
+   - Provide concise descriptions from text only
+
+2. Relationship Extraction:
+   - Find direct connections between entities
+   - Format: relation{tuple_delimiter}source{tuple_delimiter}target{tuple_delimiter}keywords{tuple_delimiter}description
+   - Use specific relationship keywords
+
+3. Quality Guidelines:
+   - Be accurate and comprehensive
+   - Avoid hallucinations - only extract what's in text
+   - Use {tuple_delimiter} as strict separator
+   - Output in {language}
+   - End with {completion_delimiter}
+   - Prioritize clear, explicit relationships
+
+4. Output Order:
+   - All entities first
+   - All relationships second
+"""
+
 PROMPTS["entity_extraction_system_prompt_variant_C"] = """---Role---
 You are a Knowledge Graph Extraction Specialist balancing speed and accuracy for Variant C (Balanced Density).
 
@@ -128,7 +155,7 @@ You are a Knowledge Graph Extraction Specialist balancing speed and accuracy for
 """
 
 PROMPTS["entity_extraction_system_prompt_lite"] = """---Role---
-Extract entities and relationships efficiently.
+You are a Knowledge Graph Specialist for efficient entity and relationship extraction.
 
 ---Instructions---
 1. Entities: Extract meaningful entities. Format per line:
@@ -142,6 +169,41 @@ Extract entities and relationships efficiently.
    - Language: {language}
    - End with {completion_delimiter}
    - Keep names in Title Case
+"""
+
+PROMPTS["entity_extraction_system_prompt_ultra_lite"] = """---Role---
+KG extractor for small models. Find entities and relationships efficiently.
+
+---Goal---
+Extract entities (Person, Location, Organization, Concept) and their direct relationships.
+
+---Format---
+Entities: entity{tuple_delimiter}name{tuple_delimiter}type{tuple_delimiter}description
+Relations: relation{tuple_delimiter}source{tuple_delimiter}target{tuple_delimiter}keywords{tuple_delimiter}description
+
+---Rules---
+- Use {tuple_delimiter} as separator
+- Output entities first, then relations
+- Title Case names
+- Language: {language}
+- End with {completion_delimiter}
+- Entity types: {entity_types}
+"""
+
+PROMPTS["entity_extraction_user_prompt_ultra_lite"] = """---Task---
+Extract entities and relationships from the input text in Data to be Processed below.
+
+---Instructions---
+1.  **Strict Adherence to Format:** Extract entities and relationships efficiently.
+2.  **Output Content Only:** Output *only* the extracted list of entities and relationships.
+3.  **Completion Signal:** Output `{completion_delimiter}` as the final line after all relevant entities and relationships have been extracted and presented.
+4.  **Output Language:** Ensure the output language is {language}.
+
+---Data to be Processed---
+<Entity_types>
+[{entity_types}]
+
+<Input Text>
 """
 
 PROMPTS["entity_extraction_user_prompt"] = """---Task---
@@ -165,110 +227,34 @@ Extract entities and relationships from the input text in Data to be Processed b
 <Output>
 """
 
+PROMPTS["entity_continue_extraction_user_prompt_ultra_lite"] = """---Task---
+Continue extracting entities and relationships from the input text in Data to be Processed below.
+
+---Instructions---
+1.  **Strict Adherence to Format:** Continue extracting entities and relationships efficiently.
+2.  **Output Content Only:** Output *only* the extracted list of entities and relationships.
+3.  **Completion Signal:** Output `{completion_delimiter}` as the final line after all relevant entities and relationships have been extracted and presented.
+4.  **Output Language:** Ensure the output language is {language}.
+
+---Data to be Processed---
+<Entity_types>
+[{entity_types}]
+
+<Input Text>
+"""
+
 PROMPTS["entity_continue_extraction_user_prompt"] = """---Task---
-Based on the last extraction task, identify and extract any **missed or incorrectly formatted** entities and relationships from the input text.
+Continue extracting entities and relationships from the input text in Data to be Processed below.
 
 ---Instructions---
-1.  **Strict Adherence to System Format:** Strictly adhere to all format requirements for entity and relationship lists, including output order, field delimiters, and proper noun handling, as specified in the system instructions.
-2.  **Focus on Corrections/Additions:**
-    *   **Do NOT** re-output entities and relationships that were **correctly and fully** extracted in the last task.
-    *   If an entity or relationship was **missed** in the last task, extract and output it now according to the system format.
-    *   If an entity or relationship was **truncated, had missing fields, or was otherwise incorrectly formatted** in the last task, re-output the *corrected and complete* version in the specified format.
-3.  **Output Format - Entities:** Output a total of 4 fields for each entity, delimited by `{tuple_delimiter}`, on a single line. The first field *must* be the literal string `entity`.
-4.  **Output Format - Relationships:** Output a total of 5 fields for each relationship, delimited by `{tuple_delimiter}`, on a single line. The first field *must* be the literal string `relation`.
-5.  **Output Content Only:** Output *only* the extracted list of entities and relationships. Do not include any introductory or concluding remarks, explanations, or additional text before or after the list.
-6.  **Completion Signal:** Output `{completion_delimiter}` as the final line after all relevant missing or corrected entities and relationships have been extracted and presented.
-7.  **Output Language:** Ensure the output language is {language}. Proper nouns (e.g., personal names, place names, organization names) must be kept in their original language and not translated.
+1.  **Strict Adherence to Format:** Strictly adhere to all format requirements for entity and relationship lists, including output order, field delimiters, and proper noun handling, as specified in the system prompt.
+2.  **Output Content Only:** Output *only* the extracted list of entities and relationships. Do not include any introductory or concluding remarks, explanations, or additional text before or after the list.
+3.  **Completion Signal:** Output `{completion_delimiter}` as the final line after all relevant entities and relationships have been extracted and presented.
+4.  **Output Language:** Ensure the output language is {language}. Proper nouns (e.g., personal names, create names, organization names) must be kept in their original language and not translated.
 
-<Output>
-"""
-
-PROMPTS["entity_extraction_user_prompt_lite"] = """---Task---
-Extract entities and relationships from the text.
-
-Entity Types: [{entity_types}]
-
-Input Text:
-```
-{input_text}
-```
-
-Output entities first, then relationships. End with {completion_delimiter}.
-"""
-
-PROMPTS["entity_continue_extraction_user_prompt_lite"] = """---Task---
-Extract missed or incorrect entities and relationships from the text.
-
-Input Text:
-```
-{input_text}
-```
-
-Output only missed/corrected items. End with {completion_delimiter}.
-"""
-
-PROMPTS["entity_extraction_key_value_system_prompt"] = """---Role---
-You are a Knowledge Graph Specialist responsible for extracting ALL relevant entities and relationships from the input text.
-
----Instructions---
-1.  **ENTITY EXTRACTION (STRICT):**
-    *   Identify ALL meaningful entities including Persons, Locations, Organizations, Events, and **important Concepts** (e.g. "Theory of Relativity", "Universal Healthcare", "Social Justice").
-    *   **CONCEPT RECOGNITION:** Concepts are often abstract nouns representing ideas, philosophies, or major themes.
-    *   Categorize entities using types: {entity_types}.
-    *   **CRITICAL:** Do NOT skip entities mentioned at the end of the text.
-    *   **DECOMPOSITION:** Always split compound locations (e.g., "Paris, France" -> "Paris", "France").
-    *   **NO HALLUCINATION:** Strictly use information present in the text. Do NOT add biographical info or external facts. Keywords and Descriptions must come ONLY from the Input Text, NOT the examples.
-    *   **FORMAT:** Every entity MUST have 'name', 'type', and 'description'. Use a list of objects.
-
-2.  **RELATIONSHIP EXTRACTION (DENSE):**
-    *   Identify all meaningful relationships between ALL identified entities.
-    *   **EXHAUSTIVE PAIRING:** For every possible pair of entities in the list, check if the text supports a connection. If yes, extract it.
-    *   **LINK EVERYTHING:** Do not just link to the main subject; link secondary entities to each other.
-    *   **GEOGRAPHIC LINKS:** Always link a specific location (City/State) to its containing location (Country/Region) if both are listed or implied.
-    *   **RELATIONSHIP SCHEMA:** Use 'source', 'target', 'keywords', 'description'.
-    *   **CONSISTENCY:** Use the EXACT same entity 'name' in relationships as defined in the entities list.
-    *   **EXAMPLE:** If "A was born in B, C", extract: (A -> B), (A -> C), and (B -> C).
-
-3.  **OUTPUT FORMAT:**
-    *   Return ONLY a valid YAML object with 'entities' and 'relationships' keys.
-
----Examples---
-{examples}
-"""
-
-PROMPTS["entity_extraction_key_value_system_prompt_lite"] = """---Role---
-Extract entities and relationships in YAML format.
-
----Instructions---
-1. Extract all meaningful entities (persons, places, organizations, concepts).
-2. Extract relationships between entities.
-3. Entity types: {entity_types}
-4. Return only YAML with entities and relationships lists.
-
----Examples---
-{examples}
-"""
-
-PROMPTS["entity_extraction_key_value_user_prompt"] = """---Task---
-Extract ALL entities and relationships from the input text in YAML format.
-
----Instructions---
-1.  **Strict YAML Output:** Output only valid YAML. Do not include preamble or thoughts.
-2.  **Completeness:** DO NOT omit entities at the end of the text. Extract EVERYTHING relevant, including abstract concepts or themes mentioned.
-3.  **No Contamination:** Descriptions and keywords must be based ONLY on the provided Input Text. Do NOT copy information from the examples.
-4.  **Dense Linkage:** Ensure all meaningful connections between ALL entities are captured.
-    *   **Geographic Containment:** (e.g., link "City" to "Country").
-    *   **Nested Relations:** If a person is born in a city, and that city is in a country, capture BOTH relations if mentioned or implied.
-5.  **Entity Mapping:**
-    - name: "<entity_name>"
-      type: "<entity_type>"
-      description: "<entity_description>"
-6.  **Relationship Mapping:**
-    - source: "<source_entity>"
-      target: "<target_entity>"
-      keywords: "<keywords>"
-      description: "<description>"
-7.  **Language:** Use {language}.
+---Data to be Processed---
+<Entity_types>
+[{entity_types}]
 
 <Input Text>
 {input_text}

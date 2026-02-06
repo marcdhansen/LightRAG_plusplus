@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from lightrag.core import LightRAG
 
 from .cot_templates import CoTTemplates
+from .hallucination_detector import HallucinationDetector
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,11 @@ class ACEReflector:
         self.cot_templates = None
         if hasattr(lightrag_instance, "ace_config") and lightrag_instance.ace_config:
             self.cot_templates = CoTTemplates(lightrag_instance.ace_config)
+
+        # Initialize hallucination detector
+        self.hallucination_detector = HallucinationDetector(
+            getattr(lightrag_instance, "ace_config", None)
+        )
 
     def _parse_json_list(self, llm_output: str) -> list[Any]:
         """
@@ -162,6 +168,7 @@ class ACEReflector:
     ) -> list[dict[str, Any]]:
         """
         Analyzes retrieved context for hallucinations, illogical relationships, or duplicate entities.
+        Enhanced with sophisticated hallucination detection for small models.
         Returns a list of repair actions.
         """
         context_data = generation_result.get("context_data", {})
@@ -172,6 +179,41 @@ class ACEReflector:
 
         if not chunks:
             return []
+
+        # Get model size for hallucination detection
+        model_size = getattr(self.rag, "llm_model_name", "7b").split(":")[-1].lower()
+
+        # Pre-screen entities with hallucination detector
+        hallucinated_entities = []
+        for entity in entities:
+            detection = self.hallucination_detector.detect_entity_hallucination(
+                entity_name=entity.get("entity_name", ""),
+                entity_type=entity.get("entity_type", ""),
+                entity_description=entity.get("description", ""),
+                source_chunks=[chunk.get("content", "") for chunk in chunks],
+                model_size=model_size,
+            )
+
+            if detection.is_hallucinated:
+                hallucinated_entities.append(
+                    {"entity_name": entity.get("entity_name"), "detection": detection}
+                )
+
+        # Pre-screen relationships with hallucination detector
+        hallucinated_relationships = []
+        for relation in relations:
+            detection = self.hallucination_detector.detect_relationship_hallucination(
+                source_entity=relation.get("src_id", ""),
+                target_entity=relation.get("tgt_id", ""),
+                relationship_description=relation.get("description", ""),
+                source_chunks=[chunk.get("content", "") for chunk in chunks],
+                model_size=model_size,
+            )
+
+            if detection.is_hallucinated:
+                hallucinated_relationships.append(
+                    {"relation": relation, "detection": detection}
+                )
 
         # Check if CoT is enabled for graph verification
         if (
@@ -184,22 +226,46 @@ class ACEReflector:
             cot_template = self.cot_templates.get_graph_verification_template()
             reasoning_parser = self.cot_templates.get_reasoning_output_parser()
 
-            # Build context data
+            # Build context data with hallucination detection results
             context_chunks = "\n".join(
                 [f"Chunk {i}: {c.get('content')}" for i, c in enumerate(chunks[:5])]
             )
+
+            # Add hallucination detection warnings
+            hallucination_warnings = ""
+            if hallucinated_entities:
+                hallucination_warnings += "\n### 🚨 HALLUCINATION DETECTION WARNINGS\n"
+                hallucination_warnings += "**Pre-detected Hallucinated Entities:**\n"
+                for hall_entity in hallucinated_entities:
+                    detection = hall_entity["detection"]
+                    hallucination_warnings += (
+                        f"- {hall_entity['entity_name']}: {detection.reasoning}\n"
+                    )
+                    hallucination_warnings += f"  Confidence: {detection.confidence:.2f}, Type: {detection.hallucination_type}\n"
+
             context_entities = "\n".join(
                 [
                     f"{i}. {e.get('entity_name')} ({e.get('entity_type')}): {e.get('description')}"
                     for i, e in enumerate(entities[:50])
                 ]
             )
+
             context_relations = "\n".join(
                 [
                     f"{i}. {r.get('src_id')} -> {r.get('tgt_id')}: {r.get('description')}"
                     for i, r in enumerate(relations[:50])
                 ]
             )
+
+            if hallucinated_relationships:
+                hallucination_warnings += (
+                    "\n**Pre-detected Hallucinated Relationships:**\n"
+                )
+                for hall_rel in hallucinated_relationships:
+                    detection = hall_rel["detection"]
+                    relation = hall_rel["relation"]
+                    hallucination_warnings += f"- {relation.get('src_id')} -> {relation.get('tgt_id')}: {detection.reasoning}\n"
+                    hallucination_warnings += f"  Confidence: {detection.confidence:.2f}, Type: {detection.hallucination_type}\n"
 
             # Format instructions for actions
             format_instructions = (
@@ -217,10 +283,12 @@ class ACEReflector:
             )
 
             prompt = (
-                "You are the Reflector component of the ACE Framework, specializing in Graph Integrity.\n"
-                "CRITICAL TASK: Verify the retrieved graph data against the source text chunks provided below.\n\n"
+                "You are the Reflector component of the ACE Framework, specializing in Graph Integrity with Enhanced Hallucination Detection.\n"
+                "CRITICAL TASK: Verify the retrieved graph data against the source text chunks provided below.\n"
+                "PAY SPECIAL ATTENTION to the hallucination detection warnings - they indicate patterns commonly found in small model hallucinations.\n\n"
                 "### Source Text Chunks\n"
-                f"{context_chunks}\n\n"
+                f"{context_chunks}\n"
+                f"{hallucination_warnings}\n\n"
                 "### Entities to Verify\n"
                 f"{context_entities}\n\n"
                 "### Relationships to Verify\n"

@@ -3073,18 +3073,27 @@ async def extract_entities(
                             small_model = True
                     except Exception:
                         pass
-            # Check if lite extraction is enabled
+            # Smart prompt selection based on model size and optimization level
             if lite_extraction:
-                system_prompt_key = "entity_extraction_system_prompt_lite"
+                if small_model:  # 1.5B with lite extraction
+                    system_prompt_key = "entity_extraction_system_prompt_ultra_lite"
+                else:  # 7B+ with lite extraction
+                    system_prompt_key = "entity_extraction_system_prompt_optimized"
             elif small_model:
                 system_prompt_key = "entity_extraction_system_prompt_small"
             else:
                 system_prompt_key = "entity_extraction_system_prompt"
 
-        # Use lite user prompts if enabled and not in key_value mode
-        if lite_extraction and extraction_format != "key_value":
-            user_prompt_key = "entity_extraction_user_prompt_lite"
-            continue_prompt_key = "entity_continue_extraction_user_prompt_lite"
+        # Smart user prompt selection
+        if lite_extraction:
+            if extraction_format == "key_value" and small_model:
+                user_prompt_key = "entity_extraction_user_prompt_ultra_lite"
+                continue_prompt_key = (
+                    "entity_continue_extraction_user_prompt_ultra_lite"
+                )
+            else:
+                user_prompt_key = "entity_extraction_user_prompt_lite"
+                continue_prompt_key = "entity_continue_extraction_user_prompt_lite"
         else:
             user_prompt_key = "entity_extraction_user_prompt"
             continue_prompt_key = "entity_continue_extraction_user_prompt"
