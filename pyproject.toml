@@ -148,7 +148,8 @@ test = [
     "pre-commit",
     "ruff",
     "pytest-playwright>=0.4.4",
-    "langgraph>=0.2.0",
+    "langgraph>=1.0.0",
+    "langgraph-checkpoint>=4.0.0",
     "langgraph-checkpoint-sqlite>=3.0.0",
 ]
 

@@ -117,6 +117,8 @@ jobs:
                 pip install pre-commit ruff pytest pytest-asyncio coverage
                 # Install project with all optional dependencies for CI
                 pip install -e ".[api,test,evaluation]"
+                # Ensure langgraph checkpoint dependencies are explicitly installed
+                pip install "langgraph>=1.0.0" "langgraph-checkpoint>=4.0.0" "langgraph-checkpoint-sqlite>=3.0.0"
 
                 echo "✅ Python dependencies installed"
                 echo "📦 Installed packages:"
