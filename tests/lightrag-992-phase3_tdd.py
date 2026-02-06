@@ -3,11 +3,9 @@ TDD tests for LIGHTRAG_992_PHASE3 feature.
 Test-Driven Development tests for LightRAG integration.
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-import json
-from pathlib import Path
 
 
 class TestLIGHTRAG_992_PHASE3:
@@ -16,7 +14,7 @@ class TestLIGHTRAG_992_PHASE3:
     @pytest.fixture
     def mock_lightrag_instance(self):
         """Create a mock LightRAG instance for testing."""
-        with patch('lightrag.LightRAG') as mock_rag:
+        with patch("lightrag.LightRAG") as mock_rag:
             mock_instance = Mock()
             mock_instance.query = AsyncMock()
             mock_instance.insert = AsyncMock()
