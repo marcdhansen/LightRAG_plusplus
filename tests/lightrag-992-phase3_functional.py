@@ -3,12 +3,10 @@ Functional tests for LIGHTRAG_992_PHASE3 feature.
 End-to-end functional tests for LightRAG integration.
 """
 
-import pytest
-import asyncio
 import tempfile
-import json
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
+
+import pytest
 
 
 class TestLIGHTRAG_992_PHASE3Functional:

@@ -464,7 +464,7 @@ async def run_extraction_test(
 async def run_baseline_audit(
     models: list[str],
     output_file: str,
-    prompt_variants: list[str] = ["standard"],
+    prompt_variants: list[str] | None = None,
     track_tokens: bool = True,
 ):
     """
@@ -476,6 +476,8 @@ async def run_baseline_audit(
         prompt_variants: List of prompt variants to test ("standard", "lite", "small", "ultra_lite")
         track_tokens: Whether to track token usage
     """
+    if prompt_variants is None:
+        prompt_variants = ["standard"]
     results = []
     timestamp = datetime.now().isoformat()
 
