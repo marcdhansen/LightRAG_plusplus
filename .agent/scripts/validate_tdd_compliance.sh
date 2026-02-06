@@ -461,7 +461,7 @@ enforce_tdd_gates() {
     echo "🔐 TDD GATE ENFORCEMENT"
     echo "========================"
     echo "There is NO MANUAL OVERRIDE for TDD requirements."
-    echo "TDD compliance is MANDATORY and cannot be bypassed."
+    echo "🔒 TDD compliance is MANDATORY and cannot be bypassed."
     echo ""
     echo "Security measures in place:"
     echo "- All validation paths lead to permanent block on violation"

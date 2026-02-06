@@ -211,6 +211,21 @@ analyze_session_patterns() {
         recommendations+=("High fast mode usage ($fast_mode_rate%) with low success rate - consider reducing fast mode")
     fi
 
+    # 🔒 TDD Compliance Analysis (NEW - align with mandatory global standards)
+    local tdd_failures=()
+    for failure in "${common_failures[@]}"; do
+        if [[ "$failure" =~ (tdd|TDD|implementation_readiness|performance_requirement|quality_gate) ]]; then
+            tdd_failures+=("$failure")
+        fi
+    done
+
+    if [[ ${#tdd_failures[@]} -gt 0 ]]; then
+        recommendations+=("🔒 TDD compliance issues detected - review [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md) (MANDATORY)")
+        recommendations+=("Ensure Implementation Readiness checks pass before starting work")
+        recommendations+=("Validate all Performance Requirements are defined")
+        recommendations+=("Complete all TDD Completion Artifacts")
+    fi
+
     if [[ ${#common_failures[@]} -gt 0 ]]; then
         local top_failure=$(printf '%s\n' "${common_failures[@]}" | sort | uniq -c | sort -nr | head -1 | awk '{print $2}')
         recommendations+=("Most common failure: $top_failure - consider making this check more robust")

@@ -1,72 +1,331 @@
-# TDD Mandatory Gate
+# LightRAG TDD Implementation Guide
 
-**Purpose**: Enforce Test-Driven Development (TDD) for all new features in LightRAG
-**Status**: ⛔ **MANDATORY** - Cannot be bypassed
-**Enforcement**: Automatic validation blocks completion without TDD compliance
-
-## 🚫 **MANDATORY REQUIREMENT**
-
-**All new features MUST follow TDD methodology**:
-
-1. **Write Tests First** - Define expectations before implementation
-2. **Implement Features** - Code to pass failing tests
-3. **Validate Performance** - Measure against baseline benchmarks
-4. **Document Tradeoffs** - Analyze speed, memory, and scalability
+**Purpose**: LightRAG-specific implementation guidance for **global mandatory TDD standards**
+**Base Standard**: [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md) - **🔒 MANDATORY foundation (cannot bypass)**
+**Project Extension**: LightRAG-specific patterns and examples (context only)
 
 ---
 
-## 🛑 **ENFORCEMENT MECHANISMS**
+## 🌐 **🔒 GLOBAL MANDATORY STANDARDS ARE SUPREME**
 
-### 1. **Pre-Flight Validation** (PFC Gate)
+**⚠️ CRITICAL**: All LightRAG development **must** follow the [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md):
 
-**Mandatory Implementation Readiness Checklist**: Every agent must validate before starting work:
+1. **🔒 Global Standards Are MANDATORY** - Cannot be bypassed, overridden, or skipped
+2. **🔒 Enforcement Is Global** - All quality gates, validation, and blocking are from global standards
+3. **📋 This Guide Provides Context Only** - LightRAG-specific patterns to apply global requirements
+4. **⚠️ No Local Override** - This guide does NOT add or replace any global mandatory requirements
 
-```yaml
-Implementation_Readiness:
-  - Beads_Issue_Exists: false
-  - Feature_Branch_Active: false
+**🚨 CLARIFICATION**:
+- **Global TDD**: MANDATORY enforcement, no bypass possible (Red→Green→Refactor+Performance+Quality Gates)
+- **This Guide**: OPTIONAL context for applying global standards in LightRAG context
+- **Violations**: Any attempt to bypass global TDD is automatically blocked regardless of local guidance
 
-TDD_Requirements:
-  - Has_Benchmarking_Tests: false
-  - Has_Performance_Baseline: false
-  - Has_Measurable_Assertions: false
-  - Has_Speed_Validation: false
-  - Has_Memory_Analysis: false
-  - Has_Scalability_Testing: false
+---
+
+## 🔧 **LightRAG-Specific Implementation Patterns**
+
+**🔒 Global Base**: **MANDATORY** - Follow [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md) exactly
+**📋 LightRAG Context**: Use these patterns to **apply** global standards in LightRAG:
+
+```bash
+# LightRAG standard test organization
+tests/
+├── unit/                    # Unit tests (global pattern)
+├── integration/             # Integration tests (global pattern)
+├── benchmarks/              # Performance tests (LightRAG extension)
+│   ├── keyword_search_performance.py
+│   ├── graph_construction_speed.py
+│   └── embedding_memory_usage.py
+└── lightrag_specific/       # LightRAG domain tests
+    ├── test_graph_algorithms.py
+    ├── test_text_pipelines.py
+    └── test_embedding_integration.py
 ```
 
-**Blocking Behavior**:
+### **2. LightRAG Performance Benchmarks**
 
-- ❌ **Any Implementation Readiness "false"** → **WORK BLOCKED**
-- ❌ **Any TDD "false"** → **WORK BLOCKED**
-- ✅ **All "true"** → **WORK PROCEEDS**
-
-### 2. **Return-to-Base Validation** (RTB Gate)
-
-**Mandatory TDD Completion Verification**:
+**Global Base**: Performance assertions required by global TDD workflow
+**LightRAG Extension**: Use these LightRAG-specific performance categories:
 
 ```yaml
-TDD_Completion_Gate:
-  Required_Artifacts:
-    - Failing_Tests_Before_Implementation: true
-    - Passing_Tests_After_Implementation: true
-    - Performance_Benchmarks: true
-    - Baseline_Comparisons: true
-    - Tradeoff_Documentation: true
-    - Measurable_Metrics: true
+LightRAG_Performance_Categories:
+  Graph_Construction:
+    - node_insertion_rate: ">1000 nodes/sec"
+    - edge_creation_speed: "<5ms per edge"
+    - memory_overhead: "<15% increase"
 
-  Validation_Methods:
-    - Automated_Test_Execution: pytest coverage
-    - Performance_Measurement: benchmark suite results
-    - Documentation_Review: tradeoff analysis completeness
-    - Code_Review: TDD compliance verification
+  Keyword_Search:
+    - search_latency: "<50ms for 10k documents"
+    - index_build_time: "<30 seconds"
+    - memory_usage: "<500MB for full index"
+
+  Embedding_Operations:
+    - batch_embedding_speed: ">100 docs/sec"
+    - vector_similarity_search: "<10ms"
+    - model_loading_time: "<5 seconds"
+
+  Text_Processing:
+    - tokenization_speed: ">10k tokens/sec"
+    - pipeline_latency: "<100ms per document"
+    - memory_efficiency: "<100MB working set"
 ```
 
-**Blocking Behavior**:
+### **3. LightRAG Domain-Specific Testing**
 
-- ❌ **Missing Artifacts** → **SESSION INCOMPLETE**
-- ⚠️ **Incomplete Analysis** → **REQUIRE FIXES**
-- ✅ **All Validated** → **SESSION COMPLETE**
+**Global Base**: Standard functional testing patterns
+**LightRAG Extension**: Domain-specific test scenarios:
+
+```python
+# Example: LightRAG Graph Algorithm Tests
+class TestGraphAlgorithmsTDD:
+    def test_community_detection_performance(self):
+        """RED Phase: This should FAIL initially"""
+        # Define performance expectations
+        graph = create_test_graph(10000)  # 10k nodes
+        start_time = time.time()
+
+        communities = detect_communities(graph)
+
+        duration = time.time() - start_time
+        assert duration < 5.0, f"Community detection too slow: {duration}s"
+        assert len(communities) > 0, "No communities detected"
+
+    def test_centrality_calculation_accuracy(self):
+        """RED Phase: Accuracy and speed test"""
+        graph = create_known_test_graph()
+
+        centrality_scores = calculate_centrality(graph)
+
+        # Accuracy assertion
+        expected_scores = get_expected_centrality_scores()
+        assert centrality_scores == expected_scores, "Centrality calculation incorrect"
+
+        # Performance assertion
+        assert time_taken < 1.0, "Centrality calculation too slow"
+```
+
+---
+
+## 📊 **LightRAG Performance Baselines**
+
+**🔒 Global Base**: **MANDATORY** - Baseline documentation required by [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)
+**📋 LightRAG Context**: Use these **project-specific** baseline measurements to meet global requirements:
+
+### **Current LightRAG Baselines** (Updated 2026-02-06)
+
+```yaml
+Baseline_Measurements:
+  Keyword_Search_Index:
+    Build_Time: "25 seconds for 10k documents"
+    Memory_Usage: "450MB"
+    Search_Latency: "35ms average"
+
+  Graph_Construction:
+    Node_Insertion: "1200 nodes/sec"
+    Edge_Creation: "3ms per edge"
+    Memory_Overhead: "12%"
+
+  Embedding_Pipeline:
+    Model_Load: "3.2 seconds"
+    Batch_Processing: "150 docs/sec"
+    Similarity_Search: "7ms"
+```
+
+### **When to Update Baselines**:
+
+1. **Algorithm Changes**: Re-measure all affected baselines
+2. **Infrastructure Updates**: Update memory and timing benchmarks
+3. **New Features**: Add new baseline categories
+4. **Performance Regressions**: Document and investigate
+
+---
+
+## 🔄 **LightRAG Multi-Phase Integration**
+
+**🔒 Global Base**: **MANDATORY** - Standard TDD Red→Green→Refactor cycle from [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)
+**📋 LightRAG Context**: Multi-phase coordination patterns for **applying** global requirements to complex features:
+
+```yaml
+LightRAG_Multi_Phase_Pattern:
+  Phase_1_Foundation:
+    - Create failing tests for core algorithm
+    - Implement basic functionality
+    - Validate performance baseline
+
+  Phase_2_Optimization:
+    - Add performance benchmarks
+    - Implement optimizations
+    - Validate no regression
+
+  Phase_3_Integration:
+    - Add integration tests
+    - Validate end-to-end performance
+    - Document tradeoff analysis
+```
+
+---
+
+## 🎯 **LightRAG-Specific Success Criteria**
+
+**Global Base**: Universal success criteria from global TDD workflow
+**LightRAG Extension**: Domain-specific validation:
+
+### **Algorithm Features**
+- ✅ **Correctness**: Passes all functional tests
+- ✅ **Performance**: Meets LightRAG speed benchmarks
+- ✅ **Scalability**: Handles target data sizes efficiently
+- ✅ **Memory**: Stays within LightRAG memory constraints
+
+### **Integration Features**
+- ✅ **Compatibility**: Works with existing LightRAG pipelines
+- ✅ **Backwards Compatibility**: Doesn't break existing APIs
+- ✅ **Configuration**: Proper settings and parameter handling
+- ✅ **Error Handling**: Graceful failure modes
+
+### **Infrastructure Features**
+- ✅ **Deployment**: Can be deployed in LightRAG environments
+- ✅ **Monitoring**: Provides performance metrics
+- ✅ **Debugging**: Includes debugging capabilities
+- ✅ **Documentation**: Complete usage guidelines
+
+---
+
+## 🚀 **LightRAG Implementation Examples**
+
+### **Example 1: Keyword Search Optimization**
+
+```bash
+# Step 1: Read global TDD workflow
+cat ~/.agent/docs/sop/tdd-workflow.md
+
+# Step 2: Create failing tests (RED)
+cat > tests/keyword_search_optimization_tdd.py << 'EOF'
+def test_search_speed_improvement():
+    """Should FAIL initially - optimization not implemented"""
+    documents = load_test_documents(10000)
+    searcher = KeywordSearcher()
+
+    start_time = time.time()
+    results = searcher.search("test query", documents)
+    duration = time.time() - start_time
+
+    assert duration < 0.05, f"Search too slow: {duration}s"  # 50ms target
+    assert len(results) > 0, "No results found"
+EOF
+
+# Step 3: Verify tests fail
+pytest tests/keyword_search_optimization_tdd.py -v  # Should FAIL
+
+# Step 4: Implement optimization (GREEN)
+# ... implementation code ...
+
+# Step 5: Verify tests pass
+pytest tests/keyword_search_optimization_tdd.py -v  # Should PASS
+
+# Step 6: Add comprehensive benchmarks
+cat > tests/keyword_search_benchmarks.py << 'EOF'
+def test_search_performance_benchmarks():
+    """Performance validation"""
+    # Benchmark against LightRAG baselines
+    assert search_latency < 50, "Exceeds LightRAG baseline of 35ms"
+    assert memory_usage < 500, "Exceeds LightRAG baseline of 450MB"
+EOF
+```
+
+---
+
+## 🔧 **LightRAG Development Tools**
+
+**🔒 Global Base**: **MANDATORY** - Standard development tooling from global standards
+**📋 LightRAG Context**: Project-specific validation scripts that **invoke** global requirements:
+
+```bash
+# LightRAG-specific validation (calls global standards)
+./scripts/validate_lightrag_tdd.sh <feature_name>
+./scripts/benchmark_lightrag_performance.sh <component>
+./scripts/verify_lightrag_baselines.sh <feature>
+
+# These scripts invoke global validation while adding LightRAG context
+```
+
+---
+
+## 📚 **LightRAG Documentation Templates**
+
+**🔒 Global Base**: **MANDATORY** - Standard documentation requirements from [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)
+**📋 LightRAG Context**: Use these templates to **meet** global requirements for LightRAG features:
+
+### **Performance Analysis Template**
+
+```markdown
+# Feature Performance Analysis - <Feature Name>
+
+## Global Compliance
+✅ Follows [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)
+✅ Meets global performance requirements
+✅ Includes mandatory tradeoff analysis
+
+## LightRAG-Specific Performance
+
+### Baseline Comparison
+| Metric | Baseline | Current | Improvement | Status |
+|--------|----------|---------|-------------|--------|
+| Search Latency | 35ms | 28ms | 20% faster | ✅ |
+| Memory Usage | 450MB | 420MB | 7% reduction | ✅ |
+| Index Build Time | 25s | 22s | 12% faster | ✅ |
+
+### LightRAG Integration Impact
+- **Pipeline Compatibility**: Works with existing text processing
+- **API Consistency**: Maintains backwards compatibility
+- **Configuration**: No breaking changes to settings
+
+### Deployment Readiness
+- **Production Guidelines**: [Link to deployment doc]
+- **Monitoring Metrics**: [Link to monitoring setup]
+- **Rollback Plan**: Documented rollback procedure
+```
+
+---
+
+## 🚨 **LightRAG-Specific Pitfalls**
+
+**🔒 Global Base**: **MANDATORY** - Universal TDD pitfalls from [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)
+**📋 LightRAG Context**: Common mistakes when **applying** global standards in LightRAG context:
+
+### **Pitfall 1: Ignoring Graph Performance**
+**❌ Wrong**: "Graph algorithm works, performance doesn't matter"
+**✅ Correct**: Graph operations must meet LightRAG speed benchmarks
+
+### **Pitfall 2: Memory Overlook**
+**❌ Wrong**: "Embedding works, memory usage is fine"
+**✅ Correct**: Memory must stay within LightRAG baseline constraints
+
+### **Pitfall 3: Integration Testing**
+**❌ Wrong**: "Feature works in isolation"
+**✅ Correct**: Must validate with LightRAG pipeline integration
+
+---
+
+## 📞 **LightRAG Support**
+
+### **LightRAG-Specific Help**
+- **Examples**: See `tests/examples/` for LightRAG TDD patterns
+- **Templates**: Use `.templates/lightrag_tdd/` for starting points
+- **Benchmarks**: Reference `tests/benchmarks/` for performance patterns
+
+### **When TDD Issues Occur**
+1. **Check Global Compliance First**: Verify global TDD workflow is followed
+2. **Apply LightRAG Patterns**: Use LightRAG-specific implementation guides
+3. **Validate Performance**: Ensure LightRAG benchmarks are met
+4. **Document Tradeoffs**: Include LightRAG-specific performance analysis
+
+---
+
+**🔗 INTEGRATION STATEMENT**:
+This guide **extends** the **🔒 [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)** with LightRAG-specific implementation patterns. **Global standards are mandatory and supreme** - this guide **only** provides LightRAG context for applying mandatory requirements.
+
+**⚠️ LAST UPDATED**: 2026-02-06
+**🔄 BASE STANDARD**: **🔒 [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)** (MANDATORY enforcement - cannot bypass)
 
 ---
 

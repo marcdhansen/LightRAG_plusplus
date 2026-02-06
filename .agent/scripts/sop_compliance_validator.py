@@ -109,12 +109,16 @@ class SOPComplianceValidator:
         # Check FlightDirector validations
         mandatory_checks["flight_director_used"] = self.check_flight_director_used()
 
+        # Check Global TDD compliance (NEW - mandatory for all development)
+        mandatory_checks["global_tdd_compliance"] = self.check_global_tdd_compliance()
+
         # Determine overall pass status
         mandatory_checks["all_passed"] = all(
             [
                 mandatory_checks["planning_used"],
                 mandatory_checks["rtb_initiated"],
                 mandatory_checks["reflect_used"],
+                mandatory_checks["global_tdd_compliance"],  # 🔒 NEW - mandatory TDD
             ]
         )
 
@@ -489,17 +493,84 @@ class SOPComplianceValidator:
         # Handle violations with override option
         override_result = self.handle_user_override()
 
-        if override_result["status"] == "blocked":
+        if override_result is None:
+            print("\n❌ RTB BLOCKED - Unable to process override")
+            print("💡 Run recommended skills and retry RTB")
+            return 1
+        elif override_result.get("status") == "blocked":
             print("\n❌ RTB BLOCKED - Fix violations before proceeding")
             print("💡 Run recommended skills and retry RTB")
             return 1
-        elif override_result["status"] == "overridden":
+        elif override_result.get("status") == "overridden":
             print("\n⚠️ SOP violations overridden with justification")
             return 2
-        elif override_result["status"] == "cancelled":
+        elif override_result.get("status") == "cancelled":
             return 1
         else:
             return 1
+
+    def check_global_tdd_compliance(self):
+        """Check compliance with mandatory global TDD workflow"""
+        try:
+            # Check for TDD compliance validation script
+            tdd_script = Path(__file__).parent / "validate_tdd_compliance.sh"
+            if not tdd_script.exists():
+                self.violations.append("TDD validation script not found")
+                return False
+
+            # Check if TDD validation was run recently
+            tdd_log = self.log_dir / "tdd_validation.log"
+            if tdd_log.exists():
+                try:
+                    stat = tdd_log.stat()
+                    current_time = time.time()
+                    file_time = stat.st_mtime
+                    # Check if validation was run within last 2 hours
+                    if (current_time - file_time) < 7200:
+                        # Check validation results
+                        with open(tdd_log) as f:
+                            log_content = f.read()
+                            if "✅ TDD compliance validated" in log_content:
+                                return True
+                            elif "❌ TDD compliance FAILED" in log_content:
+                                self.violations.append(
+                                    "TDD compliance validation failed"
+                                )
+                                return False
+                except Exception:
+                    pass
+
+            # Check for TDD artifacts in git history
+            try:
+                result = subprocess.run(
+                    [
+                        "git",
+                        "log",
+                        "--oneline",
+                        "-10",
+                        "--grep=TDD",
+                        "--grep=performance",
+                        "--grep=benchmark",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+
+                if result.returncode == 0 and result.stdout.strip():
+                    # Found TDD-related commits
+                    return True
+                else:
+                    self.violations.append("No evidence of TDD workflow compliance")
+                    return False
+
+            except Exception as e:
+                self.violations.append(f"Failed to check TDD compliance: {e}")
+                return False
+
+        except Exception as e:
+            self.violations.append(f"TDD compliance check error: {e}")
+            return False
 
 
 def main():

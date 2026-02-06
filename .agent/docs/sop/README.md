@@ -11,7 +11,7 @@
 - **[📖 Global SOP README](~/.agent/docs/sop/README.md)** - Universal standards
 - **[🚀 GEMINI.md](./global-configs/GEMINI.md)** - Global Agent Rules & SMP
 - **[🤝 COLLABORATION.md](./global-configs/COLLABORATION.md)** - Multi-agent coordination
-- **[🧪 tdd-workflow.md](./global-configs/tdd-workflow.md)** - Universal TDD workflow
+- **[🧪 Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md)** - Mandatory TDD with enforcement
 - **[📋 AGENT_ONBOARDING.md](./global-configs/AGENT_ONBOARDING.md)** - Universal onboarding
 
 ### **Global Access Points**
@@ -24,16 +24,30 @@
 
 ## 🔧 **LightRAG-Specific Extensions**
 
-### **Enhanced TDD Requirements**
+### **TDD Implementation Guidance**
 
-**🚫 MANDATORY**: [TDD Mandatory Gate](./TDD_MANDATORY_GATE.md) - **Cannot bypass**
+**🚫 MANDATORY**: [Global TDD Workflow](~/.agent/docs/sop/tdd-workflow.md) - **Cannot bypass**
 
-Project-specific TDD enforcement that extends the global `tdd-workflow.md`:
+**NEW**: Global TDD workflow now includes mandatory enforcement mechanisms:
 
-- **Automated blocking** for non-compliant implementations
-- **Performance benchmarking** with speed-accuracy tradeoff analysis
-- **Quality gate enforcement** that prevents work continuation
-- **Integration validation** with LightRAG-specific testing patterns
+- ✅ **Automated blocking** for non-compliant implementations (global)
+- ✅ **Performance benchmarking** with speed-accuracy tradeoff analysis (global)
+- ✅ **Quality gate enforcement** that prevents work continuation (global)
+- 🔧 **LightRAG Implementation Guide** - Project-specific patterns and examples
+
+### **LightRAG Implementation Guide**
+
+**📋 Project-Specific Guidance**: [TDD Implementation Guide](./TDD_MANDATORY_GATE.md)
+
+This guide provides LightRAG-specific context for the global mandatory TDD standards:
+
+- **LightRAG testing structure** and file organization patterns
+- **Domain-specific performance benchmarks** and baselines
+- **Multi-phase integration** for complex LightRAG features
+- **Implementation examples** and common pitfalls
+- **Project-specific validation scripts** and templates
+
+**Note**: This guide **extends** (does not replace) global mandatory standards.
 
 ### **Multi-Phase Implementation**
 
@@ -87,13 +101,13 @@ When conflicts arise, this hierarchy applies:
 ### **Validation Scripts**
 
 ```bash
-# Validate TDD compliance (LightRAG extension)
+# Validate TDD compliance (LightRAG validation)
 ./scripts/validate_tdd_compliance.sh <feature-name>
 
-# Verify hand-off compliance (LightRAG extension)
+# Verify hand-off compliance (LightRAG coordination)
 ./scripts/verify_handoff_compliance.sh --phase <phase> --feature <feature>
 
-# Global SOP compliance (base requirements)
+# Global SOP compliance (MANDATORY requirements)
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --init
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --finalize
 ```
@@ -111,10 +125,10 @@ python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readines
 
 ### **For New Features**
 
-1. **Global TDD Workflow** - Follow `tdd-workflow.md` as base
-2. **LightRAG TDD Gate** - Additional mandatory requirements
-3. **Performance Benchmarks** - LightRAG-specific validation
-4. **Quality Gates** - Both global and local validation
+1. **Global TDD Workflow** - Follow [tdd-workflow.md](~/.agent/docs/sop/tdd-workflow.md) (includes mandatory enforcement)
+2. **LightRAG Implementation** - Apply [LightRAG-specific patterns](./TDD_MANDATORY_GATE.md)
+3. **Performance Benchmarks** - Use LightRAG baselines and validation
+4. **Quality Gates** - Global mandatory validation + LightRAG context
 
 ---
 
@@ -127,7 +141,7 @@ python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readines
 
 ### **LightRAG Extensions**
 
-- **[🔧 TDD Mandatory Gate](./TDD_MANDATORY_GATE.md)** - Enhanced TDD requirements
+- **[🔧 LightRAG TDD Guide](./TDD_MANDATORY_GATE.md)** - LightRAG implementation patterns
 - **[🔄 Multi-Phase Hand-off](./MULTI_PHASE_HANDOFF_PROTOCOL.md)** - Complex coordination
 
 ### **Skills & Commands (Universal)**

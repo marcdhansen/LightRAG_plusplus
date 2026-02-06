@@ -35,12 +35,14 @@ flowchart TD
 
 | **Scenario** | **Global SOP** | **Local Extension** | **Priority** |
 |-------------|----------------|-------------------|-------------|
-| **Basic Development** | `tdd-workflow.md` | None | Global only |
-| **New Feature** | `tdd-workflow.md` | `TDD_MANDATORY_GATE.md` | Global → Local |
-| **Multi-Phase Feature** | Standard SMP | `MULTI_PHASE_HANDOFF_PROTOCOL.md` | Global → Local |
+| **Basic Development** | `tdd-workflow.md` (MANDATORY enforcement) | None | Global only |
+| **New Feature** | `tdd-workflow.md` (MANDATORY enforcement) | `TDD_IMPLEMENTATION_GUIDE.md` | Global mandatory → Local context |
+| **Multi-Phase Feature** | Standard SMP + Global TDD | `MULTI_PHASE_HANDOFF_PROTOCOL.md` | Global mandatory → Local coordination |
 | **Agent Coordination** | `COLLABORATION.md` | None | Global only |
-| **Session Management** | `GEMINI.md` | None | Global only |
-| **Performance Testing** | Universal TDD | `KEYWORD_SEARCH_PERFORMANCE.md` | Global → Local |
+| **Session Management** | `GEMINI.md` (includes validation) | None | Global only |
+| **Performance Testing** | Global performance requirements (MANDATORY) | `KEYWORD_SEARCH_PERFORMANCE.md` | Global mandatory → Local baselines |
+
+**🔒 CRITICAL**: Global TDD enforcement is MANDATORY for ALL scenarios and CANNOT be bypassed. Local extensions provide context only.
 
 ---
 
@@ -75,7 +77,7 @@ flowchart TD
 # Key global documents
 .agent/docs/sop/global-configs/GEMINI.md           # SMP & procedures
 .agent/docs/sop/global-configs/COLLABORATION.md    # Multi-agent rules
-.agent/docs/sop/global-configs/tdd-workflow.md     # Universal TDD
+~/.agent/docs/sop/tdd-workflow.md                    # Mandatory TDD with enforcement
 .agent/docs/sop/global-configs/AGENT_ONBOARDING.md # Onboarding
 ```
 
@@ -88,9 +90,9 @@ flowchart TD
 **Enhanced requirements that extend global standards:**
 
 1. **Enhanced TDD Development**
-   - **Global Base**: Follow `tdd-workflow.md`
-   - **Local Extension**: `TDD_MANDATORY_GATE.md`
-   - **Triggers**: New features, performance-critical code, LLM modifications
+   - **Global Base**: Follow `tdd-workflow.md` (includes mandatory enforcement, performance requirements, quality gates)
+   - **Local Extension**: `TDD_IMPLEMENTATION_GUIDE.md` (LightRAG-specific patterns and examples)
+   - **Triggers**: All development (global mandatory) + LightRAG context when needed
 
 2. **Multi-Phase Implementation**
    - **Global Base**: Standard SMP procedures
@@ -106,9 +108,9 @@ flowchart TD
 
 ```bash
 # LightRAG-specific extensions
-.agent/docs/sop/TDD_MANDATORY_GATE.md                   # Enhanced TDD
+.agent/docs/sop/TDD_MANDATORY_GATE.md                   # LightRAG implementation guide (extends global)
 .agent/docs/sop/MULTI_PHASE_HANDOFF_PROTOCOL.md        # Complex coordination
-.agent/docs/sop/global-configs/KEYWORD_SEARCH_PERFORMANCE.md  # Performance
+.agent/docs/sop/global-configs/KEYWORD_SEARCH_PERFORMANCE.md  # Performance baselines
 ```
 
 ---
@@ -126,18 +128,23 @@ flowchart TD
 #### **TDD Workflow Differences**
 
 ```bash
-# Global requirement (tdd-workflow.md)
-1. Write failing test
-2. Implement minimal code
-3. Verify test passes
+# Global requirement (tdd-workflow.md) - MANDATORY ENFORCEMENT
+1. 🚫 MANDATORY PRE-FLIGHT VALIDATION (Implementation Readiness)
+2. 📋 Specification Phase (Requirements + Baseline + Success Criteria)
+3. 🔴 Red Phase (Failing Tests + Performance Benchmarks)
+4. 🟢 Green Phase (Implementation + Performance Validation)
+5. ✅ Verification Phase (Tests Pass + Benchmarks Pass)
+6. 🔄 Refactor Phase (Code Cleanup + Performance Verification)
+7. 📊 Audit Phase (Performance Analysis + Tradeoff Documentation)
+8. 🚪 Quality Gate Validation (MANDATORY - No Override Possible)
 
-# Local extension (TDD_MANDATORY_GATE.md) - ADDS requirements
-1. Write failing test
-2. Implement minimal code
-3. Verify test passes
-4. Run performance benchmarks ← NEW
-5. Document speed-accuracy tradeoffs ← NEW
-6. Pass automated quality gate ← NEW
+# Local extension (TDD_IMPLEMENTATION_GUIDE.md) - LIGHTRAG CONTEXT ONLY
+9. Apply LightRAG testing patterns ← LightRAG-specific guidance
+10. Use LightRAG performance baselines ← Project-specific data
+11. Follow LightRAG integration guidelines ← Domain expertise
+
+🔒 KEY: Steps 1-8 are GLOBAL MANDATORY (cannot bypass)
+📋 KEY: Steps 9-11 are LOCAL CONTEXT (project-specific guidance)
 ```
 
 #### **Multi-Phase Coordination**
@@ -166,7 +173,7 @@ flowchart TD
 ```bash
 # 1. Check global protocols
 read .agent/docs/sop/global-configs/GEMINI.md  # SMP procedures
-read .agent/docs/sop/global-configs/tdd-workflow.md  # TDD workflow
+read ~/.agent/docs/sop/tdd-workflow.md  # Enhanced TDD workflow
 
 # 2. Follow global TDD workflow
 write_failing_test()     # Red phase
@@ -185,7 +192,7 @@ commit_and_push()
 ```bash
 # 1. Check global protocols (base requirements)
 read .agent/docs/sop/global-configs/GEMINI.md
-read .agent/docs/sop/global-configs/tdd-workflow.md
+read ~/.agent/docs/sop/tdd-workflow.md  # Enhanced TDD with enforcement
 
 # 2. Apply local extensions (enhanced requirements)
 read .agent/docs/sop/TDD_MANDATORY_GATE.md
@@ -232,23 +239,23 @@ continue_phase_2_work()
 ### **Validation Command Sequence**
 
 ```bash
-# 1. Global SOP validation (always required)
+# Global SOP validation (ALWAYS REQUIRED - MANDATORY)
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --init
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --finalize
 
-# 2. Local extension validation (when applicable)
-./scripts/validate_tdd_compliance.sh <feature-name>           # TDD Mandatory Gate
-./scripts/verify_handoff_compliance.sh --phase <phase> --feature <feature>  # Multi-Phase
+# Local extension validation (when applicable - context only)
+./scripts/validate_tdd_compliance.sh <feature-name>           # LightRAG TDD validation
+./scripts/verify_handoff_compliance.sh --phase <phase> --feature <feature>  # Multi-Phase coordination
 
-# 3. Integration verification
+# Integration verification
 python ~/.agent/scripts/validate_sop_alignment.py             # Global/Local alignment
 ```
 
 ### **Validation Priority**
 
-1. **Global compliance must pass first** - Cannot proceed if global validation fails
-2. **Local extensions validated next** - Additional requirements for specific scenarios
-3. **Integration verification final** - Ensures global/local protocols work together
+1. **🔒 Global compliance must pass first** - Cannot proceed if global validation fails (MANDATORY)
+2. **Local extensions validated next** - Additional context for specific scenarios (optional guidance)
+3. **Integration verification final** - Ensures global mandatory + local context work together
 
 ---
 
@@ -281,8 +288,8 @@ python ~/.agent/scripts/validate_sop_alignment.py             # Global/Local ali
 ### **By Scenario**
 
 - **[🚀 Session Management](../global-configs/GEMINI.md)** - Global SMP procedures
-- **[🧪 Development Workflows](../global-configs/tdd-workflow.md)** - Global TDD workflow
-- **[🔒 Enhanced TDD](./TDD_MANDATORY_GATE.md)** - LightRAG TDD extensions
+- **[🧪 Development Workflows](~/.agent/docs/sop/tdd-workflow.md)** - Global TDD workflow (mandatory enforcement)
+- **[🔒 LightRAG TDD Guide](./TDD_MANDATORY_GATE.md)** - LightRAG implementation context
 - **[🤝 Multi-Phase Coordination](./MULTI_PHASE_HANDOFF_PROTOCOL.md)** - Complex implementation
 
 ### **By Priority**
@@ -320,6 +327,6 @@ python ~/.agent/scripts/validate_sop_alignment.py
 
 ---
 
-**Last Updated**: 2026-02-05
+**Last Updated**: 2026-02-06
 **Scope**: LightRAG Project SOP Integration Guide
-**Principle**: Global compliance first, local extensions enhance (never replace)
+**Principle**: 🔒 Global mandatory compliance first, local extensions provide context only (never replace or override)

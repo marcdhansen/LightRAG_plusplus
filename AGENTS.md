@@ -19,7 +19,8 @@ Before you write any code:
 
 ## 🔒 **Project-Specific Protocols**
 
-- **TDD Gates**: Automated test-driven development enforcement
+- **🔒 Global TDD Enforcement**: Mandatory test-driven development (global standards)
+- **LightRAG TDD Context**: Project-specific implementation guidance
 - **Quality Assurance**: Project-specific validation and linting
 - **Multi-Agent Coordination**: Session locks and branch protection
 - **Integration Testing**: Cross-component validation procedures
