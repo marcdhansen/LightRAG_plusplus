@@ -11,17 +11,33 @@ jobs:
     name: Offline Tests
     runs-on: ubuntu-latest
 
+    # Add timeout for the entire job
+    timeout-minutes: 30
+
     strategy:
       matrix:
         python-version: ['3.12']
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        # Add retry for checkout
+        fetch-depth: 0
+        persist-credentials: false
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Verify Python Setup
+      uses: step-security/retry@v2
+      with:
+        max_attempts: 3
+        timeout_minutes: 5
+        retry_on: error
+        command: python --version && python -c "import sys; print(f'Python {sys.version} setup successful')"
 
     - name: Cache pip packages
       uses: actions/cache@v5
@@ -31,18 +47,28 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
+    - name: Handle Network Failures Gracefully
+      run: |
+        echo "🌐 Configuring network resilience..."
+        # Set longer timeouts for pip operations
+        pip config set global.timeout 600
+        # Configure retries for network operations
+        pip config set global.retries 3
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[test]"
         # Ensure langgraph checkpoint dependencies are explicitly installed
         pip install "langgraph>=1.0.0" "langgraph-checkpoint>=4.0.0" "langgraph-checkpoint-sqlite>=3.0.0"
+        # Ensure coverage dependencies are available
+        pip install pytest-cov
 
     - name: Run offline tests
       run: |
         # Run only tests marked as 'offline' (no external dependencies)
         # Integration tests requiring databases/APIs are skipped by default
-        pytest tests/ -m offline --ignore=tests/ui -v --tb=short
+        pytest tests/ -m offline --ignore=tests/ui -v --tb=short --junitxml=test-results.xml --cov=lightrag --cov-report=xml --cov-report=json
 
     - name: Upload test results
       if: always()
@@ -52,4 +78,73 @@ jobs:
         path: |
           .pytest_cache/
           test-results.xml
+          coverage.xml
+          coverage.json
         retention-days: 7
+
+    - name: Handle CI failure and create issue
+      if: failure()
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        echo "🚨 Tests failed - starting GitHub issue creation process..."
+        echo "🔍 Checking GitHub CLI authentication..."
+
+        if ! gh auth status > /dev/null 2>&1; then
+          echo "❌ GitHub CLI authentication failed"
+          exit 1
+        fi
+
+        echo "✅ GitHub CLI authenticated successfully"
+
+        # Set environment variables for diagnostic script
+        export GITHUB_ACTIONS=true
+        export WORKFLOW_NAME="Offline Unit Tests"
+        export RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        export GITHUB_REPOSITORY="${{ github.repository }}"
+        export GITHUB_REF_NAME="${{ github.ref_name }}"
+        export GITHUB_SHA="${{ github.sha }}"
+        export GH_TOKEN="${{ github.token }}"
+
+        echo "🧪 Running diagnostic script with CI environment..."
+        echo "📊 Environment:"
+        echo "  - Workflow: $WORKFLOW_NAME"
+        echo "  - Run URL: $RUN_URL"
+        echo "  - Branch: $GITHUB_REF_NAME"
+        echo "  - Commit: $GITHUB_SHA"
+        echo "  - Repository: $GITHUB_REPOSITORY"
+
+        # Run diagnostic script (will create issue if tests fail)
+        if ./scripts/ci-diagnostic.sh; then
+          echo "✅ Diagnostic script completed successfully"
+        else
+          echo "⚠️ Diagnostic script failed, creating basic fallback issue..."
+
+          # Create basic issue as fallback
+          ISSUE_TITLE="CI failed: Offline Unit Tests"
+          ISSUE_BODY="## 🚨 CI/CD Pipeline Failure
+
+          **Workflow:** Offline Unit Tests
+          **Run URL:** $RUN_URL
+          **Branch:** $GITHUB_REF_NAME
+          **Commit:** $GITHUB_SHA
+          **Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          ### 🔗 Links
+          - [Workflow Run]($RUN_URL)
+          - [Repository](https://github.com/$GITHUB_REPOSITORY)
+
+          ---
+          🤖 This issue was automatically created by CI test failure.
+          Please review the test output above and address the failure."
+
+          if gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body "$ISSUE_BODY" \
+            --label "ci-failure,basic"; then
+            echo "✅ Basic GitHub issue created successfully"
+          else
+            echo "❌ Failed to create GitHub issue"
+            exit 1
+          fi
+        fi

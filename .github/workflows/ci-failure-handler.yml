@@ -1,0 +1,59 @@
+# This workflow is kept for reference but disabled
+# The workflow_run trigger only works on default branch, not PRs
+# Use the inline failure handling in individual workflows instead
+name: CI/CD Failure Handler (DISABLED)
+
+on:
+  workflow_dispatch:  # Manual trigger only for testing
+    inputs:
+      test_failure:
+        description: 'Test failure handling'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  test-failure-handler:
+    name: Test Failure Handler
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_failure == 'true' }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Test diagnostic and create issue
+      run: |
+        echo "🔍 Testing CI diagnostic failure handling..."
+
+        # Set environment variables for diagnostic script
+        export GITHUB_ACTIONS=true
+        export WORKFLOW_NAME="test-workflow"
+        export RUN_URL="https://github.com/test/run/123"
+        export GITHUB_REPOSITORY="${{ github.repository }}"
+        export GITHUB_REF_NAME="${{ github.ref_name }}"
+        export GITHUB_SHA="${{ github.sha }}"
+
+        # Force a failure in diagnostic script to test issue creation
+        export TESTS_FAILED=1
+        export TESTS_TOTAL=5
+        export TESTS_PASSED=4
+
+        # Test issue creation
+        ./scripts/ci-diagnostic.sh || {
+          echo "⚠️ Diagnostic script failed, creating basic issue..."
+          gh issue create \
+            --title "Test CI failed: $WORKFLOW_NAME" \
+            --body "Test workflow failure\nRun: $RUN_URL" \
+            --label "ci-failure,test"
+        }

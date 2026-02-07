@@ -228,6 +228,49 @@ echo "• Debug information: ./scripts/collect-ci-debug-info.sh"
 echo "• Pre-commit hooks: .pre-commit-config.yaml"
 echo "• Workflows: .github/workflows/"
 
+# Function to create GitHub issue if running in CI and tests failed
+create_ci_issue_if_failed() {
+    # Only create issue if running in GitHub Actions and tests failed
+    if [[ $TESTS_FAILED -gt 0 && -n "$GITHUB_ACTIONS" && -n "$WORKFLOW_NAME" ]]; then
+        echo "📝 Creating GitHub issue for CI failure..."
+
+        ISSUE_TITLE="CI failed: $WORKFLOW_NAME"
+        ISSUE_BODY="## 🚨 CI/CD Pipeline Failure
+
+**Workflow:** $WORKFLOW_NAME
+**Run URL:** $RUN_URL
+**Branch:** ${GITHUB_REF_NAME:-unknown}
+**Commit:** ${GITHUB_SHA:-unknown}
+**Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+### 📊 Diagnostic Results
+- Total tests: $TESTS_TOTAL
+- Failed: $TESTS_FAILED
+- Passed: $TESTS_PASSED
+
+### 🔗 Links
+- [Workflow Run]($RUN_URL)
+- [Repository](https://github.com/${GITHUB_REPOSITORY:-repository})
+
+---
+🤖 This issue was automatically created by CI diagnostic failure.
+Please review the diagnostic output above and address the failure."
+
+        gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body "$ISSUE_BODY" \
+            --label "ci-failure,diagnostic" || {
+            echo "⚠️ Failed to create GitHub issue"
+            return 1
+        }
+
+        echo "✅ GitHub issue created successfully"
+    fi
+}
+
+# Create issue if CI failed and we're in GitHub Actions
+create_ci_issue_if_failed
+
 # Exit with appropriate code
 if [[ $TESTS_FAILED -eq 0 ]]; then
     exit 0

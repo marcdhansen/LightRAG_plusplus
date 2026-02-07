@@ -1,0 +1,57 @@
+name: Automated Changelog Synthesis
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-changelog')"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Extract Commit Info
+        id: commit-info
+        run: |
+          MESSAGE=$(git log -1 --pretty=%B)
+          AUTHOR=$(git log -1 --pretty=%an)
+          DATE=$(date +%Y-%m-%d)
+
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          MESSAGE="${{ steps.commit-info.outputs.message }}"
+          DATE="${{ steps.commit-info.outputs.date }}"
+          AUTHOR="${{ steps.commit-info.outputs.author }}"
+
+          # Prepare the new entry (Markdown format)
+          NEW_ENTRY="## [$DATE] - $AUTHOR\n\n$MESSAGE\n"
+
+          # Create file if doesn't exist
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+          # Insert after the header (line 3)
+          # We use a temporary file to perform the insertion
+          sed -i "2a $NEW_ENTRY" CHANGELOG.md
+
+          echo "✅ CHANGELOG.md updated"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "docs: update CHANGELOG.md [skip-changelog]" || echo "No changes to commit"
+          git push

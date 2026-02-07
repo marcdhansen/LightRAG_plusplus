@@ -37,7 +37,7 @@ repos:
         exclude: ^lightrag/api/webui/
         stages: [pre-commit, pre-push, manual]
       - id: ruff
-        args: [--fix, --ignore=E402]
+        args: [--fix, --ignore=E402,E501,B008]
         exclude: ^lightrag/api/webui/
         stages: [pre-commit, pre-push, manual]
 

@@ -202,6 +202,32 @@ jobs:
           exit 1
         fi
 
+    - name: Validate Repository Hygiene
+      run: |
+        echo "🧹 Validating repository hygiene (orphaned files)..."
+
+        # Check for untracked files (excluding ignored ones)
+        UNTRACKED=$(git clean -nd)
+        if [[ -n "$UNTRACKED" ]]; then
+          echo "❌ ERROR: Untracked files detected in repository:"
+          echo "$UNTRACKED"
+          echo ""
+          echo "💡 Solution: Remove these files or add them to .gitignore"
+          echo "Note: Temporary work files should not be committed."
+          exit 1
+        fi
+
+        # Check for ignored files that might be 'shadowing' (e.g., orphaned databases)
+        # We specifically look for potentially sensitive or large residue
+        SHADOW_FILES=$(git clean -ndX | grep -E '\.db$|\.log$|\.env\.' || echo "")
+        if [[ -n "$SHADOW_FILES" ]]; then
+          echo "⚠️ WARNING: Potential shadow residue detected (ignored but present):"
+          echo "$SHADOW_FILES"
+          echo "Consider cleaning these manually to avoid environment drift."
+        fi
+
+        echo "✅ Repository hygiene validated"
+
     - name: Validate TDD Timeline
       run: |
         echo "📅 Validating TDD commit timeline..."

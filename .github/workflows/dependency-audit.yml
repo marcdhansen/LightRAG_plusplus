@@ -1,0 +1,76 @@
+name: Dependency Blast Radius Analysis
+
+on:
+  pull_request:
+    paths:
+      - '**/requirements*.txt'
+      - '**/pyproject.toml'
+      - '**/uv.lock'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  analyze-blast-radius:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Identify Changed Dependencies
+        id: changed-deps
+        run: |
+          # Get list of changed files
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "Changed files: $FILES"
+
+          # Extract package names (basic extraction)
+          DEPS=""
+          if echo "$FILES" | grep -q "requirements"; then
+            DEPS=$(git diff origin/${{ github.base_ref }}...HEAD -- requirements*.txt | grep "+" | grep -v "+++" | cut -d'=' -f1 | sed 's/+//' | tr '\n' ' ')
+          fi
+
+          echo "deps=$DEPS" >> $GITHUB_OUTPUT
+          echo "Detected dependency changes: $DEPS"
+
+      - name: Analyze Impact
+        id: impact-analysis
+        run: |
+          DEPS="${{ steps.changed-deps.outputs.deps }}"
+          if [ -z "$DEPS" ]; then
+            echo "No specific dependencies detected to analyze."
+            exit 0
+          fi
+
+          REPORT="### 🎯 Dependency Blast Radius Analysis\n\nThe following dependencies were modified:\n"
+          for dep in $DEPS; do
+            REPORT="$REPORT- **$dep**\n"
+
+            # Find files importing this (heuristic: look for the package name in imports)
+            # This is a simplified check
+            IMPORTERS=$(grep -r "import $dep" . --exclude-dir=.git --exclude-dir=.venv || echo "")
+            if [ -n "$IMPORTERS" ]; then
+              REPORT="$REPORT  - Affected modules detected via import analysis.\n"
+            fi
+          done
+
+          echo "report=$REPORT" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: steps.impact-analysis.outputs.report != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = `${{ steps.impact-analysis.outputs.report }}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });

@@ -131,6 +131,43 @@ def _is_nan(value: Any) -> bool:
     return isinstance(value, float) and math.isnan(value)
 
 
+# Enhanced exception classes for better error classification and recovery
+class RAGASTimeoutError(Exception):
+    """RAGAS evaluation timed out but may succeed with longer timeout"""
+
+    def __init__(self, message: str, timeout_value: float = None):
+        super().__init__(message)
+        self.timeout_value = timeout_value
+        self.error_type = "TIMEOUT"
+
+
+class RAGASBadRequestError(Exception):
+    """API parameter incompatibility - typically fixable with parameter mapping"""
+
+    def __init__(self, message: str, status_code: int = None):
+        super().__init__(message)
+        self.status_code = status_code
+        self.error_type = "BAD_REQUEST"
+
+
+class RAGASResourceError(Exception):
+    """Local model or system overwhelmed - fixable with reduced concurrency or resource management"""
+
+    def __init__(self, message: str, resource_type: str = None):
+        super().__init__(message)
+        self.resource_type = resource_type
+        self.error_type = "RESOURCE"
+
+
+class RAGASCapacityError(Exception):
+    """Model genuinely cannot perform evaluation task - expected for smaller models"""
+
+    def __init__(self, message: str, metric_name: str = None):
+        super().__init__(message)
+        self.metric_name = metric_name
+        self.error_type = "CAPACITY"
+
+
 class RAGEvaluator:
     """Evaluate RAG system quality using RAGAS metrics and/or GroundedAI SLM evaluation"""
 
@@ -192,21 +229,24 @@ class RAGEvaluator:
                 "Install with: pip install grounded-ai[slm]"
             )
 
-        # Initialize RAGAS components if needed
-        if not use_grounded_ai or hybrid_mode:
-            # Configure evaluation LLM (for RAGAS scoring)
-            eval_llm_api_key = os.getenv("EVAL_LLM_BINDING_API_KEY") or os.getenv(
-                "OPENAI_API_KEY"
-            )
-            if not eval_llm_api_key:
+# Initialize configuration variables outside conditionals to ensure they're always available
+        eval_model = os.getenv("EVAL_LLM_MODEL", "gpt-4o-mini")
+        eval_llm_base_url = os.getenv("EVAL_LLM_BINDING_HOST")
+        eval_embedding_model = os.getenv("EVAL_EMBEDDING_MODEL", "text-embedding-3-large")
+        eval_embedding_base_url = os.getenv("EVAL_EMBEDDING_BINDING_HOST") or os.getenv("EVAL_LLM_BINDING_HOST")
+        
+        # Detect model characteristics for dynamic timeout scaling
+        self.model_characteristics = self._detect_model_characteristics(eval_model)
+        logger.debug(
+            f"Detected model characteristics: {self.model_characteristics}"
+        )
+
+if not eval_llm_api_key:
                 raise OSError(
                     "EVAL_LLM_BINDING_API_KEY or OPENAI_API_KEY is required for RAGAS evaluation. "
                     "Set EVAL_LLM_BINDING_API_KEY to use a custom API key, "
                     "or ensure OPENAI_API_KEY is set."
                 )
-
-            eval_model = os.getenv("EVAL_LLM_MODEL", "gpt-4o-mini")
-            eval_llm_base_url = os.getenv("EVAL_LLM_BINDING_HOST")
 
             # Configure evaluation embeddings (for RAGAS scoring)
             # Fallback chain: EVAL_EMBEDDING_BINDING_API_KEY -> EVAL_LLM_BINDING_API_KEY -> OPENAI_API_KEY
@@ -215,21 +255,35 @@ class RAGEvaluator:
                 or os.getenv("EVAL_LLM_BINDING_API_KEY")
                 or os.getenv("OPENAI_API_KEY")
             )
-            eval_embedding_model = os.getenv(
-                "EVAL_EMBEDDING_MODEL", "text-embedding-3-large"
-            )
-            # Fallback chain: EVAL_EMBEDDING_BINDING_HOST -> EVAL_LLM_BINDING_HOST -> None
-            eval_embedding_base_url = os.getenv(
-                "EVAL_EMBEDDING_BINDING_HOST"
-            ) or os.getenv("EVAL_LLM_BINDING_HOST")
 
-            # Create LLM and Embeddings instances for RAGAS
-            llm_kwargs = {
-                "model": eval_model,
-                "api_key": eval_llm_api_key,
-                "max_retries": int(os.getenv("EVAL_LLM_MAX_RETRIES", "5")),
-                "request_timeout": int(os.getenv("EVAL_LLM_TIMEOUT", "600")),
-            }
+            # Apply dynamic timeout scaling based on model characteristics
+            base_timeout = int(os.getenv("EVAL_LLM_TIMEOUT", "600"))
+            model_base_timeout = self.model_characteristics["base_timeout"]
+
+            # Use the larger of: user-specified timeout, model-appropriate timeout
+            dynamic_timeout = max(base_timeout, model_base_timeout)
+
+            logger.info(
+                f"Dynamic timeout calculation: base={base_timeout}s, "
+                f"model-appropriate={model_base_timeout}s, final={dynamic_timeout}s"
+            )
+
+            # Apply dynamic timeout scaling based on model characteristics
+            base_timeout = int(os.getenv("EVAL_LLM_TIMEOUT", "600"))
+            model_base_timeout = self.model_characteristics["base_timeout"]
+
+            # Use the larger of: user-specified timeout, model-appropriate timeout
+            dynamic_timeout = max(base_timeout, model_base_timeout)
+
+            logger.info(
+                f"Dynamic timeout calculation: base={base_timeout}s, "
+                f"model-appropriate={model_base_timeout}s, final={dynamic_timeout}s"
+            )
+
+            # Create Ollama-compatible LLM configuration
+            llm_kwargs = self._create_ollama_compatible_llm_config(
+                eval_model, eval_llm_api_key, dynamic_timeout, eval_llm_base_url
+            )
             embedding_kwargs = {
                 "model": eval_embedding_model,
                 "api_key": eval_embedding_api_key,
@@ -275,9 +329,16 @@ class RAGEvaluator:
                 )
                 self.eval_llm = base_llm
         else:
-            # GroundedAI-only mode: set placeholders
+            # GroundedAI-only mode: set placeholders and ensure variables are still defined
             self.eval_llm = None
             self.eval_embeddings = None
+            # Initialize embedding variables even in GroundedAI mode for consistency
+            eval_embedding_model = os.getenv(
+                "EVAL_EMBEDDING_MODEL", "text-embedding-3-large"
+            )
+            eval_embedding_base_url = os.getenv(
+                "EVAL_EMBEDDING_BINDING_HOST"
+            ) or os.getenv("EVAL_LLM_BINDING_HOST")
 
         if test_dataset_path is None:
             test_dataset_path = Path(__file__).parent / "sample_dataset.json"
@@ -298,8 +359,15 @@ class RAGEvaluator:
         self.eval_embedding_model = eval_embedding_model
         self.eval_llm_base_url = eval_llm_base_url
         self.eval_embedding_base_url = eval_embedding_base_url
-        self.eval_max_retries = llm_kwargs["max_retries"]
-        self.eval_timeout = llm_kwargs["request_timeout"]
+
+        # Get LLM configuration values with defaults for GroundedAI-only mode
+        if "llm_kwargs" in locals():
+            self.eval_max_retries = llm_kwargs.get("max_retries", 5)
+            self.eval_timeout = llm_kwargs.get("request_timeout", 600)
+        else:
+            # Default values for GroundedAI-only mode
+            self.eval_max_retries = 5
+            self.eval_timeout = 600
 
         # GroundedAI configuration
         self.use_grounded_ai = use_grounded_ai
@@ -381,6 +449,440 @@ class RAGEvaluator:
             data = json.load(f)
 
         return data.get("test_cases", [])
+
+    def _detect_model_characteristics(self, model_name: str) -> dict:
+        """
+        Detect model size and characteristics from model name for dynamic configuration.
+
+        Args:
+            model_name: Model name from environment variable
+
+        Returns:
+            Dictionary with model characteristics for timeout and concurrency scaling
+        """
+        model_lower = model_name.lower()
+
+        # Parse model size from common naming patterns
+        if "0.5b" in model_lower or "500m" in model_lower or "0.5b" in model_lower:
+            return {
+                "size_category": "tiny",
+                "base_timeout": 900,  # 15 minutes for very small models
+                "max_concurrent": 1,  # Strictly serial
+                "description": "Very small model (~0.5B parameters)",
+            }
+        elif "1b" in model_lower or "1.5b" in model_lower or "1.8b" in model_lower:
+            return {
+                "size_category": "small",
+                "base_timeout": 1200,  # 20 minutes for small models
+                "max_concurrent": 1,  # Serial evaluation
+                "description": "Small model (1-2B parameters)",
+            }
+        elif "3b" in model_lower or "2.5b" in model_lower or "2b" in model_lower:
+            return {
+                "size_category": "medium",
+                "base_timeout": 900,  # 15 minutes for medium models
+                "max_concurrent": 1,  # Conservative serial
+                "description": "Medium model (2-4B parameters)",
+            }
+        elif "7b" in model_lower or "8b" in model_lower or "6b" in model_lower:
+            return {
+                "size_category": "large",
+                "base_timeout": 600,  # 10 minutes for large models
+                "max_concurrent": 2,  # Limited parallelism
+                "description": "Large model (6-8B parameters)",
+            }
+        elif "13b" in model_lower or "14b" in model_lower or "12b" in model_lower:
+            return {
+                "size_category": "xlarge",
+                "base_timeout": 450,  # 7.5 minutes for very large models
+                "max_concurrent": 2,  # Limited parallelism
+                "description": "Very large model (12-14B parameters)",
+            }
+        elif "gpt-4" in model_lower or "claude-3" in model_lower:
+            return {
+                "size_category": "enterprise",
+                "base_timeout": 300,  # 5 minutes for enterprise models
+                "max_concurrent": 3,  # Higher parallelism for cloud APIs
+                "description": "Enterprise cloud model",
+            }
+        elif "gpt-3.5" in model_lower or "mixtral" in model_lower:
+            return {
+                "size_category": "standard",
+                "base_timeout": 450,  # 7.5 minutes for standard models
+                "max_concurrent": 2,  # Moderate parallelism
+                "description": "Standard cloud model",
+            }
+        else:
+            # Default for unknown models
+            return {
+                "size_category": "unknown",
+                "base_timeout": 900,  # Conservative 15 minutes
+                "max_concurrent": 1,  # Conservative serial evaluation
+                "description": f"Unknown model: {model_name}",
+            }
+
+    def _calculate_optimal_concurrency(self, user_requested: int) -> int:
+        """
+        Calculate safe concurrency based on model characteristics and user preferences.
+
+        Args:
+            user_requested: User-specified maximum concurrency from environment
+
+        Returns:
+            Optimal concurrency value considering resource constraints
+        """
+        model_limit = self.model_characteristics["max_concurrent"]
+        model_category = self.model_characteristics["size_category"]
+
+        # Start with model-specific limit
+        optimal_concurrency = model_limit
+
+        # Additional constraints based on evaluation type and resources
+        if self.grounded_ai_evaluator and self.hybrid_mode:
+            # Hybrid mode (RAGAS + GroundedAI) is more resource intensive
+            optimal_concurrency = min(optimal_concurrency, 1)
+            logger.debug(
+                "Hybrid evaluation mode: forcing serial evaluation for resource management"
+            )
+
+        # Override with user request if it's lower (user wants to be more conservative)
+        if user_requested < optimal_concurrency:
+            optimal_concurrency = user_requested
+            logger.debug(f"User requested lower concurrency: {user_requested}")
+
+        # Final safety constraints
+        if model_category in ["tiny", "small"]:
+            # Very small models should always use serial evaluation
+            optimal_concurrency = 1
+        elif model_category == "medium":
+            # Medium models should be conservative
+            optimal_concurrency = min(optimal_concurrency, 1)
+
+        logger.debug(
+            f"Concurrency calculation: user={user_requested}, model_limit={model_limit}, "
+            f"optimal={optimal_concurrency}"
+        )
+
+        return max(1, optimal_concurrency)  # Ensure at least 1
+
+    def _create_ollama_compatible_llm_config(
+        self, model_name: str, api_key: str, timeout: int, base_url: str | None = None
+    ) -> dict:
+        """
+        Create LLM configuration with enhanced Ollama compatibility.
+
+        Args:
+            model_name: Model name for evaluation
+            api_key: API key (for Ollama this is typically "ollama")
+            timeout: Request timeout in seconds
+            base_url: Custom endpoint URL
+
+        Returns:
+            Dictionary with LLM configuration parameters
+        """
+        # Base configuration
+        llm_kwargs = {
+            "model": model_name,
+            "api_key": api_key,
+            "max_retries": int(os.getenv("EVAL_LLM_MAX_RETRIES", "5")),
+            "request_timeout": timeout,
+        }
+
+        if base_url:
+            llm_kwargs["base_url"] = base_url
+
+        # Ollama-specific parameter optimization
+        if base_url and ("11434" in base_url or "ollama" in base_url.lower()):
+            logger.debug("Applying Ollama-specific configuration optimizations")
+
+            # Ollama has different parameter requirements than OpenAI API
+            llm_kwargs.update(
+                {
+                    "temperature": 0.1,  # Lower temperature for more consistent evaluation
+                    "top_p": 0.9,  # Reasonable default for Ollama
+                    # Note: max_tokens is not supported by Ollama, will be filtered out by Ollama client
+                    # Note: response_format is partially supported but disabled for compatibility
+                }
+            )
+
+            # Adjust timeouts specifically for Ollama (often slower than cloud APIs)
+            model_category = self.model_characteristics["size_category"]
+            if model_category in ["tiny", "small", "medium"]:
+                # Give small local models extra time for complex evaluation tasks
+                llm_kwargs["request_timeout"] = timeout * 1.5
+                logger.debug(
+                    f"Extended timeout for small Ollama model: {llm_kwargs['request_timeout']}s"
+                )
+
+            # Reduce max_retries for local models to avoid long retry cycles
+            if model_category in ["tiny", "small"]:
+                llm_kwargs["max_retries"] = min(llm_kwargs["max_retries"], 3)
+                logger.debug(
+                    f"Reduced max_retries for small Ollama model: {llm_kwargs['max_retries']}"
+                )
+
+        return llm_kwargs
+
+    async def _evaluate_with_retry(
+        self, idx: int, eval_dataset, max_retries: int = 3
+    ) -> dict[str, Any]:
+        """
+        Run RAGAS evaluation with exponential backoff retry logic.
+
+        Args:
+            idx: Test case index for logging
+            eval_dataset: Dataset to evaluate
+            max_retries: Maximum number of retry attempts
+
+        Returns:
+            Dictionary with metrics and ragas_score, or error information
+        """
+        for attempt in range(max_retries):
+            try:
+                return await self._run_single_ragas_evaluation(idx, eval_dataset)
+
+            except (RAGASTimeoutError, httpx.ReadTimeout) as e:
+                if attempt < max_retries - 1:
+                    # Exponential backoff: 5s, 10s, 20s
+                    backoff_delay = 5 * (2**attempt)
+                    extended_timeout = self.eval_timeout * (2**attempt)
+
+                    logger.warning(
+                        f"Attempt {attempt + 1}/{max_retries}: RAGAS timeout for test {idx}, "
+                        f"retrying in {backoff_delay}s with {extended_timeout}s timeout"
+                    )
+                    await asyncio.sleep(backoff_delay)
+
+                    # Temporarily extend timeout for retry
+                    original_timeout = self.eval_timeout
+                    self.eval_timeout = int(extended_timeout)
+                    try:
+                        result = await self._run_single_ragas_evaluation(
+                            idx, eval_dataset
+                        )
+                        # Restore original timeout
+                        self.eval_timeout = original_timeout
+                        return result
+                    except Exception:
+                        # Restore original timeout even if retry fails
+                        self.eval_timeout = original_timeout
+                        raise
+                else:
+                    logger.error(
+                        f"RAGAS evaluation failed after {max_retries} timeout attempts for test {idx}: {str(e)}"
+                    )
+                    return {
+                        "metrics": {},
+                        "ragas_score": 0,
+                        "error": "TIMEOUT",
+                        "error_details": str(e),
+                        "retry_attempts": max_retries,
+                    }
+
+            except RAGASBadRequestError as e:
+                # Don't retry bad requests - they'll fail the same way
+                logger.error(
+                    f"RAGAS evaluation failed due to parameter issues for test {idx}: {str(e)}"
+                )
+                return {
+                    "metrics": {},
+                    "ragas_score": 0,
+                    "error": "BAD_REQUEST",
+                    "error_details": str(e),
+                    "retry_attempts": attempt + 1,
+                }
+
+            except RAGASResourceError as e:
+                if attempt < max_retries - 1:
+                    # Progressive backoff for resource issues: 10s, 20s, 30s
+                    backoff_delay = 10 * (attempt + 1)
+                    logger.warning(
+                        f"Attempt {attempt + 1}/{max_retries}: Resource overload for test {idx}, "
+                        f"pausing {backoff_delay}s before retry"
+                    )
+                    await asyncio.sleep(backoff_delay)
+                    continue
+                else:
+                    logger.error(
+                        f"RAGAS evaluation failed due to resource constraints for test {idx}: {str(e)}"
+                    )
+                    return {
+                        "metrics": {},
+                        "ragas_score": 0,
+                        "error": "RESOURCE",
+                        "error_details": str(e),
+                        "retry_attempts": max_retries,
+                    }
+
+            except Exception as e:
+                # Classify generic exceptions based on error message patterns
+                error_msg = str(e).lower()
+                if "timeout" in error_msg or "timed out" in error_msg:
+                    if attempt < max_retries - 1:
+                        backoff_delay = 5 * (2**attempt)
+                        logger.warning(
+                            f"Attempt {attempt + 1}/{max_retries}: Timeout detected for test {idx}, "
+                            f"retrying in {backoff_delay}s"
+                        )
+                        await asyncio.sleep(backoff_delay)
+                        continue
+                    else:
+                        return {
+                            "metrics": {},
+                            "ragas_score": 0,
+                            "error": "TIMEOUT",
+                            "error_details": str(e),
+                            "retry_attempts": max_retries,
+                        }
+                elif (
+                    "invalid input type" in error_msg
+                    or "parameter" in error_msg
+                    or "400" in error_msg
+                ):
+                    logger.error(
+                        f"RAGAS evaluation failed due to parameter issues for test {idx}: {str(e)}"
+                    )
+                    return {
+                        "metrics": {},
+                        "ragas_score": 0,
+                        "error": "BAD_REQUEST",
+                        "error_details": str(e),
+                        "retry_attempts": attempt + 1,
+                    }
+                elif (
+                    "capacity" in error_msg
+                    or "overload" in error_msg
+                    or "429" in error_msg
+                ):
+                    if attempt < max_retries - 1:
+                        backoff_delay = 10 * (attempt + 1)
+                        logger.warning(
+                            f"Attempt {attempt + 1}/{max_retries}: Resource issue for test {idx}, "
+                            f"retrying in {backoff_delay}s"
+                        )
+                        await asyncio.sleep(backoff_delay)
+                        continue
+                    else:
+                        return {
+                            "metrics": {},
+                            "ragas_score": 0,
+                            "error": "RESOURCE",
+                            "error_details": str(e),
+                            "retry_attempts": max_retries,
+                        }
+                else:
+                    # Unknown error - don't classify, just log and fail
+                    logger.error(
+                        f"RAGAS evaluation failed with unknown error for test {idx}: {str(e)}"
+                    )
+                    return {
+                        "metrics": {},
+                        "ragas_score": 0,
+                        "error": "UNKNOWN",
+                        "error_details": str(e),
+                        "retry_attempts": attempt + 1,
+                    }
+
+    async def _run_single_ragas_evaluation(
+        self, idx: int, eval_dataset
+    ) -> dict[str, Any]:
+        """
+        Run a single RAGAS evaluation without retry logic.
+
+        Args:
+            idx: Test case index for logging
+            eval_dataset: Dataset to evaluate
+
+        Returns:
+            Dictionary with metrics and ragas_score
+
+        Raises:
+            Various exceptions based on error type
+        """
+        callbacks = []
+        if os.getenv("LANGFUSE_ENABLE_TRACE", "false").lower() == "true":
+            try:
+                langfuse_handler = LangfuseCallbackHandler()
+                callbacks.append(langfuse_handler)
+            except Exception as e:
+                logger.warning("Failed to initialize Langfuse callback: %s", e)
+
+        # Classify potential errors before calling evaluate
+        try:
+            eval_results = evaluate(
+                dataset=eval_dataset,
+                metrics=[
+                    Faithfulness(),
+                    AnswerRelevancy(),
+                    ContextRecall(),
+                    ContextPrecision(),
+                ],
+                llm=self.eval_llm,
+                embeddings=self.eval_embeddings,
+                run_config=RunConfig(timeout=self.eval_timeout, max_workers=1),
+                callbacks=callbacks,
+            )
+        except httpx.ReadTimeout as e:
+            raise RAGASTimeoutError(
+                f"RAGAS evaluation timed out after {self.eval_timeout}s: {str(e)}",
+                timeout_value=self.eval_timeout,
+            ) from e
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                raise RAGASBadRequestError(
+                    f"RAGAS evaluation failed due to bad request: {e.response.text}",
+                    status_code=e.response.status_code,
+                ) from e
+            elif e.response.status_code == 429:
+                raise RAGASResourceError(
+                    f"RAGAS evaluation failed due to rate limiting: {e.response.text}",
+                    resource_type="rate_limit",
+                ) from e
+            else:
+                raise  # Re-raise other HTTP errors as-is
+        except Exception as e:
+            # Classify based on error message patterns
+            error_msg = str(e).lower()
+            if "timeout" in error_msg or "timed out" in error_msg:
+                raise RAGASTimeoutError(f"RAGAS timeout detected: {str(e)}") from e
+            elif (
+                "invalid input type" in error_msg
+                or "parameter" in error_msg
+                or "schema" in error_msg
+            ):
+                raise RAGASBadRequestError(
+                    f"RAGAS parameter validation failed: {str(e)}"
+                ) from e
+            elif (
+                "capacity" in error_msg
+                or "overload" in error_msg
+                or "memory" in error_msg
+            ):
+                raise RAGASResourceError(
+                    f"RAGAS resource constraint: {str(e)}", resource_type="system"
+                ) from e
+            else:
+                raise  # Re-raise unknown errors
+
+        # Convert to DataFrame (RAGAS v0.3+ API)
+        df = eval_results.to_pandas()
+
+        # Extract scores from first row
+        scores_row = df.iloc[0]
+
+        # Extract RAGAS scores
+        metrics = {
+            "faithfulness": float(scores_row.get("faithfulness", 0)),
+            "answer_relevance": float(scores_row.get("answer_relevancy", 0)),
+            "context_recall": float(scores_row.get("context_recall", 0)),
+            "context_precision": float(scores_row.get("context_precision", 0)),
+        }
+
+        # Calculate RAGAS score (average of all metrics, excluding NaN values)
+        valid_metrics = [v for v in metrics.values() if not _is_nan(v)]
+        ragas_score = sum(valid_metrics) / len(valid_metrics) if valid_metrics else 0
+
+        return {"metrics": metrics, "ragas_score": round(ragas_score, 4)}
 
     async def generate_rag_response(
         self,
@@ -550,7 +1052,8 @@ class RAGEvaluator:
             # *** CRITICAL FIX: Use actual retrieved contexts, NOT ground_truth ***
             retrieved_contexts = rag_response["contexts"]
 
-            # Initialize result with basic information
+            # Initialize result with basic information and enhanced metadata
+            evaluation_start_time = time.time()
             result = {
                 "test_number": idx,
                 "question": question,
@@ -562,6 +1065,23 @@ class RAGEvaluator:
                 else ground_truth,
                 "project": test_case.get("project", "unknown"),
                 "timestamp": datetime.now().isoformat(),
+                "evaluation_metadata": {
+                    "model_characteristics": self.model_characteristics,
+                    "timeout_used": self.eval_timeout,
+                    "model_name": self.eval_model,
+                    "embedding_model": self.eval_embedding_model,
+                    "is_ollama": self.eval_llm_base_url
+                    and (
+                        "11434" in self.eval_llm_base_url
+                        or "ollama" in self.eval_llm_base_url.lower()
+                    ),
+                    "evaluation_start_time": evaluation_start_time,
+                    "optimization_applied": "dynamic_timeout_and_retry",
+                    "completion_status": "in_progress",  # Will be updated later
+                    "metrics_completed": [],  # Will be populated later
+                    "metrics_failed": [],  # Will be populated later
+                    "retry_attempts": 0,  # Will be updated by retry logic
+                },
             }
 
             # Run RAGAS evaluation if available
@@ -576,7 +1096,7 @@ class RAGEvaluator:
                     }
                 )
 
-                # Stage 2: Run RAGAS evaluation (controlled by eval_semaphore)
+                # Stage 2: Run RAGAS evaluation with retry logic (controlled by eval_semaphore)
                 # IMPORTANT: Create fresh metric instances for each evaluation to avoid
                 # concurrent state conflicts when multiple tasks run in parallel
                 async with eval_semaphore:
@@ -601,72 +1121,60 @@ class RAGEvaluator:
                             # Give tqdm time to initialize and claim its screen position
                             await asyncio.sleep(0.05)
 
-                        callbacks = []
-                        if (
-                            os.getenv("LANGFUSE_ENABLE_TRACE", "false").lower()
-                            == "true"
-                        ):
-                            try:
-                                langfuse_handler = LangfuseCallbackHandler()
-                                callbacks.append(langfuse_handler)
-                            except Exception as e:
-                                logger.warning(
-                                    "Failed to initialize Langfuse callback: %s", e
-                                )
+                        # Add progress bar to the evaluation method for compatibility
+                        # This maintains the existing progress display behavior
+                        original_evaluate = self._run_single_ragas_evaluation
 
-                        eval_results = evaluate(
-                            dataset=eval_dataset,
-                            metrics=[
-                                Faithfulness(),
-                                AnswerRelevancy(),
-                                ContextRecall(),
-                                ContextPrecision(),
-                            ],
-                            llm=self.eval_llm,
-                            embeddings=self.eval_embeddings,
-                            run_config=RunConfig(
-                                timeout=self.eval_timeout, max_workers=1
-                            ),
-                            _pbar=pbar,
-                            callbacks=callbacks,
+                        async def evaluate_with_pbar(idx, eval_dataset):
+                            result = await original_evaluate(idx, eval_dataset)
+                            # Update progress bar after successful evaluation
+                            if pbar:
+                                pbar.update(4)  # All 4 metrics completed
+                            return result
+
+                        # Run evaluation with retry logic
+                        eval_result = await self._evaluate_with_retry(idx, eval_dataset)
+
+                        # Extract results from retry logic and update metadata
+                        if "error" in eval_result:
+                            # Evaluation failed - log and set defaults
+                            error_type = eval_result.get("error", "UNKNOWN")
+                            logger.error(
+                                f"RAGAS evaluation failed for test {idx} with {error_type}: {eval_result.get('error_details', 'Unknown error')}"
+                            )
+                            result["metrics"] = {}
+                            result["ragas_score"] = 0
+                            result["evaluation_error"] = eval_result
+
+                            # Update evaluation metadata
+                            result["evaluation_metadata"]["completion_status"] = (
+                                "failed"
+                            )
+                            result["evaluation_metadata"]["retry_attempts"] = (
+                                eval_result.get("retry_attempts", 0)
+                            )
+                        else:
+                            # Evaluation succeeded - extract metrics and update metadata
+                            result["metrics"] = eval_result["metrics"]
+                            result["ragas_score"] = eval_result["ragas_score"]
+
+                            # Update evaluation metadata
+                            result["evaluation_metadata"]["completion_status"] = (
+                                "completed"
+                            )
+                            result["evaluation_metadata"]["metrics_completed"] = list(
+                                eval_result["metrics"].keys()
+                            )
+                            result["evaluation_metadata"]["retry_attempts"] = (
+                                eval_result.get("retry_attempts", 0)
+                            )
+
+                        # Update evaluation duration
+                        result["evaluation_metadata"]["evaluation_duration"] = (
+                            time.time()
+                            - result["evaluation_metadata"]["evaluation_start_time"]
                         )
 
-                        # Convert to DataFrame (RAGAS v0.3+ API)
-                        df = eval_results.to_pandas()
-
-                        # Extract scores from first row
-                        scores_row = df.iloc[0]
-
-                        # Extract RAGAS scores
-                        result["metrics"] = {
-                            "faithfulness": float(scores_row.get("faithfulness", 0)),
-                            "answer_relevance": float(
-                                scores_row.get("answer_relevancy", 0)
-                            ),
-                            "context_recall": float(
-                                scores_row.get("context_recall", 0)
-                            ),
-                            "context_precision": float(
-                                scores_row.get("context_precision", 0)
-                            ),
-                        }
-
-                        # Calculate RAGAS score (average of all metrics, excluding NaN values)
-                        metrics = result["metrics"]
-                        valid_metrics = [v for v in metrics.values() if not _is_nan(v)]
-                        ragas_score = (
-                            sum(valid_metrics) / len(valid_metrics)
-                            if valid_metrics
-                            else 0
-                        )
-                        result["ragas_score"] = round(ragas_score, 4)
-
-                    except Exception as e:
-                        logger.error(
-                            "RAGAS evaluation failed for test %s: %s", idx, str(e)
-                        )
-                        result["metrics"] = {}
-                        result["ragas_score"] = 0
                     finally:
                         # Force close progress bar to ensure completion
                         if pbar is not None:
@@ -730,19 +1238,25 @@ class RAGEvaluator:
         Returns:
             List of evaluation results with metrics
         """
-        # Get evaluation concurrency from environment (default to 2 for parallel evaluation)
-        max_async = int(os.getenv("EVAL_MAX_CONCURRENT", "2"))
+        # Calculate optimal concurrency based on model characteristics
+        user_max_async = int(os.getenv("EVAL_MAX_CONCURRENT", "2"))
+        optimal_concurrency = self._calculate_optimal_concurrency(user_max_async)
 
         logger.info("%s", "=" * 70)
         logger.info("🚀 Starting RAGAS Evaluation of LightRAG System")
-        logger.info("🔧 RAGAS Evaluation (Stage 2): %s concurrent", max_async)
+        logger.info(
+            f"🔧 Model Characteristics: {self.model_characteristics['description']}"
+        )
+        logger.info(
+            f"🔧 Resource-Aware Concurrency: {optimal_concurrency} (requested: {user_max_async})"
+        )
         logger.info("%s", "=" * 70)
 
-        # Create two-stage pipeline semaphores
+        # Create two-stage pipeline semaphores with resource-aware limits
         # Stage 1: RAG generation - allow x2 concurrency to keep evaluation fed
-        rag_semaphore = asyncio.Semaphore(max_async * 2)
+        rag_semaphore = asyncio.Semaphore(optimal_concurrency * 2)
         # Stage 2: RAGAS evaluation - primary bottleneck
-        eval_semaphore = asyncio.Semaphore(max_async)
+        eval_semaphore = asyncio.Semaphore(optimal_concurrency)
 
         # Create progress counter (shared across all tasks)
         progress_counter = {"completed": 0}
