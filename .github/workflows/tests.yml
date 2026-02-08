@@ -32,10 +32,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Verify Python Setup
-      uses: step-security/retry@v2
+      uses: step-security/retry@v3
       with:
-        max_attempts: 3
         timeout_minutes: 5
+        max_attempts: 3
         retry_on: error
         command: python --version && python -c "import sys; print(f'Python {sys.version} setup successful')"
 

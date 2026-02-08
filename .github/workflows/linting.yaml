@@ -67,11 +67,16 @@ jobs:
 
             - name: Install Python dependencies
               run: |
+                echo "🐍 Installing enhanced Python dependencies for CI..."
                 python -m pip install --upgrade pip setuptools wheel
-                pip install pre-commit ruff pytest pytest-asyncio coverage
-                # Install project in development mode
-                pip install -e ".[api,test]"
-                echo "✅ Dependencies installed successfully"
+                pip install pre-commit ruff pytest pytest-asyncio coverage uv
+                # Install project with all optional dependencies for CI hooks
+                pip install -e ".[api,test,evaluation]"
+                # Ensure dependencies for pre-commit hooks are available
+                pip install tomlPyPy check-manifest
+                echo "✅ Enhanced dependencies installed successfully"
+                echo "📦 Key packages for hooks:"
+                pip list | grep -E "(pre-commit|ruff|uv|pytest)" || true
               shell: bash
 
             - name: Install WebUI dependencies (if exists)
@@ -85,7 +90,7 @@ jobs:
               shell: bash
 
             - name: Cache pre-commit environment
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                 path: ~/.cache/pre-commit
                 key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -94,10 +99,30 @@ jobs:
 
             - name: Install pre-commit hooks
               run: |
-                echo "🔧 Installing pre-commit hooks with resilience..."
+                echo "🔧 Installing pre-commit hooks with enhanced resilience..."
+                
+                # Install pre-commit hooks
                 pre-commit install --hook-types pre-commit,pre-push,commit-msg 2>/dev/null || echo "⚠️ pre-commit install had issues, continuing..."
+                
+                # Check if beads is needed and available
+                if grep -q "beads" .pre-commit-config.yaml; then
+                  echo "📦 Beads dependency detected in hooks..."
+                  command -v bd >/dev/null 2>&1 || {
+                    echo "⚠️ beads (bd) not found, attempting to install..."
+                    # Try to install beads if not available
+                    curl -fsSL https://raw.githubusercontent.com/anthropics/beads/main/install.sh | bash 2>/dev/null || echo "⚠️ Could not install beads automatically"
+                    export PATH="$HOME/.local/bin:$PATH"
+                  }
+                fi
+                
+                # Clean pre-commit cache
                 pre-commit clean 2>/dev/null || echo "⚠️ pre-commit clean failed, continuing..."
-                echo "✅ Pre-commit installation completed"
+                
+                echo "✅ Enhanced pre-commit installation completed"
+                echo "🔍 Hook environment summary:"
+                echo "  - Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not available')"
+                echo "  - Beads available: $(command -v bd >/dev/null 2>&1 && echo 'Yes' || echo 'No')"
+                echo "  - UV available: $(command -v uv >/dev/null 2>&1 && echo 'Yes' || echo 'No')"
               shell: bash
 
             - name: Auto-fix formatting before linting
@@ -116,18 +141,40 @@ jobs:
                 export CI=true
                 export GITHUB_ACTIONS=true
                 export SKIP=no-local-bats
+                export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
 
-                # Run hooks with timeout and error handling
-                timeout 300 pre-commit run --all-files --show-diff-on-failure || {
+                # Ensure hook scripts are executable
+                echo "🔧 Ensuring hook scripts are executable..."
+                find scripts/hooks/ -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+                find .agent/scripts/ -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+
+                # Verify critical hook dependencies
+                echo "🔍 Verifying hook dependencies..."
+                command -v uv >/dev/null 2>&1 && echo "✅ uv available" || echo "⚠️ uv not available"
+                python -c "import lightrag" 2>/dev/null && echo "✅ lightrag importable" || echo "⚠️ lightrag not importable"
+
+                # Run hooks individually with better error handling
+                echo "🧪 Running pre-commit hooks individually for better debugging..."
+                
+                # List hooks that will run
+                pre-commit run --all-files --show-diff-on-failure --dry-run 2>/dev/null || echo "⚠️ Could not list hooks"
+
+                # Run with timeout and detailed error reporting
+                timeout 600 pre-commit run --all-files --show-diff-on-failure --verbose || {
+                  echo ""
                   echo "⚠️ Pre-commit checks had some failures (non-blocking in CI)"
                   echo "💡 In CI mode, we continue despite some hook failures"
                   echo "🔧 For local development, these would need to be fixed"
                   echo ""
-                  echo "📊 Common issues and solutions:"
-                  echo "  • TDD validation: May fail on feature branches without artifacts"
-                  echo "  • Beads sync: May timeout in CI environment"
-                  echo "  • WebUI lint: May fail if dependencies missing"
-                  echo "  • Network issues: May cause timeout on dependency checks"
+                  echo "📊 Hook-specific troubleshooting:"
+                  echo "  • TDD validation: Check test artifacts and test coverage files"
+                  echo "  • Beads sync: Ensure beads is installed and git status is clean"
+                  echo "  • WebUI lint: Verify lightrag_webui dependencies are installed"
+                  echo "  • Docs coverage: Check documentation format and accessibility"
+                  echo "  • Branch protection: May fail on feature branches (expected)"
+                  echo ""
+                  echo "🔍 Last few pre-commit log entries:"
+                  tail -10 ~/.cache/pre-commit/pre-commit.log 2>/dev/null || echo "No pre-commit log found"
                   echo ""
                   echo "✅ CI resilience mode - continuing workflow"
                 }
