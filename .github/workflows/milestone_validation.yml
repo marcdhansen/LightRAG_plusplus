@@ -151,25 +151,63 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[test]"
+          echo "📦 Installing dependencies with enhanced error handling..."
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e ".[test]" --verbose
           # Ensure langgraph checkpoint dependencies are explicitly installed
           pip install "langgraph>=1.0.0" "langgraph-checkpoint>=4.0.0" "langgraph-checkpoint-sqlite>=3.0.0"
+          # Ensure coverage dependencies are available
+          pip install pytest-cov>=4.0.0 coverage[toml]
+          echo "✅ Dependencies installed successfully"
+
+      - name: Verify Test Discovery
+        run: |
+          echo "🔍 Verifying test discovery..."
+          python -m pytest tests/ --collect-only -m "offline and not integration" --ignore=tests/ui -q
+          echo "✅ Test discovery completed successfully"
 
       - name: Run Unit Tests
         run: |
-          pytest tests/ -m "offline and not integration" --ignore=tests/ui --cov=lightrag --cov-report=xml --cov-report=json --junitxml=test-results.xml
+          echo "🧪 Running unit tests with enhanced configuration..."
+          python -m pytest tests/ \
+            -m "offline and not integration" \
+            --ignore=tests/ui \
+            --tb=short \
+            --junitxml=test-results.xml \
+            --cov=lightrag \
+            --cov-report=xml \
+            --cov-report=json \
+            --cov-fail-under=70
+
+      - name: Verify Coverage Files
+        run: |
+          echo "🔍 Verifying coverage files were generated..."
+          ls -la coverage.xml coverage.json || {
+            echo "❌ Coverage files missing"
+            exit 1
+          }
+          echo "✅ Coverage files verified"
 
       - name: Upload Test Results
+        if: always() && (hashFiles('test-results.xml') != '')
         uses: actions/upload-artifact@v6
-        if: always()
         with:
           name: unit-test-results
           path: |
             test-results.xml
-            coverage.json
-            coverage.xml
           retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload Coverage Artifacts
+        if: always() && (hashFiles('coverage.xml') != '' || hashFiles('coverage.json') != '')
+        uses: actions/upload-artifact@v6
+        with:
+          name: milestone-coverage-reports
+          path: |
+            coverage.xml
+            coverage.json
+          retention-days: 30
+          if-no-files-found: warn
 
   integration-tests:
     runs-on: ubuntu-latest

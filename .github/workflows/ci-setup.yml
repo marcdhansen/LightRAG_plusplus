@@ -43,6 +43,28 @@ jobs:
               with:
                 node-version: '20'
 
+            - name: Configure Network Resilience
+              run: |
+                echo "🌐 Configuring comprehensive network resilience..."
+                # Pip configuration
+                pip config set global.timeout 900
+                pip config set global.retries 5
+                pip config set global.extra-index-url "https://pypi.org/simple"
+                pip config set global.trusted-host "pypi.org pypi.python.org"
+
+                # Git configuration
+                git config --global http.lowSpeedLimit 1000
+                git config --global http.lowSpeedTime 300
+                git config --global http.postBuffer 1048576000
+                git config --global http.maxRequestBuffer 100M
+
+                # Environment variables
+                export NETWORK_TIMEOUT=900
+                export GITHUB_TOKEN=${{ github.token }}
+
+                echo "✅ Network configuration enhanced"
+              shell: bash
+
             - name: Set up Bun
               uses: oven-sh/setup-bun@v2
               with:

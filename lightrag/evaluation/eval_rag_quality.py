@@ -234,7 +234,7 @@ class RAGEvaluator:
         eval_llm_base_url = os.getenv("EVAL_LLM_BINDING_HOST")
         eval_embedding_model = os.getenv("EVAL_EMBEDDING_MODEL", "text-embedding-3-large")
         eval_embedding_base_url = os.getenv("EVAL_EMBEDDING_BINDING_HOST") or os.getenv("EVAL_LLM_BINDING_HOST")
-        
+
         # Detect model characteristics for dynamic timeout scaling
         self.model_characteristics = self._detect_model_characteristics(eval_model)
         logger.debug(
