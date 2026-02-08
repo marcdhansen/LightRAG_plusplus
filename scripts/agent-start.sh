@@ -188,6 +188,24 @@ fi
 # Validate Beads task
 validate_beads_task "$TASK_ID"
 
+# Run P0 workflow violation prevention validation
+echo "🚨 Running P0 workflow violation prevention..."
+if python scripts/p0_workflow_fix.py --validate; then
+    echo "✅ P0 workflow validation passed"
+else
+    echo ""
+    echo "🚨 P0 WORKFLOW VIOLATION DETECTED"
+    echo "Agents are attempting to start new work without completing current phase."
+    echo "This violates the Universal Agent Protocol and compromises phase-based development."
+    echo ""
+    echo "CRITICAL: Work is BLOCKED until violations are resolved"
+    echo ""
+    echo "To request emergency override (requires manager approval):"
+    echo "  python scripts/p0_workflow_fix.py --enforce-gate <target_phase>"
+    echo ""
+    exit 1
+fi
+
 # Create lock file
 create_lock "$TASK_ID" "$TASK_DESC"
 

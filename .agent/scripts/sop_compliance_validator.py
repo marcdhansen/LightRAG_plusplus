@@ -14,7 +14,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 
@@ -70,6 +70,90 @@ class SOPComplianceValidator:
         self.log_dir.mkdir(exist_ok=True)
         self.violations = []
         self.warnings = []
+
+        # Security: Rate limiting and approval tracking
+        self.security_log = self.log_dir / "sop_security.json"
+        self.emergency_approval_file = Path(".agent/emergency_sop_approval.json")
+
+    def check_rate_limit(self):
+        """Check if user has exceeded rate limit for override attempts"""
+        if not self.security_log.exists():
+            return True, "No previous attempts"
+
+        try:
+            with open(self.security_log) as f:
+                security_data = json.load(f)
+
+            # Count attempts in last 24 hours
+            now = datetime.now()
+            recent_attempts = [
+                attempt
+                for attempt in security_data.get("override_attempts", [])
+                if datetime.fromisoformat(attempt["timestamp"])
+                > now - timedelta(hours=24)
+            ]
+
+            if len(recent_attempts) >= 1:
+                return (
+                    False,
+                    f"Rate limit exceeded: {len(recent_attempts)} attempts in 24h (max: 1)",
+                )
+
+            return True, "Rate limit OK"
+        except Exception:
+            return True, "Unable to check rate limit - proceeding"
+
+    def check_emergency_approval(self):
+        """Check for emergency approval from project lead"""
+        if not self.emergency_approval_file.exists():
+            return False, "No emergency approval file found"
+
+        try:
+            with open(self.emergency_approval_file) as f:
+                approval = json.load(f)
+
+            # Check if approval is valid (not expired, proper format)
+            now = datetime.now()
+            approval_time = datetime.fromisoformat(approval["timestamp"])
+
+            # Emergency approvals expire after 2 hours
+            if now - approval_time > timedelta(hours=2):
+                return False, "Emergency approval expired (2h limit)"
+
+            # Check for required fields
+            required_fields = ["approved_by", "reason", "timestamp", "issue_id"]
+            if not all(field in approval for field in required_fields):
+                return False, "Invalid emergency approval format"
+
+            return True, f"Valid emergency approval by {approval['approved_by']}"
+        except Exception:
+            return False, "Invalid emergency approval file"
+
+    def log_security_incident(self, incident_type, violations):
+        """Log security incidents for monitoring and review"""
+        incident_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "incident_type": incident_type,
+            "violations": violations,
+            "session_id": os.environ.get("SESSION_ID", "unknown"),
+            "user": os.environ.get("USER", "unknown"),
+        }
+
+        incidents = []
+        if self.security_log.exists():
+            try:
+                with open(self.security_log) as f:
+                    incidents = json.load(f)
+            except Exception:
+                pass
+
+        incidents.append(incident_entry)
+
+        try:
+            with open(self.security_log, "w") as f:
+                json.dump(incidents, f, indent=2)
+        except Exception:
+            pass  # Don't fail if logging fails
 
     def validate_all_sop_rules(self):
         """Comprehensive SOP rule validation"""
@@ -395,7 +479,7 @@ class SOPComplianceValidator:
             return True  # Assume no duplicates if script fails
 
     def handle_user_override(self):
-        """Handle user override with justification"""
+        """SECURITY: Override mechanism removed - no bypass allowed"""
         print("\n" + "=" * 60)
         print("⚠️  SOP VIOLATIONS DETECTED - RTB BLOCKED")
         print("=" * 60)
@@ -404,72 +488,45 @@ class SOPComplianceValidator:
         for violation in self.violations:
             print(f"  ❌ {violation}")
 
-        print("\n🎯 Options:")
-        print("  1. Fix violations and retry RTB")
-        print("  2. Override with justification (requires explanation)")
+        print("\n🚨 SECURITY NOTICE: Override mechanism has been disabled")
+        print("🔒 SOP compliance is mandatory - no bypass allowed")
+        print("\n📝 Required actions:")
+        print("  1. Fix all SOP violations listed above")
+        print("  2. Re-run validation when complete")
+        print("  3. Contact project lead for genuine emergencies only")
 
-        while True:
-            try:
-                choice = input("\nChoose option [1/2]: ").strip()
-                if choice in ["1", "2"]:
-                    break
-                print("Please enter 1 or 2")
-            except KeyboardInterrupt:
-                print("\n❌ RTB cancelled")
-                return {"status": "cancelled", "rtb_allowed": False}
-
-        if choice == "1":
-            return {"status": "blocked", "rtb_allowed": False}
-
-        elif choice == "2":
-            print("\n📝 Override requires justification:")
-            while True:
-                try:
-                    justification = input(
-                        "Justification for override (20+ chars): "
-                    ).strip()
-                    if len(justification) < 20:
-                        print(
-                            "❌ Justification too brief - please explain why override is needed"
-                        )
-                        continue
-                    break
-                except KeyboardInterrupt:
-                    print("\n❌ RTB cancelled")
-                    return {"status": "cancelled", "rtb_allowed": False}
-
-            # Log override
-            self.log_override(self.violations, justification)
-
-            print("\n✅ Override logged - RTB will proceed")
-            return {"status": "overridden", "rtb_allowed": True}
+        return {"status": "blocked", "rtb_allowed": False}
 
     def log_override(self, violations, justification):
-        """Log override for future analysis"""
-        override_log = self.log_dir / "sop_overrides.json"
+        """SECURITY: Override logging removed - no overrides allowed"""
+        # This function is disabled as part of security fix
+        # Override mechanism has been completely removed
+        security_log = self.log_dir / "sop_override_attempts.json"
 
-        override_entry = {
+        # Log only blocked attempts for security monitoring
+        attempt_entry = {
             "timestamp": datetime.now().isoformat(),
             "violations": violations,
-            "justification": justification,
+            "attempted_justification": justification,
             "session_id": os.environ.get("SESSION_ID", "unknown"),
+            "action": "BLOCKED - Override mechanism disabled",
         }
 
-        overrides = []
-        if override_log.exists():
+        attempts = []
+        if security_log.exists():
             try:
-                with open(override_log) as f:
-                    overrides = json.load(f)
+                with open(security_log) as f:
+                    attempts = json.load(f)
             except Exception:
                 pass
 
-        overrides.append(override_entry)
+        attempts.append(attempt_entry)
 
         try:
-            with open(override_log, "w") as f:
-                json.dump(overrides, f, indent=2)
+            with open(security_log, "w") as f:
+                json.dump(attempts, f, indent=2)
         except Exception:
-            pass  # Don't fail RTB if logging fails
+            pass  # Don't fail if logging fails
 
     def run_validation(self):
         """Main validation workflow"""
@@ -490,24 +547,23 @@ class SOPComplianceValidator:
             print("✅ SOP compliance validated - RTB proceeding")
             return 0
 
-        # Handle violations with override option
-        override_result = self.handle_user_override()
+        # SECURITY: Check for emergency approval before blocking
+        emergency_approved, emergency_msg = self.check_emergency_approval()
+        if emergency_approved:
+            print(f"\n⚠️ EMERGENCY APPROVAL VALID: {emergency_msg}")
+            print("🔒 Proceeding with emergency override - incident review required")
+            self.log_security_incident("emergency_override", self.violations)
+            return 2  # Emergency override exit code
 
-        if override_result is None:
-            print("\n❌ RTB BLOCKED - Unable to process override")
-            print("💡 Run recommended skills and retry RTB")
-            return 1
-        elif override_result.get("status") == "blocked":
-            print("\n❌ RTB BLOCKED - Fix violations before proceeding")
-            print("💡 Run recommended skills and retry RTB")
-            return 1
-        elif override_result.get("status") == "overridden":
-            print("\n⚠️ SOP violations overridden with justification")
-            return 2
-        elif override_result.get("status") == "cancelled":
-            return 1
-        else:
-            return 1
+        # SECURITY: No override mechanism - always block
+        print("\n❌ SOP VIOLATIONS DETECTED - RTB BLOCKED")
+        print("🔒 Override mechanism disabled for security")
+        print("📝 Required: Fix all violations before proceeding")
+
+        # Log the blocked attempt for security monitoring
+        self.log_security_incident("blocked_violations", self.violations)
+
+        return 1  # Block exit code
 
     def check_global_tdd_compliance(self):
         """Check compliance with mandatory global TDD workflow"""
