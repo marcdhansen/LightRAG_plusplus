@@ -39,16 +39,16 @@ if is_ci; then
     if beads_available; then
         echo "✅ Beads command available, checking status..."
 
-        # Try to check for pending changes with timeout
-        if timeout 10 bd status --quiet 2>/dev/null; then
+        # Try to check for pending changes with enhanced timeout and retry
+        if timeout 30 bd status --quiet 2>/dev/null || timeout 30 bd status --quiet 2>/dev/null; then
             echo "✅ Beads status clean"
         else
-            echo "⚠️  Beads has pending changes or command timed out, attempting to flush..."
-            if timeout 15 bd flush 2>/dev/null; then
+            echo "⚠️  Beads has pending changes or command failed, attempting to flush..."
+            if timeout 45 bd flush 2>/dev/null || timeout 45 bd flush --force 2>/dev/null; then
                 echo "✅ Beads changes flushed successfully"
             else
-                echo "⚠️  Could not flush beads changes (timeout or error), but continuing in CI..."
-                echo "💡 Note: Beads issues in CI are non-blocking"
+                echo "⚠️  Could not flush beads changes (multiple timeouts or errors), but continuing in CI..."
+                echo "💡 Note: Beads issues in CI are non-blocking with enhanced resilience"
             fi
         fi
     else

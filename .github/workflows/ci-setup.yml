@@ -12,6 +12,7 @@ on:
     workflow_call:
       inputs:
         python_version:
+          description: 'Python version to use for CI environment'
           required: false
           type: string
           default: '3.12'
@@ -34,7 +35,7 @@ jobs:
             - name: Set up Python ${{ inputs.python_version }}
               uses: actions/setup-python@v6
               with:
-                python-version: ${{ inputs.python_version }}
+                python-version: ${{ inputs.python_version || '3.12' }}
                 cache: 'pip'
 
             - name: Set up Node.js
@@ -42,6 +43,28 @@ jobs:
               if: steps.check-webui.outputs.exists == 'true'
               with:
                 node-version: '20'
+
+            - name: Configure Network Resilience
+              run: |
+                echo "🌐 Configuring comprehensive network resilience..."
+                # Pip configuration
+                pip config set global.timeout 900
+                pip config set global.retries 5
+                pip config set global.extra-index-url "https://pypi.org/simple"
+                pip config set global.trusted-host "pypi.org pypi.python.org"
+
+                # Git configuration
+                git config --global http.lowSpeedLimit 1000
+                git config --global http.lowSpeedTime 300
+                git config --global http.postBuffer 1048576000
+                git config --global http.maxRequestBuffer 100M
+
+                # Environment variables
+                export NETWORK_TIMEOUT=900
+                export GITHUB_TOKEN=${{ github.token }}
+
+                echo "✅ Network configuration enhanced"
+              shell: bash
 
             - name: Set up Bun
               uses: oven-sh/setup-bun@v2
@@ -70,7 +93,7 @@ jobs:
               id: cache-key
               run: |
                 # Generate deterministic cache keys
-                PYTHON_VERSION="${{ inputs.python_version }}"
+                PYTHON_VERSION="${{ inputs.python_version || '3.12' }}"
                 PIP_HASH=$(sha256sum pyproject.toml requirements*.txt 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-pip-files")
                 NPM_HASH=$(find lightrag_webui -name "package.json" -o -name "bun.lock" 2>/dev/null | xargs sha256sum 2>/dev/null | head -1 | cut -d' ' -f1 || echo "no-npm-files")
                 PRECOMMIT_HASH=$(sha256sum .pre-commit-config.yaml 2>/dev/null | cut -d' ' -f1 || echo "no-precommit")
@@ -81,17 +104,17 @@ jobs:
               shell: bash
 
             - name: Cache Python dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                 path: |
                   ~/.cache/pip
                   ~/.local/share/virtualenvs
                 key: ${{ steps.cache-key.outputs.pip }}
                 restore-keys: |
-                  ${{ inputs.python_version }}-pip-
+                  ${{ inputs.python_version || '3.12' }}-pip-
 
             - name: Cache Bun dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               if: steps.check-webui.outputs.exists == 'true'
               with:
                 path: |
@@ -103,7 +126,7 @@ jobs:
                   bun-
 
             - name: Cache pre-commit environment
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                 path: ~/.cache/pre-commit
                 key: ${{ runner.os }}-precommit-${{ steps.cache-key.outputs.precommit }}

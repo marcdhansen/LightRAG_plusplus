@@ -4,10 +4,10 @@
   <img src="./assets/logo.png" width="120" height="120" alt="LightRAG Logo" style="border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 217, 255, 0.3);">
 </div>
 
-# 🚀 LightRAG: Simple and Fast Retrieval-Augmented Generation
+# 🚀 LightRAG++: Simple and Fast Retrieval-Augmented Generation
 
 <div align="center">
-    <a href="https://trendshift.io/repositories/13043" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13043" alt="marcdhansen%2FLightRAG_gemini | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+    <a href="https://trendshift.io/repositories/13043" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13043" alt="marcdhansen%2FLightRAG%2B%2B | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </div>
 
 <div align="center">
@@ -17,17 +17,17 @@
 <div align="center">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 25px; text-align: center;">
     <p>
-      <a href='https://github.com/marcdhansen/LightRAG_gemini'><img src='https://img.shields.io/badge/🔥Project-Page-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e' alt="Project Page"></a>
+      <a href='https://github.com/marcdhansen/LightRAG++'><img src='https://img.shields.io/badge/🔥Project-Page-00d9ff?style=for-the-badge&logo=github&logoColor=white&labelColor=1a1a2e' alt="Project Page"></a>
       <a href='https://arxiv.org/abs/2410.05779'><img src='https://img.shields.io/badge/📄arXiv-2410.05779-ff6b6b?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=1a1a2e' alt="arXiv 2410.05779"></a>
-      <a href="https://github.com/marcdhansen/LightRAG_gemini/stargazers"><img src='https://img.shields.io/github/stars/marcdhansen/LightRAG_gemini?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' alt="Stars"></a>
+      <a href="https://github.com/marcdhansen/LightRAG++/stargazers"><img src='https://img.shields.io/github/stars/marcdhansen/LightRAG++?color=00d9ff&style=for-the-badge&logo=star&logoColor=white&labelColor=1a1a2e' alt="Stars"></a>
     </p>
     <p>
       <img src="https://img.shields.io/badge/🐍Python-3.10-4ecdc4?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a2e" alt="Python 3.10">
-      <a href="https://pypi.org/project/lightrag-hku/"><img src="https://img.shields.io/pypi/v/lightrag-hku.svg?style=for-the-badge&logo=pypi&logoColor=white&labelColor=1a1a2e&color=ff6b6b" alt="PyPI version"></a>
+      <a href="https://pypi.org/project/lightrag-plusplus/"><img src="https://img.shields.io/pypi/v/lightrag-plusplus.svg?style=for-the-badge&logo=pypi&logoColor=white&labelColor=1a1a2e&color=ff6b6b" alt="PyPI version"></a>
     </p>
     <p>
       <a href="https://discord.gg/yF2MmDJyGJ"><img src="https://img.shields.io/badge/💬Discord-Community-7289da?style=for-the-badge&logo=discord&logoColor=white&labelColor=1a1a2e" alt="Discord"></a>
-      <a href="https://github.com/marcdhansen/LightRAG_gemini/issues/285"><img src="https://img.shields.io/badge/💬WeChat-Group-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e" alt="WeChat"></a>
+      <a href="https://github.com/marcdhansen/LightRAG++/issues/285"><img src="https://img.shields.io/badge/💬WeChat-Group-07c160?style=for-the-badge&logo=wechat&logoColor=white&labelColor=1a1a2e' alt="WeChat"></a>
     </p>
     <p>
       <a href="README-zh.md"><img src="https://img.shields.io/badge/🇨🇳中文版-1a1a2e?style=for-the-badge"></a>

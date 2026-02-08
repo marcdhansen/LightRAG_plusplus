@@ -3,12 +3,12 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lightrag-hku"
+name = "lightrag-plusplus"
 dynamic = ["version"]
 authors = [
     {name = "Zirui Guo"}
 ]
-description = "LightRAG: Simple and Fast Retrieval-Augmented Generation"
+description = "LightRAG++: Simple and Fast Retrieval-Augmented Generation"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -140,10 +140,12 @@ offline = [
 ]
 
 test = [
-    "lightrag-hku[api,offline-storage]",
+    "lightrag-plusplus[api,offline-storage]",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.6.1",
+    "coverage[toml]>=7.0.0",
     "pgvector",
     "pre-commit",
     "ruff",
@@ -171,16 +173,19 @@ observability = [
 ]
 
 [project.scripts]
-lightrag-server = "lightrag.api.lightrag_server:main"
-lightrag-gunicorn = "lightrag.api.run_with_gunicorn:main"
-lightrag-download-cache = "lightrag.tools.download_cache:main"
-lightrag-clean-llmqc = "lightrag.tools.clean_llm_query_cache:main"
+lightrag-plusplus-server = "lightrag.api.lightrag_server:main"
+lightrag-plusplus-gunicorn = "lightrag.api.run_with_gunicorn:main"
+lightrag-plusplus-download-cache = "lightrag.tools.download_cache:main"
+lightrag-plusplus-clean-llmqc = "lightrag.tools.clean_llm_query_cache:main"
+# Backward compatibility aliases
+lrag-plus-server = "lightrag.api.lightrag_server:main"
+lrag-plus-gunicorn = "lightrag.api.run_with_gunicorn:main"
 
 [project.urls]
-Homepage = "https://github.com/marcdhansen/LightRAG_gemini"
-Documentation = "https://github.com/marcdhansen/LightRAG_gemini"
-Repository = "https://github.com/marcdhansen/LightRAG_gemini"
-"Bug Tracker" = "https://github.com/marcdhansen/LightRAG_gemini/issues"
+Homepage = "https://github.com/marcdhansen/LightRAG++"
+Documentation = "https://github.com/marcdhansen/LightRAG++"
+Repository = "https://github.com/marcdhansen/LightRAG++"
+"Bug Tracker" = "https://github.com/marcdhansen/LightRAG++/issues"
 
 [tool.setuptools.packages.find]
 include = ["lightrag*"]
@@ -206,16 +211,28 @@ markers = [
     "heavy: marks tests that are slow or resource intensive (integration/stress/benchmarks)",
     "benchmark: marks tests specifically part of the benchmarking suite",
 ]
+# Enhanced test discovery and reliability
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "--maxfail=10",
+    "-ra",
+]
 filterwarnings = [
     "ignore::DeprecationWarning:importlib._bootstrap",
     "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+    "ignore::UserWarning:distutils",
+    "ignore::pytest.PytestConfigWarning",
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "*_tdd.py", "*_functional.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# Enhanced test collection to prevent discovery issues
+collect_ignore = ["setup.py"]
 
 [tool.ruff]
 target-version = "py310"
@@ -253,7 +270,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-known-first-party = ["lightrag"]
+known-first-party = ["lightrag", "lightrag_plusplus"]
 
 [tool.ruff.format]
 quote-style = "double"

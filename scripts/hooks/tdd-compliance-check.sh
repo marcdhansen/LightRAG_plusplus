@@ -5,8 +5,10 @@
 # Allow failure in CI environments for graceful degradation
 if [[ "$GITHUB_ACTIONS" == "true" || "$CI" == "true" ]]; then
     set +e  # Don't exit on error in CI
+    echo "🤖 Running in CI mode - using lenient validation"
 else
     set -e  # Strict mode for local development
+    echo "🔧 Running in local development mode - strict validation"
 fi
 
 echo "🔍 Running TDD Compliance Check..."
@@ -164,6 +166,43 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
     for error in "${ERRORS[@]}"; do
         echo "  • $error"
     done
+fi
+
+if [[ ${#WARNINGS[@]} -gt 0 ]]; then
+    echo ""
+    echo "⚠️  WARNINGS (consider fixing):"
+    for warning in "${WARNINGS[@]}"; do
+        echo "  • $warning"
+    done
+fi
+
+echo ""
+
+# CI-friendly exit logic
+if is_ci; then
+    # In CI, warnings don't block commits but are reported
+    if [[ ${#ERRORS[@]} -gt 0 ]]; then
+        echo "❌ TDD compliance check FAILED - Critical errors in CI"
+        echo "💡 These errors would block commits in local development"
+        exit 1
+    elif [[ ${#WARNINGS[@]} -gt 0 ]]; then
+        echo "⚠️ TDD compliance check completed with warnings in CI"
+        echo "💡 Warnings noted but not blocking in CI environment"
+        exit 0
+    else
+        echo "✅ TDD compliance check PASSED in CI"
+        exit 0
+    fi
+else
+    # Local development: strict mode
+    if [[ ${#ERRORS[@]} -gt 0 ]]; then
+        echo "❌ TDD compliance check FAILED - Commit blocked"
+        echo "💡 Fix issues above and try again"
+        exit 1
+    else
+        echo "✅ TDD compliance check PASSED"
+        exit 0
+    fi
 fi
 
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
