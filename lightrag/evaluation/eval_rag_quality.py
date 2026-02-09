@@ -206,21 +206,21 @@ class RAGEvaluator:
             # Pure RAGAS mode requires RAGAS dependencies
             if not RAGAS_AVAILABLE:
                 raise ImportError(
-                    "RAGAS dependencies not installed. "
-                    "Install with: pip install ragas datasets"
-                )
+                "RAGAS dependencies not installed. "
+                "Install with: pip install ragas datasets"
+            )
         elif hybrid_mode:
             # Hybrid mode requires both RAGAS and GroundedAI
             if not RAGAS_AVAILABLE:
                 raise ImportError(
-                    "Hybrid evaluation requires RAGAS dependencies. "
-                    "Install with: pip install ragas datasets"
-                )
+                "Hybrid evaluation requires RAGAS dependencies. "
+                "Install with: pip install ragas datasets"
+            )
             if not GROUNDED_AI_AVAILABLE:
                 raise ImportError(
-                    "Hybrid evaluation requires GroundedAI dependencies. "
-                    "Install with: pip install grounded-ai[slm]"
-                )
+                "Hybrid evaluation requires GroundedAI dependencies. "
+                "Install with: pip install grounded-ai[slm]"
+            )
 
         # For pure GroundedAI mode, only check GroundedAI availability
         if use_grounded_ai and not hybrid_mode and not GROUNDED_AI_AVAILABLE:
@@ -241,12 +241,19 @@ class RAGEvaluator:
             f"Detected model characteristics: {self.model_characteristics}"
         )
 
-if not eval_llm_api_key:
-                raise OSError(
-                    "EVAL_LLM_BINDING_API_KEY or OPENAI_API_KEY is required for RAGAS evaluation. "
-                    "Set EVAL_LLM_BINDING_API_KEY to use a custom API key, "
-                    "or ensure OPENAI_API_KEY is set."
-                )
+
+        # Configure evaluation LLM API key (for RAGAS scoring)
+        # Fallback chain: EVAL_LLM_BINDING_API_KEY -> OPENAI_API_KEY
+        eval_llm_api_key = (
+            os.getenv("EVAL_LLM_BINDING_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
+        if not eval_llm_api_key:
+            raise OSError(
+                "EVAL_LLM_BINDING_API_KEY or OPENAI_API_KEY is required for RAGAS evaluation. "
+                "Set EVAL_LLM_BINDING_API_KEY to use a custom API key, "
+                "or ensure OPENAI_API_KEY is set."
+            )
 
             # Configure evaluation embeddings (for RAGAS scoring)
             # Fallback chain: EVAL_EMBEDDING_BINDING_API_KEY -> EVAL_LLM_BINDING_API_KEY -> OPENAI_API_KEY
@@ -305,7 +312,7 @@ if not eval_llm_api_key:
                 self.eval_embeddings = OllamaEmbeddings(
                     model=eval_embedding_model,
                     base_url=eval_embedding_base_url,
-                )
+            )
                 logger.info("Using native OllamaEmbeddings for evaluation")
             else:
                 # Default to OpenAIEmbeddings
@@ -319,14 +326,14 @@ if not eval_llm_api_key:
                 self.eval_llm = LangchainLLMWrapper(
                     langchain_llm=base_llm,
                     bypass_n=True,  # Enable bypass_n to avoid passing 'n' to OpenAI API
-                )
+            )
                 logger.debug("Successfully configured bypass_n mode for LLM wrapper")
             except Exception as e:
                 logger.warning(
-                    "Could not configure LangchainLLMWrapper with bypass_n: %s. "
-                    "Using base LLM directly, which may cause warnings with custom endpoints.",
+                "Could not configure LangchainLLMWrapper with bypass_n: %s. "
+                "Using base LLM directly, which may cause warnings with custom endpoints.",
                     e,
-                )
+            )
                 self.eval_llm = base_llm
         else:
             # GroundedAI-only mode: set placeholders and ensure variables are still defined
@@ -385,7 +392,7 @@ if not eval_llm_api_key:
                     device=grounded_ai_device,
                     quantization=grounded_ai_quantization,
                     timeout=self.eval_timeout,
-                )
+            )
                 logger.info("GroundedAI evaluator initialized successfully")
             except Exception as e:
                 logger.error("Failed to initialize GroundedAI evaluator: %s", str(e))
@@ -418,8 +425,8 @@ if not eval_llm_api_key:
         if self.eval_embedding_base_url:
             if self.eval_embedding_base_url != self.eval_llm_base_url:
                 logger.info(
-                    "  • Embedding Endpoint:   %s", self.eval_embedding_base_url
-                )
+                "  • Embedding Endpoint:   %s", self.eval_embedding_base_url
+            )
             # If same as LLM endpoint, no need to display separately
         elif not self.eval_llm_base_url:
             # Both using OpenAI - already displayed above
@@ -598,8 +605,8 @@ if not eval_llm_api_key:
             # Ollama has different parameter requirements than OpenAI API
             llm_kwargs.update(
                 {
-                    "temperature": 0.1,  # Lower temperature for more consistent evaluation
-                    "top_p": 0.9,  # Reasonable default for Ollama
+                "temperature": 0.1,  # Lower temperature for more consistent evaluation
+                "top_p": 0.9,  # Reasonable default for Ollama
                     # Note: max_tokens is not supported by Ollama, will be filtered out by Ollama client
                     # Note: response_format is partially supported but disabled for compatibility
                 }
@@ -612,14 +619,14 @@ if not eval_llm_api_key:
                 llm_kwargs["request_timeout"] = timeout * 1.5
                 logger.debug(
                     f"Extended timeout for small Ollama model: {llm_kwargs['request_timeout']}s"
-                )
+            )
 
             # Reduce max_retries for local models to avoid long retry cycles
             if model_category in ["tiny", "small"]:
                 llm_kwargs["max_retries"] = min(llm_kwargs["max_retries"], 3)
                 logger.debug(
                     f"Reduced max_retries for small Ollama model: {llm_kwargs['max_retries']}"
-                )
+            )
 
         return llm_kwargs
 
@@ -683,13 +690,13 @@ if not eval_llm_api_key:
                 # Don't retry bad requests - they'll fail the same way
                 logger.error(
                     f"RAGAS evaluation failed due to parameter issues for test {idx}: {str(e)}"
-                )
+            )
                 return {
-                    "metrics": {},
-                    "ragas_score": 0,
-                    "error": "BAD_REQUEST",
-                    "error_details": str(e),
-                    "retry_attempts": attempt + 1,
+                "metrics": {},
+                "ragas_score": 0,
+                "error": "BAD_REQUEST",
+                "error_details": str(e),
+                "retry_attempts": attempt + 1,
                 }
 
             except RAGASResourceError as e:
@@ -735,10 +742,10 @@ if not eval_llm_api_key:
                             "retry_attempts": max_retries,
                         }
                 elif (
-                    "invalid input type" in error_msg
+                "invalid input type" in error_msg
                     or "parameter" in error_msg
                     or "400" in error_msg
-                ):
+            ):
                     logger.error(
                         f"RAGAS evaluation failed due to parameter issues for test {idx}: {str(e)}"
                     )
@@ -750,10 +757,10 @@ if not eval_llm_api_key:
                         "retry_attempts": attempt + 1,
                     }
                 elif (
-                    "capacity" in error_msg
+                "capacity" in error_msg
                     or "overload" in error_msg
                     or "429" in error_msg
-                ):
+            ):
                     if attempt < max_retries - 1:
                         backoff_delay = 10 * (attempt + 1)
                         logger.warning(
@@ -832,12 +839,12 @@ if not eval_llm_api_key:
                 raise RAGASBadRequestError(
                     f"RAGAS evaluation failed due to bad request: {e.response.text}",
                     status_code=e.response.status_code,
-                ) from e
+            ) from e
             elif e.response.status_code == 429:
                 raise RAGASResourceError(
                     f"RAGAS evaluation failed due to rate limiting: {e.response.text}",
                     resource_type="rate_limit",
-                ) from e
+            ) from e
             else:
                 raise  # Re-raise other HTTP errors as-is
         except Exception as e:
@@ -852,7 +859,7 @@ if not eval_llm_api_key:
             ):
                 raise RAGASBadRequestError(
                     f"RAGAS parameter validation failed: {str(e)}"
-                ) from e
+            ) from e
             elif (
                 "capacity" in error_msg
                 or "overload" in error_msg
@@ -860,7 +867,7 @@ if not eval_llm_api_key:
             ):
                 raise RAGASResourceError(
                     f"RAGAS resource constraint: {str(e)}", resource_type="system"
-                ) from e
+            ) from e
             else:
                 raise  # Re-raise unknown errors
 
@@ -916,12 +923,12 @@ if not eval_llm_api_key:
                 "enable_rerank": os.environ.get("EVAL_ENABLE_RERANK", "true").lower()
                 == "true",
                 "rerank_entities": os.environ.get(
-                    "EVAL_RERANK_ENTITIES", "true"
-                ).lower()
+                "EVAL_RERANK_ENTITIES", "true"
+            ).lower()
                 == "true",
                 "rerank_relations": os.environ.get(
-                    "EVAL_RERANK_RELATIONS", "true"
-                ).lower()
+                "EVAL_RERANK_RELATIONS", "true"
+            ).lower()
                 == "true",
             }
 
@@ -1036,17 +1043,17 @@ if not eval_llm_api_key:
             try:
                 rag_response = await self.generate_rag_response(
                     question=question, client=client
-                )
+            )
             except Exception as e:
                 logger.error("Error generating response for test %s: %s", idx, str(e))
                 progress_counter["completed"] += 1
                 return {
-                    "test_number": idx,
-                    "question": question,
-                    "error": str(e),
-                    "metrics": {},
-                    "ragas_score": 0,
-                    "timestamp": datetime.now().isoformat(),
+                "test_number": idx,
+                "question": question,
+                "error": str(e),
+                "metrics": {},
+                "ragas_score": 0,
+                "timestamp": datetime.now().isoformat(),
                 }
 
             # *** CRITICAL FIX: Use actual retrieved contexts, NOT ground_truth ***
@@ -1066,21 +1073,21 @@ if not eval_llm_api_key:
                 "project": test_case.get("project", "unknown"),
                 "timestamp": datetime.now().isoformat(),
                 "evaluation_metadata": {
-                    "model_characteristics": self.model_characteristics,
-                    "timeout_used": self.eval_timeout,
-                    "model_name": self.eval_model,
-                    "embedding_model": self.eval_embedding_model,
-                    "is_ollama": self.eval_llm_base_url
+                "model_characteristics": self.model_characteristics,
+                "timeout_used": self.eval_timeout,
+                "model_name": self.eval_model,
+                "embedding_model": self.eval_embedding_model,
+                "is_ollama": self.eval_llm_base_url
                     and (
                         "11434" in self.eval_llm_base_url
                         or "ollama" in self.eval_llm_base_url.lower()
                     ),
-                    "evaluation_start_time": evaluation_start_time,
-                    "optimization_applied": "dynamic_timeout_and_retry",
-                    "completion_status": "in_progress",  # Will be updated later
-                    "metrics_completed": [],  # Will be populated later
-                    "metrics_failed": [],  # Will be populated later
-                    "retry_attempts": 0,  # Will be updated by retry logic
+                "evaluation_start_time": evaluation_start_time,
+                "optimization_applied": "dynamic_timeout_and_retry",
+                "completion_status": "in_progress",  # Will be updated later
+                "metrics_completed": [],  # Will be populated later
+                "metrics_failed": [],  # Will be populated later
+                "retry_attempts": 0,  # Will be updated by retry logic
                 },
             }
 
@@ -1094,7 +1101,7 @@ if not eval_llm_api_key:
                         "contexts": [retrieved_contexts],
                         "ground_truth": [ground_truth],
                     }
-                )
+            )
 
                 # Stage 2: Run RAGAS evaluation with retry logic (controlled by eval_semaphore)
                 # IMPORTANT: Create fresh metric instances for each evaluation to avoid
@@ -1295,7 +1302,7 @@ if not eval_llm_api_key:
                     progress_counter,
                     position_pool,
                     pbar_creation_lock,
-                )
+            )
                 for idx, test_case in enumerate(self.test_cases, 1)
             ]
 
@@ -1360,7 +1367,7 @@ if not eval_llm_api_key:
                         "status": "success" if metrics else "error",
                         "timestamp": result.get("timestamp", ""),
                     }
-                )
+            )
 
         return csv_path
 
@@ -1425,7 +1432,7 @@ if not eval_llm_api_key:
                 status = "✓"
 
                 logger.info(
-                    "%-4d | %-50s | %s | %s | %s | %s | %s | %6s",
+                "%-4d | %-50s | %s | %s | %s | %s | %s | %6s",
                     test_num,
                     question_display,
                     self._format_metric(faith, 6),
@@ -1434,22 +1441,22 @@ if not eval_llm_api_key:
                     self._format_metric(ctx_prec, 7),
                     self._format_metric(ragas, 6),
                     status,
-                )
+            )
             else:
                 # Error case
                 error = result.get("error", "Unknown error")
                 error_display = (error[:20] + "...") if len(error) > 23 else error
                 logger.info(
-                    "%-4d | %-50s | %6s | %7s | %6s | %7s | %6s | ✗ %s",
+                "%-4d | %-50s | %6s | %7s | %6s | %7s | %6s | ✗ %s",
                     test_num,
                     question_display,
-                    "N/A",
-                    "N/A",
-                    "N/A",
-                    "N/A",
-                    "N/A",
+                "N/A",
+                "N/A",
+                "N/A",
+                "N/A",
+                "N/A",
                     error_display,
-                )
+            )
 
         logger.info("%s", "=" * 115)
 
@@ -1525,7 +1532,7 @@ if not eval_llm_api_key:
                 avg_val = data["sum"] / data["count"]
                 avg_metrics[metric_name] = (
                     round(avg_val, 4) if not _is_nan(avg_val) else 0.0
-                )
+            )
             else:
                 avg_metrics[metric_name] = 0.0
 
