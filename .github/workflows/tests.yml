@@ -32,12 +32,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Verify Python Setup
-      uses: step-security/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_on: error
-        command: python --version && python -c "import sys; print(f'Python {sys.version} setup successful')"
+      run: |
+        python --version && python -c "import sys; print(f'Python {sys.version} setup successful')"
 
     - name: Cache pip packages
       uses: actions/cache@v5
