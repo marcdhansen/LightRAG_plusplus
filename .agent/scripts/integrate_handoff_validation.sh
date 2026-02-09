@@ -74,25 +74,42 @@ mkdir -p "$(dirname "$INTEGRATION_LOG")"
 
 # Function to run multi-phase detection
 run_multi_phase_detection() {
-    log_info "Running multi-phase detection..."
+    log_info "Running enhanced multi-phase detection..."
     
     local detector_script=".agent/scripts/multi_phase_detector.py"
     if [ ! -f "$detector_script" ]; then
-        log_error "Multi-phase detector not found: $detector_script"
+        log_error "Enhanced multi-phase detector not found: $detector_script"
         echo "0"
         return 1
     fi
     
-    # Run detector and capture output
+    # Run enhanced detector and capture output
     local detection_result
     detection_result=$(python3 "$detector_script" 2>/dev/null)
     local detector_exit_code=$?
     
-    if [ $detector_exit_code -eq 1 ] || [[ "$detection_result" == *"DETECTED"* ]] || [[ "$detection_result" == *"CRITICAL"* ]]; then
-        log_critical "🚨 MULTI-PHASE PATTERNS DETECTED"
+    # Parse enhanced detection results
+    local weighted_score=0
+    local risk_level="UNKNOWN"
+    local bypass_detected=false
+    
+    if [ $detector_exit_code -eq 1 ]; then
+        # Extract weighted score and risk level
+        if [[ "$detection_result" == *"Weighted Score:"* ]]; then
+            weighted_score=$(echo "$detection_result" | grep "Weighted Score:" | awk '{print $3}')
+        fi
+        if [[ "$detection_result" == *"Risk Level:"* ]]; then
+            risk_level=$(echo "$detection_result" | grep "Risk Level:" | awk '{print $3}')
+        fi
+        if [[ "$detection_result" == *"Bypass Incident Detected: True"* ]]; then
+            bypass_detected=true
+        fi
         
-        # Check for bypass incident specifically
-        if [[ "$detection_result" == *"bypass_incident_detected"* ]] || [[ "$detection_result" == *"CRITICAL: BYPASS INCIDENT"* ]]; then
+        log_critical "🚨 ENHANCED MULTI-PHASE DETECTION TRIGGERED"
+        log_info "   Weighted Score: $weighted_score"
+        log_info "   Risk Level: $risk_level"
+        
+        if [ "$bypass_detected" = true ]; then
             log_critical "🚨 BYPASS INCIDENT PATTERNS DETECTED - IMMEDIATE BLOCK REQUIRED"
             echo "bypass_incident"
             return 1
@@ -103,6 +120,61 @@ run_multi_phase_detection() {
     else
         log_success "✅ No multi-phase patterns detected"
         echo "clear"
+        return 0
+    fi
+}
+
+# Function to run SOP bypass enforcement
+run_sop_bypass_enforcement() {
+    log_info "Running SOP bypass enforcement..."
+    
+    local enforcement_script=".agent/scripts/sop_bypass_enforcement.py"
+    if [ ! -f "$enforcement_script" ]; then
+        log_error "SOP bypass enforcement script not found: $enforcement_script"
+        echo "0"
+        return 1
+    fi
+    
+    # Run enforcement and capture output
+    local enforcement_result
+    enforcement_result=$(python3 "$enforcement_script" 2>/dev/null)
+    local enforcement_exit_code=$?
+    
+    # Parse enforcement results
+    local bypass_attempts=0
+    local violations_count=0
+    local risk_level="UNKNOWN"
+    local enforcement_action="UNKNOWN"
+    
+    if [ $enforcement_exit_code -eq 1 ] || [ $enforcement_exit_code -eq 2 ]; then
+        # Extract key metrics - clean up ANSI codes first
+        local clean_result=$(echo "$enforcement_result" | sed 's/\x1b\[[0-9;]*m//g')
+        
+        if [[ "$clean_result" == *"Bypass Attempts:"* ]]; then
+            bypass_attempts=$(echo "$clean_result" | grep "Bypass Attempts:" | awk '{print $3}')
+        fi
+        if [[ "$clean_result" == *"Violations Count:"* ]]; then
+            violations_count=$(echo "$clean_result" | grep "Violations Count:" | awk '{print $3}')
+        fi
+        if [[ "$clean_result" == *"Risk Level:"* ]]; then
+            risk_level=$(echo "$clean_result" | grep "Risk Level:" | awk '{print $3}')
+        fi
+        if [[ "$clean_result" == *"Enforcement Action:"* ]]; then
+            enforcement_action=$(echo "$clean_result" | grep "Enforcement Action:" | awk '{print $3}')
+        fi
+        
+        log_critical "🚨 SOP BYPASS VIOLATIONS DETECTED"
+        log_info "   Bypass Attempts: $bypass_attempts"
+        log_info "   Violations Count: $violations_count"
+        log_info "   Risk Level: $risk_level"
+        log_info "   Enforcement Action: $enforcement_action"
+        
+        # Return violation count and enforcement action for processing
+        echo "${violations_count}:${enforcement_action}"
+        return 1
+    else
+        log_success "✅ No SOP bypass violations detected"
+        echo "0:ALLOW"
         return 0
     fi
 }
@@ -301,15 +373,19 @@ EOF
 
 # Function to run complete verification workflow
 run_complete_verification() {
-    log_info "Running complete verification workflow..."
+    log_info "Running enhanced complete verification workflow..."
     
     local detection_status=$(run_multi_phase_detection)
+    local sop_enforcement_result=$(run_sop_bypass_enforcement)
+    local sop_violations=$(echo "$sop_enforcement_result" | cut -d: -f1)
+    local enforcement_action=$(echo "$sop_enforcement_result" | cut -d: -f2)
     local handoff_issues=$(run_handoff_verification)
     local bypass_status=$(run_bypass_incident_check && echo "clear" || echo "detected")
     
     echo ""
-    log_info "=== VERIFICATION SUMMARY ==="
+    log_info "=== ENHANCED VERIFICATION SUMMARY ==="
     echo "Multi-Phase Detection: $detection_status"
+    echo "SOP Bypass Violations: $sop_violations"
     echo "Hand-off Compliance: $handoff_issues issues"
     echo "Bypass Incident Check: $bypass_status"
     echo ""
@@ -318,9 +394,9 @@ run_complete_verification() {
     local final_status="PASS"
     local block_reason=""
     
-    if [ "$detection_status" = "bypass_incident" ] || [ "$bypass_status" = "detected" ]; then
+    if [ "$detection_status" = "bypass_incident" ] || [ "$bypass_status" = "detected" ] || [ "$sop_violations" -gt 0 ] || [ "$enforcement_action" = "BLOCK" ]; then
         final_status="CRITICAL_BLOCK"
-        block_reason="Bypass incident patterns detected - SOP BYPASS BLOCKED"
+        block_reason="Critical security violations detected - SYSTEM LOCKED"
     elif [ "$detection_status" = "multi_phase" ] && [ "$handoff_issues" -gt 0 ]; then
         final_status="BLOCK"
         block_reason="Multi-phase work without proper hand-off compliance"
@@ -333,28 +409,32 @@ run_complete_verification() {
     
     if [ "$final_status" != "PASS" ]; then
         echo ""
-        log_critical "🚫 BLOCKER: $block_reason"
+        log_critical "🚫 ENHANCED SECURITY BLOCKER: $block_reason"
         echo ""
-        echo "🔧 MANDATORY ACTION REQUIRED:"
+        echo "🔧 MANDATORY SECURITY ACTIONS REQUIRED:"
         
         if [ "$final_status" = "CRITICAL_BLOCK" ]; then
-            echo "   1. 🚨 CRITICAL: This matches the CI_CD_P0_RESOLUTION_PLAYBOOK.md bypass incident"
-            echo "   2. STOP all work immediately"
-            echo "   3. Create comprehensive hand-off documents"
-            echo "   4. Follow Multi-Phase Hand-off Protocol strictly"
-            echo "   5. Re-run verification after compliance"
+            echo "   1. 🚨 CRITICAL: Security system has detected violations"
+            echo "   2. IMMEDIATE STOP of all work activities"
+            echo "   3. Address ALL security violations found above"
+            echo "   4. Create comprehensive hand-off documents if needed"
+            echo "   5. Follow all security protocols strictly"
+            echo "   6. Re-run enhanced verification after fixes"
+            echo ""
+            echo "   🔒 SYSTEM LOCKED - Work cannot proceed until security compliance"
         else
             echo "   1. Create hand-off documents for multi-phase work"
             echo "   2. Use template: .agent/docs/sop/MULTI_PHASE_HANDOFF_PROTOCOL.md"
             echo "   3. Store in: .agent/handoffs/<feature>/phase-XX-handoff.md"
             echo "   4. Verify compliance: .agent/scripts/verify_handoff_compliance.sh"
+            echo "   5. Run security validation: .agent/scripts/sop_bypass_enforcement.py"
         fi
         
         echo ""
-        echo "❌ VERIFICATION BLOCKED - Fix issues before proceeding"
+        echo "❌ ENHANCED VERIFICATION BLOCKED - Fix security issues before proceeding"
         return 1
     else
-        log_success "✅ VERIFICATION PASSED - All compliance requirements met"
+        log_success "✅ ENHANCED VERIFICATION PASSED - All security requirements met"
         return 0
     fi
 }

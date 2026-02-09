@@ -30,6 +30,7 @@ class MultiPhaseDetector:
             "git_patterns": 0,
             "bypass_incident": 0,
         }
+        self.detection_log = []
         self.threshold = 3
         self.detection_log = []
         self.config = self.load_config(config_path)
@@ -39,20 +40,32 @@ class MultiPhaseDetector:
         default_config = {
             "threshold": 3,
             "terminology_patterns": [
+                # Phase-based patterns (3 indicators)
                 r"(?i)(phase\s+\d+|phased|multi-phase)",
+                r"(?i)(phase\s+implementation|phase\s+delivery|phase\s+deployment)",
+                r"(?i)(multi-phase\s+implementation|multi-phase\s+delivery)",
+                # PR-based patterns (3 indicators)
                 r"(?i)(hybrid\s+approach|pr\s+groups?|pr\s+group)",
                 r"(?i)(implementation\s+group|deployment\s+group)",
-                # CRITICAL: Add specific bypass incident patterns
-                r"(?i)(3\s+pr\s+groups?|three\s+pr\s+groups?)",
-                r"(?i)(multi-pr|multi\s+pr)",
+                r"(?i)(3\s+pr\s+groups?|three\s+pr\s+groups?|multi-pr|multi\s+pr)",
+                # Infrastructure patterns (3 indicators)
                 r"(?i)(ci/cd\s+resolution|ci_cd_p0)",
                 r"(?i)(playbook|resolution\s+playbook)",
                 r"(?i)(test\s+infrastructure|pre-commit\s+resilience|repository\s+renaming)",
+                # Technical patterns (3 indicators)
                 r"(?i)(coverage\s+artifacts|unit\s+test\s+configuration)",
                 r"(?i)(network\s+resilience|ci\s+compatibility)",
                 r"(?i)(lightrag\+\+|lightrag_plusplus|package\s+naming)",
+                # Critical patterns (2 indicators - highest weight)
                 r"(?i)(p0\s+resolution|p0\s+issues|critical\s+fixes)",
+                r"(?i)(bypass\s+incident|protocol\s+bypass|sop\s+violation)",
             ],
+            # Weighted scoring for different indicator types
+            "indicator_weights": {
+                "terminology": 1,  # Standard patterns
+                "git_patterns": 1.5,  # Implementation evidence
+                "bypass_incident": 3,  # Critical bypass patterns
+            },
         }
 
         if config_path and Path(config_path).exists():
@@ -122,6 +135,79 @@ class MultiPhaseDetector:
         self.indicators["terminology"] = min(indicators_found, 3)
         print(f"   📊 Terminology indicators: {self.indicators['terminology']}")
         return self.indicators["terminology"]
+
+    def detect_git_patterns(self) -> int:
+        """Analyze git history for implementation trail patterns"""
+        git_indicators = 0
+
+        print("   🔍 Analyzing git implementation patterns...")
+
+        try:
+            # Check for multi-branch activity
+            branch_result = subprocess.run(
+                ["git", "branch", "-a"], capture_output=True, text=True, check=True
+            )
+            branches = len([b for b in branch_result.stdout.split("\n") if b.strip()])
+            if branches > 3:
+                git_indicators += 1
+                print(f"     Multiple branches detected: {branches}")
+
+            # Check for recent multi-commits
+            commit_result = subprocess.run(
+                ["git", "log", "--oneline", "--since='1 week ago'"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            recent_commits = len(
+                [c for c in commit_result.stdout.split("\n") if c.strip()]
+            )
+            if recent_commits > 10:
+                git_indicators += 1
+                print(f"     High commit activity: {recent_commits} commits in 1 week")
+
+            # Check for merge patterns
+            merge_result = subprocess.run(
+                ["git", "log", "--merges", "--oneline", "-10"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            merge_commits = len(
+                [m for m in merge_result.stdout.split("\n") if m.strip()]
+            )
+            if merge_commits > 2:
+                git_indicators += 1
+                print(f"     Multiple merge commits: {merge_commits}")
+
+            # Check for phase-related commit messages
+            phase_commit_result = subprocess.run(
+                [
+                    "git",
+                    "log",
+                    "--grep=phase",
+                    "--grep=multi-phase",
+                    "--grep=hybrid",
+                    "--oneline",
+                    "-10",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            phase_commits = len(
+                [p for p in phase_commit_result.stdout.split("\n") if p.strip()]
+            )
+            if phase_commits > 3:
+                git_indicators += 1
+                print(f"     Phase-related commits: {phase_commits}")
+
+        except Exception as e:
+            print(f"     Warning: Git analysis failed: {e}")
+
+        self.indicators["git_patterns"] = min(git_indicators, 3)
+        print(f"   📊 Git pattern indicators: {self.indicators['git_patterns']}")
+        return self.indicators["git_patterns"]
 
     def detect_bypass_incident_patterns(self) -> int:
         """CRITICAL: Detect specific patterns from the CI_CD_P0_RESOLUTION_PLAYBOOK.md bypass incident"""
@@ -218,27 +304,54 @@ class MultiPhaseDetector:
         try:
             # Run detection categories
             results["indicators"]["terminology"] = self.detect_terminology_indicators()
+            results["indicators"]["git_patterns"] = self.detect_git_patterns()
             results["indicators"]["bypass_incident"] = (
                 self.detect_bypass_incident_patterns()
             )
 
-            # Calculate total indicators
+            # Calculate weighted score
+            weights = self.config.get(
+                "indicator_weights",
+                {"terminology": 1, "git_patterns": 1.5, "bypass_incident": 3},
+            )
+
+            weighted_score = 0
+            for indicator_type, count in results["indicators"].items():
+                weight = weights.get(indicator_type, 1)
+                weighted_score += count * weight
+                self.detection_log.append(
+                    {
+                        "type": indicator_type,
+                        "count": count,
+                        "weight": weight,
+                        "contribution": count * weight,
+                    }
+                )
+
             results["total_indicators"] = sum(results["indicators"].values())
+            results["weighted_score"] = round(weighted_score, 2)
+            results["detection_log"] = self.detection_log
 
             # CRITICAL: Bypass incident detection overrides normal threshold
             bypass_indicators = results["indicators"].get("bypass_incident", 0)
             if bypass_indicators >= 3:  # High confidence bypass incident
                 results["is_multi_phase"] = True
                 results["bypass_incident_detected"] = True
+                results["risk_level"] = "CRITICAL"
                 print(
                     "   🚨 CRITICAL: BYPASS INCIDENT PATTERNS DETECTED - AUTO-BLOCKING"
                 )
-            else:
-                # Normal threshold logic for other cases
-                results["is_multi_phase"] = (
-                    results["total_indicators"] >= self.threshold
-                )
+            elif weighted_score >= self.threshold * 2:  # Weighted threshold
+                results["is_multi_phase"] = True
                 results["bypass_incident_detected"] = False
+                results["risk_level"] = "HIGH"
+                print(
+                    f"   ⚠️  MULTI-PHASE PATTERNS DETECTED (Score: {weighted_score:.1f})"
+                )
+            else:
+                results["is_multi_phase"] = False
+                results["bypass_incident_detected"] = False
+                results["risk_level"] = "LOW"
 
         except Exception as e:
             print(f"Error during detection: {e}", file=sys.stderr)
@@ -253,23 +366,40 @@ def main():
     results = detector.run_detection()
 
     # Output results
-    print(f"\n📊 Detection Results:")
+    print(f"\n📊 Enhanced Detection Results:")
     print(f"   Total Indicators: {results['total_indicators']}")
+    print(f"   Weighted Score: {results.get('weighted_score', 0)}")
     print(f"   Threshold: {results['threshold']}")
+    print(f"   Risk Level: {results.get('risk_level', 'UNKNOWN')}")
     print(f"   Multi-Phase Detected: {results['is_multi_phase']}")
     print(f"   Bypass Incident Detected: {results['bypass_incident_detected']}")
+
+    # Show detailed breakdown
+    print(f"\n📋 Indicator Breakdown:")
+    detection_log = results.get("detection_log", [])
+    for indicator_type, count in results["indicators"].items():
+        weight_info = next(
+            (w for w in detection_log if w["type"] == indicator_type), {}
+        )
+        contribution = weight_info.get("contribution", 0)
+        print(
+            f"   {indicator_type.replace('_', ' ').title()}: {count} (Contribution: {contribution:.1f})"
+        )
 
     if results["bypass_incident_detected"]:
         print("\n🚨 CRITICAL: BYPASS INCIDENT PATTERNS DETECTED")
         print("This matches the CI_CD_P0_RESOLUTION_PLAYBOOK.md bypass incident")
         print("IMMEDIATE ACTION REQUIRED: Create hand-off documents")
+        print("WORK BLOCKED until compliance requirements met")
         exit(1)
     elif results["is_multi_phase"]:
         print("\n⚠️  Multi-phase patterns detected")
-        print("Hand-off documents may be required")
+        print("Hand-off documents are required before proceeding")
+        print("Follow Multi-Phase Hand-off Protocol")
         exit(1)
     else:
         print("\n✅ Clear - No multi-phase patterns detected")
+        print("Work may proceed without hand-off requirements")
         exit(0)
 
 
