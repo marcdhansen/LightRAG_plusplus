@@ -39,7 +39,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/.github/workflows/tests.yml') }}-v2
         restore-keys: |
           ${{ runner.os }}-pip-
 
@@ -55,7 +55,7 @@ jobs:
       run: |
         echo "📦 Installing dependencies with enhanced error handling..."
         python -m pip install --upgrade pip setuptools wheel
-        pip install -e ".[test]" --verbose
+        pip install -e ".[test,api]" --verbose
         # Ensure langgraph checkpoint dependencies are explicitly installed
         pip install "langgraph>=1.0.0" "langgraph-checkpoint>=4.0.0" "langgraph-checkpoint-sqlite>=3.0.0"
         # Ensure coverage and test dependencies are available
