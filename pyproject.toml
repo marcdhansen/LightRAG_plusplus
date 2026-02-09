@@ -46,7 +46,7 @@ dependencies = [
     "xlsxwriter>=3.1.0",
     "neo4j>=6.0.2",
     "ollama>=0.6.0",
-    "langfuse[langchain]>=3.9.1",
+    "langfuse>=3.9.1",
 ]
 
 [project.optional-dependencies]
@@ -136,32 +136,26 @@ offline-llm = [
 
 offline = [
     # Complete offline package (includes api for document processing, plus storage and LLM)
-    "lightrag-hku[api,offline-storage,offline-llm]",
+    "lightrag-plusplus[api,offline-storage,offline-llm]",
 ]
 
 test = [
-    "lightrag-plusplus[api,offline-storage]",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=4.0.0",
-    "pytest-xdist>=3.6.1",
     "coverage[toml]>=7.0.0",
-    "pgvector",
-    "pre-commit",
     "ruff",
-    "pytest-playwright>=0.4.4",
-    "agent-harness",
 ]
 
 evaluation = [
-    "lightrag-hku[api]",
+    "lightrag-plusplus[api]",
     "ragas>=0.3.7",
     "datasets>=4.3.0",
     "grounded-ai>=1.0.9",
 ]
 
 evaluation-slm = [
-    "lightrag-hku[evaluation]",
+    "lightrag-plusplus[evaluation]",
     "grounded-ai>=1.0.9",
     # Note: For SLM support, manually install with: pip install "grounded-ai[slm]"
     # This requires: torch, transformers, peft, flash-attn (GPU)
