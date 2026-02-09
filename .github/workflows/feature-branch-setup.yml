@@ -56,7 +56,7 @@ jobs:
 
     - name: Create Setup Issue (if artifacts missing)
       if: steps.artifact-check.outputs.missing_count > 0
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const featureName = '${{ steps.feature-extract.outputs.feature_name }}';
@@ -113,7 +113,7 @@ jobs:
 
     - name: Success comment (if all artifacts exist)
       if: steps.artifact-check.outputs.missing_count == 0
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const feature = '${{ steps.feature-extract.outputs.feature_name }}';
