@@ -139,7 +139,7 @@ jobs:
             --cov=lightrag \
             --cov-report=xml \
             --cov-report=json \
-            --cov-fail-under=70
+            --cov-fail-under=80
 
       - name: Verify Coverage Files
         run: |
