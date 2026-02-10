@@ -3,11 +3,9 @@ TDD tests for INFRASTRUCTURE_FIX_PR_A feature.
 Test-Driven Development tests for LightRAG integration.
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-import json
-from pathlib import Path
 
 
 class TestINFRASTRUCTURE_FIX_PR_A:

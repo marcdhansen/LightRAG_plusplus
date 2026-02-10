@@ -5,17 +5,14 @@ This module provides document reranking functionality using various rerankers.
 Tests cover chunking, aggregation, API reranking, error handling, and configuration.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-import asyncio
-from unittest.mock import patch, MagicMock, AsyncMock
-import numpy as np
-from typing import List, Dict, Any
 
 from lightrag.rerank import (
-    chunk_documents_for_rerank,
     aggregate_chunk_scores,
+    chunk_documents_for_rerank,
     local_rerank,
-    _RERANKER_INSTANCE,
 )
 
 

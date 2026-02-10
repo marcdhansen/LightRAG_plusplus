@@ -4,29 +4,24 @@ Test suite for lightrag.utils module (core functions)
 Tests cover core utility functions that are confirmed to exist.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, mock_open
 import json
-import os
+from unittest.mock import mock_open, patch
+
+import pytest
 
 from lightrag.utils import (
-    logger,
-    split_string_by_multi_markers,
-    load_json,
     compute_args_hash,
     compute_mdhash_id,
-    set_verbose_debug,
-    verbose_debug,
-    generate_cache_key,
-    handle_cache,
-    get_content_summary,
-    sanitize_text_for_encoding,
-    statistic_data,
     convert_to_user_format,
-    normalize_extracted_info,
     cosine_similarity,
-    time,
-    datetime,
+    generate_cache_key,
+    get_content_summary,
+    handle_cache,
+    sanitize_text_for_encoding,
+    set_verbose_debug,
+    split_string_by_multi_markers,
+    statistic_data,
+    verbose_debug,
 )
 
 

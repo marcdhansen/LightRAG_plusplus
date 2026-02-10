@@ -274,7 +274,7 @@ class TestMultiPhaseDetection(unittest.TestCase):
         for category in categories:
             with self.subTest(category=category):
                 # Set only this category to have indicators
-                test_indicators = {cat: 0 for cat in categories}
+                test_indicators = dict.fromkeys(categories, 0)
                 test_indicators[category] = 3  # Max value for this category
 
                 self.detector.indicators = test_indicators
@@ -405,7 +405,7 @@ class TestMultiPhaseDetection(unittest.TestCase):
         # Measure detection time
         start_time = time.time()
         detector = MultiPhaseDetector()
-        results = detector.run_detection()
+        detector.run_detection()
         end_time = time.time()
 
         execution_time = end_time - start_time
@@ -426,7 +426,7 @@ class TestMultiPhaseDetection(unittest.TestCase):
         print("\n🧪 Testing logging functionality...")
 
         detector = MultiPhaseDetector()
-        results = detector.run_detection()
+        detector.run_detection()
 
         # Check if log file was created
         log_dir = Path(".agent/logs")
@@ -448,7 +448,9 @@ class TestMultiPhaseDetection(unittest.TestCase):
             else:
                 print("   ⚠️  No log files found (may be expected in test environment)")
         else:
-            print("   ⚠️  Log directory not found (may be expected in test environment)")
+            print(
+                "   ⚠️  Log directory not found (may be expected in test environment)"
+            )
 
     def test_indicator_capping(self):
         """

@@ -74,20 +74,39 @@ mkdir -p "$(dirname "$INTEGRATION_LOG")"
 
 # Function to run multi-phase detection
 run_multi_phase_detection() {
+<<<<<<< HEAD
+    log_info "Running multi-phase detection..."
+    
+    local detector_script=".agent/scripts/multi_phase_detector.py"
+    if [ ! -f "$detector_script" ]; then
+        log_error "Multi-phase detector not found: $detector_script"
+=======
     log_info "Running enhanced multi-phase detection..."
     
     local detector_script=".agent/scripts/multi_phase_detector.py"
     if [ ! -f "$detector_script" ]; then
         log_error "Enhanced multi-phase detector not found: $detector_script"
+>>>>>>> origin/main
         echo "0"
         return 1
     fi
     
+<<<<<<< HEAD
+    # Run detector and capture output
+=======
     # Run enhanced detector and capture output
+>>>>>>> origin/main
     local detection_result
     detection_result=$(python3 "$detector_script" 2>/dev/null)
     local detector_exit_code=$?
     
+<<<<<<< HEAD
+    if [ $detector_exit_code -eq 1 ] || [[ "$detection_result" == *"DETECTED"* ]] || [[ "$detection_result" == *"CRITICAL"* ]]; then
+        log_critical "🚨 MULTI-PHASE PATTERNS DETECTED"
+        
+        # Check for bypass incident specifically
+        if [[ "$detection_result" == *"bypass_incident_detected"* ]] || [[ "$detection_result" == *"CRITICAL: BYPASS INCIDENT"* ]]; then
+=======
     # Parse enhanced detection results
     local weighted_score=0
     local risk_level="UNKNOWN"
@@ -110,6 +129,7 @@ run_multi_phase_detection() {
         log_info "   Risk Level: $risk_level"
         
         if [ "$bypass_detected" = true ]; then
+>>>>>>> origin/main
             log_critical "🚨 BYPASS INCIDENT PATTERNS DETECTED - IMMEDIATE BLOCK REQUIRED"
             echo "bypass_incident"
             return 1
@@ -124,6 +144,8 @@ run_multi_phase_detection() {
     fi
 }
 
+<<<<<<< HEAD
+=======
 # Function to run SOP bypass enforcement
 run_sop_bypass_enforcement() {
     log_info "Running SOP bypass enforcement..."
@@ -179,6 +201,7 @@ run_sop_bypass_enforcement() {
     fi
 }
 
+>>>>>>> origin/main
 # Function to run hand-off verification
 run_handoff_verification() {
     log_info "Running hand-off verification..."
@@ -373,19 +396,30 @@ EOF
 
 # Function to run complete verification workflow
 run_complete_verification() {
+<<<<<<< HEAD
+    log_info "Running complete verification workflow..."
+    
+    local detection_status=$(run_multi_phase_detection)
+=======
     log_info "Running enhanced complete verification workflow..."
     
     local detection_status=$(run_multi_phase_detection)
     local sop_enforcement_result=$(run_sop_bypass_enforcement)
     local sop_violations=$(echo "$sop_enforcement_result" | cut -d: -f1)
     local enforcement_action=$(echo "$sop_enforcement_result" | cut -d: -f2)
+>>>>>>> origin/main
     local handoff_issues=$(run_handoff_verification)
     local bypass_status=$(run_bypass_incident_check && echo "clear" || echo "detected")
     
     echo ""
+<<<<<<< HEAD
+    log_info "=== VERIFICATION SUMMARY ==="
+    echo "Multi-Phase Detection: $detection_status"
+=======
     log_info "=== ENHANCED VERIFICATION SUMMARY ==="
     echo "Multi-Phase Detection: $detection_status"
     echo "SOP Bypass Violations: $sop_violations"
+>>>>>>> origin/main
     echo "Hand-off Compliance: $handoff_issues issues"
     echo "Bypass Incident Check: $bypass_status"
     echo ""
@@ -394,9 +428,15 @@ run_complete_verification() {
     local final_status="PASS"
     local block_reason=""
     
+<<<<<<< HEAD
+    if [ "$detection_status" = "bypass_incident" ] || [ "$bypass_status" = "detected" ]; then
+        final_status="CRITICAL_BLOCK"
+        block_reason="Bypass incident patterns detected - SOP BYPASS BLOCKED"
+=======
     if [ "$detection_status" = "bypass_incident" ] || [ "$bypass_status" = "detected" ] || [ "$sop_violations" -gt 0 ] || [ "$enforcement_action" = "BLOCK" ]; then
         final_status="CRITICAL_BLOCK"
         block_reason="Critical security violations detected - SYSTEM LOCKED"
+>>>>>>> origin/main
     elif [ "$detection_status" = "multi_phase" ] && [ "$handoff_issues" -gt 0 ]; then
         final_status="BLOCK"
         block_reason="Multi-phase work without proper hand-off compliance"
@@ -409,6 +449,18 @@ run_complete_verification() {
     
     if [ "$final_status" != "PASS" ]; then
         echo ""
+<<<<<<< HEAD
+        log_critical "🚫 BLOCKER: $block_reason"
+        echo ""
+        echo "🔧 MANDATORY ACTION REQUIRED:"
+        
+        if [ "$final_status" = "CRITICAL_BLOCK" ]; then
+            echo "   1. 🚨 CRITICAL: This matches the CI_CD_P0_RESOLUTION_PLAYBOOK.md bypass incident"
+            echo "   2. STOP all work immediately"
+            echo "   3. Create comprehensive hand-off documents"
+            echo "   4. Follow Multi-Phase Hand-off Protocol strictly"
+            echo "   5. Re-run verification after compliance"
+=======
         log_critical "🚫 ENHANCED SECURITY BLOCKER: $block_reason"
         echo ""
         echo "🔧 MANDATORY SECURITY ACTIONS REQUIRED:"
@@ -422,11 +474,21 @@ run_complete_verification() {
             echo "   6. Re-run enhanced verification after fixes"
             echo ""
             echo "   🔒 SYSTEM LOCKED - Work cannot proceed until security compliance"
+>>>>>>> origin/main
         else
             echo "   1. Create hand-off documents for multi-phase work"
             echo "   2. Use template: .agent/docs/sop/MULTI_PHASE_HANDOFF_PROTOCOL.md"
             echo "   3. Store in: .agent/handoffs/<feature>/phase-XX-handoff.md"
             echo "   4. Verify compliance: .agent/scripts/verify_handoff_compliance.sh"
+<<<<<<< HEAD
+        fi
+        
+        echo ""
+        echo "❌ VERIFICATION BLOCKED - Fix issues before proceeding"
+        return 1
+    else
+        log_success "✅ VERIFICATION PASSED - All compliance requirements met"
+=======
             echo "   5. Run security validation: .agent/scripts/sop_bypass_enforcement.py"
         fi
         
@@ -435,6 +497,7 @@ run_complete_verification() {
         return 1
     else
         log_success "✅ ENHANCED VERIFICATION PASSED - All security requirements met"
+>>>>>>> origin/main
         return 0
     fi
 }

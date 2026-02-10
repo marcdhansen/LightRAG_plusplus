@@ -4,13 +4,13 @@ P0 Workflow Violation Fix - Complete Solution
 Implements comprehensive workflow validation to prevent agents from skipping phase completion.
 """
 
+import json
+import os
 import subprocess
 import sys
-import os
-import json
 import time
 from pathlib import Path
-from typing import Tuple, List, Dict, Any
+from typing import Any
 
 
 class WorkflowViolationFixer:
@@ -38,7 +38,7 @@ class WorkflowViolationFixer:
         except:
             return False
 
-    def get_current_phase_state(self) -> Dict[str, Any]:
+    def get_current_phase_state(self) -> dict[str, Any]:
         """Get comprehensive current phase state."""
         state = {
             "git_status": "clean",
@@ -74,7 +74,7 @@ class WorkflowViolationFixer:
                     current_time - 3600
                 ):  # Active within last hour
                     try:
-                        with open(lock_file, "r") as f:
+                        with open(lock_file) as f:
                             lock_data = json.load(f)
                         state["active_locks"].append(
                             {
@@ -99,7 +99,7 @@ class WorkflowViolationFixer:
 
         return state
 
-    def check_phase_completion_requirements(self) -> Tuple[bool, List[str]]:
+    def check_phase_completion_requirements(self) -> tuple[bool, list[str]]:
         """Check all phase completion requirements."""
         violations = []
         state = self.get_current_phase_state()
@@ -122,7 +122,7 @@ class WorkflowViolationFixer:
         phase_completion_file = self.phase_completion_dir / "current_phase_status.json"
         if phase_completion_file.exists():
             try:
-                with open(phase_completion_file, "r") as f:
+                with open(phase_completion_file) as f:
                     phase_data = json.load(f)
                 if phase_data.get("status") != "completed":
                     violations.append(
@@ -173,7 +173,7 @@ class WorkflowViolationFixer:
 
     def request_phase_transition_override(
         self, from_phase: str, to_phase: str, reason: str
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Request an override for phase transition with manager approval requirement.
 
@@ -216,7 +216,7 @@ class WorkflowViolationFixer:
 
     def approve_phase_transition_override(
         self, override_id: str, manager_id: str = "manager"
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Approve a phase transition override (manager only)."""
         override_file = self.override_requests_dir / f"{override_id}.json"
 
@@ -224,7 +224,7 @@ class WorkflowViolationFixer:
             return False, f"Override request {override_id} not found"
 
         try:
-            with open(override_file, "r") as f:
+            with open(override_file) as f:
                 override_request = json.load(f)
 
             if override_request.get("status") == "approved":
@@ -245,7 +245,7 @@ class WorkflowViolationFixer:
         except Exception as e:
             return False, f"Failed to approve override: {e}"
 
-    def enforce_phase_gates(self, target_phase: str) -> Tuple[bool, str]:
+    def enforce_phase_gates(self, target_phase: str) -> tuple[bool, str]:
         """
         Enforce phase gates to prevent workflow violations.
 
@@ -270,7 +270,7 @@ class WorkflowViolationFixer:
             f"✅ Phase transition to {target_phase} approved - all requirements met",
         )
 
-    def run_comprehensive_validation(self) -> Tuple[bool, str]:
+    def run_comprehensive_validation(self) -> tuple[bool, str]:
         """Run comprehensive P0 workflow validation."""
         print("🚨 P0 WORKFLOW VIOLATION PREVENTION SYSTEM")
         print("=" * 60)
@@ -349,7 +349,7 @@ class WorkflowViolationFixer:
                 status_lines.append("Pending Phase Transition Overrides:")
                 for override_file in override_files:
                     try:
-                        with open(override_file, "r") as f:
+                        with open(override_file) as f:
                             override_data = json.load(f)
                         status = override_data.get("status", "unknown")
                         from_phase = override_data.get("from_phase", "unknown")

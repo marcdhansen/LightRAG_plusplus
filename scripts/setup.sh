@@ -48,7 +48,7 @@ setup_global_tools() {
     # Check for Docker Desktop
     if ! command -v docker >/dev/null 2>&1; then
         tools_missing+=("docker")
-        echo -e "  📋 Install Docker Desktop from https://docker.com/"
+        echo "  📋 Install Docker Desktop from https://docker.com/"
     else
         echo -e "  ✅ Docker: $(which docker)"
     fi

@@ -15,14 +15,10 @@ Features:
 
 import json
 import logging
-import math
-import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, NamedTuple
-
-import numpy as np
+from typing import Any, NamedTuple
 
 
 class ViolationPattern(NamedTuple):
@@ -32,7 +28,7 @@ class ViolationPattern(NamedTuple):
     frequency: float
     false_positive_rate: float
     impact_score: float
-    context_factors: List[str]
+    context_factors: list[str]
     last_seen: datetime
 
 
@@ -49,7 +45,7 @@ class PerformanceMetrics(NamedTuple):
 class AdaptiveEnforcementEngine:
     """Adaptive enforcement rules engine with learning capabilities."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.config_path = config_path or ".agent/config/adaptive_sop_rules.json"
         self.config = self._load_config()
 
@@ -76,7 +72,7 @@ class AdaptiveEnforcementEngine:
         # Load existing state
         self._load_state()
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load adaptive enforcement configuration."""
         try:
             with open(self.config_path) as f:
@@ -85,7 +81,7 @@ class AdaptiveEnforcementEngine:
             logging.error(f"Failed to load adaptive config: {e}")
             return self._get_default_config()
 
-    def _get_default_config(self) -> Dict[str, Any]:
+    def _get_default_config(self) -> dict[str, Any]:
         """Get default configuration."""
         return {
             "dynamic_rules": {
@@ -183,7 +179,7 @@ class AdaptiveEnforcementEngine:
         except Exception as e:
             self.logger.error(f"Failed to save enforcement state: {e}")
 
-    def record_violation(self, violation_type: str, context: Dict[str, Any]):
+    def record_violation(self, violation_type: str, context: dict[str, Any]):
         """Record a SOP violation for pattern analysis."""
         violation_entry = {
             "timestamp": datetime.now(),
@@ -200,7 +196,7 @@ class AdaptiveEnforcementEngine:
             self._update_learning_models()
 
     def record_agent_feedback(
-        self, violation_id: str, was_false_positive: bool, context: Dict[str, Any]
+        self, violation_id: str, was_false_positive: bool, context: dict[str, Any]
     ):
         """Record agent feedback on violation enforcement."""
         feedback_entry = {
@@ -290,7 +286,7 @@ class AdaptiveEnforcementEngine:
             workflow_impact=round(workflow_impact, 2),
         )
 
-    def _analyze_violation_patterns(self) -> List[ViolationPattern]:
+    def _analyze_violation_patterns(self) -> list[ViolationPattern]:
         """Analyze patterns in violation data."""
         patterns = []
         violation_types = defaultdict(list)
@@ -396,7 +392,7 @@ class AdaptiveEnforcementEngine:
         patterns = self._analyze_violation_patterns()
 
         # Update rule effectiveness
-        for rule_name, rule_config in self.config["dynamic_rules"][
+        for rule_name, _rule_config in self.config["dynamic_rules"][
             "enforcement_levels"
         ].items():
             effectiveness_score = self._evaluate_rule_effectiveness(rule_name, metrics)
@@ -447,7 +443,7 @@ class AdaptiveEnforcementEngine:
         self, rule_name: str, metrics: PerformanceMetrics
     ) -> float:
         """Evaluate effectiveness of a specific rule."""
-        rule_config = self.config["dynamic_rules"]["enforcement_levels"][rule_name]
+        self.config["dynamic_rules"]["enforcement_levels"][rule_name]
 
         # Calculate effectiveness score based on multiple factors
         compliance_weight = 0.4
@@ -472,8 +468,8 @@ class AdaptiveEnforcementEngine:
         return round(effectiveness, 3)
 
     def should_enforce_violation(
-        self, violation_type: str, context: Dict[str, Any]
-    ) -> Tuple[bool, str]:
+        self, violation_type: str, context: dict[str, Any]
+    ) -> tuple[bool, str]:
         """Determine if a violation should be enforced based on adaptive rules."""
         current_enforcement = self.config.get("current_enforcement_level", "standard")
         enforcement_config = self.config["dynamic_rules"]["enforcement_levels"][
@@ -514,7 +510,7 @@ class AdaptiveEnforcementEngine:
         )
 
     def _should_suppress_violation(
-        self, violation_type: str, context: Dict[str, Any]
+        self, violation_type: str, context: dict[str, Any]
     ) -> bool:
         """Check if violation should be suppressed based on context."""
         # Emergency mode suppression
@@ -534,7 +530,7 @@ class AdaptiveEnforcementEngine:
 
         return False
 
-    def get_enforcement_recommendations(self) -> List[Dict[str, Any]]:
+    def get_enforcement_recommendations(self) -> list[dict[str, Any]]:
         """Get recommendations for enforcement improvements."""
         recommendations = []
         metrics = self._calculate_performance_metrics()
@@ -601,7 +597,7 @@ class AdaptiveEnforcementEngine:
             ),
         )
 
-    def get_adaptive_config(self) -> Dict[str, Any]:
+    def get_adaptive_config(self) -> dict[str, Any]:
         """Get current adaptive configuration."""
         return {
             "current_enforcement_level": self.config.get(

@@ -213,9 +213,9 @@ class BaselineFramework:
                             try:
                                 time_str = parts[-1].rstrip("s")
                                 test_time = float(time_str)
-                                results["execution_time"]["average_test_time"] = (
-                                    test_time
-                                )
+                                results["execution_time"][
+                                    "average_test_time"
+                                ] = test_time
                             except ValueError:
                                 pass
 
@@ -285,9 +285,11 @@ class BaselineFramework:
         comparison["summary"] = {
             "has_improvements": len(comparison["improvements"]) > 0,
             "has_regressions": len(comparison["regressions"]) > 0,
-            "overall_status": "improved"
-            if len(comparison["improvements"]) > len(comparison["regressions"])
-            else "regressed",
+            "overall_status": (
+                "improved"
+                if len(comparison["improvements"]) > len(comparison["regressions"])
+                else "regressed"
+            ),
         }
 
         return comparison
