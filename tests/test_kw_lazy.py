@@ -5,8 +5,9 @@ This module provides lazy import helpers for KeyBERT-based keyword extraction.
 Tests cover successful imports, missing dependencies, and error handling.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from lightrag.kw_lazy import get_keybert_model
 

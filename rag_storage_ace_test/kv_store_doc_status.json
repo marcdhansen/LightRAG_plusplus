@@ -1,0 +1,17 @@
+{
+  "doc-c699440e59e34ca585557d5bbd7cb213": {
+    "status": "failed",
+    "error_msg": "'C[1/1]: chunk-c699440e59e34ca585557d5bbd7cb213: entity_extraction_key_value_system_prompt'",
+    "content_summary": "Albert Einstein was a theoretical physicist born in Ulm, Germany.",
+    "content_length": 65,
+    "created_at": "2026-02-10T18:36:23.414301+00:00",
+    "updated_at": "2026-02-10T18:36:24.537807+00:00",
+    "file_path": "unknown_source",
+    "track_id": "insert_20260210_183623_21c90c5e",
+    "metadata": {
+      "processing_start_time": 1770748583,
+      "processing_end_time": 1770748584
+    },
+    "chunks_list": []
+  }
+}

@@ -13,34 +13,36 @@ Features:
 - CLI fallback when web interface unavailable
 """
 
-import json
 import logging
 import os
 import signal
 import sys
 import threading
 import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from realtime_sop_monitor import SOPComplianceMonitor
+else:
+    try:
+        from realtime_sop_monitor import SOPComplianceMonitor
+    except ImportError:
+        SOPComplianceMonitor = Any  # type: ignore
 
 try:
-    from flask import Flask, render_template_string, jsonify, request
     import socketio
+    from flask import Flask, jsonify, render_template_string
 
     WEB_AVAILABLE = True
 except ImportError:
     WEB_AVAILABLE = False
 
-from realtime_sop_monitor import SOPComplianceMonitor
-
 
 class ComplianceDashboard:
     """Interactive compliance dashboard with web and CLI interfaces."""
 
-    def __init__(
-        self, monitor: Optional[SOPComplianceMonitor] = None, port: int = 8080
-    ):
+    def __init__(self, monitor: SOPComplianceMonitor | None = None, port: int = 8080):
         self.monitor = monitor or SOPComplianceMonitor()
         self.port = port
         self.web_available = WEB_AVAILABLE
@@ -52,7 +54,7 @@ class ComplianceDashboard:
         self.shutdown_event = threading.Event()
 
         # Performance data
-        self.historical_data = []
+        self.historical_data: list[dict] = []
         self.alert_threshold = 70  # Compliance percentage
 
         # Setup logging
@@ -100,7 +102,7 @@ class ComplianceDashboard:
             <h1>🛡️ SOP Compliance Dashboard</h1>
             <div class="refresh-info" id="refreshInfo">Real-time updates enabled</div>
         </div>
-        
+
         <div class="status-grid">
             <div class="status-card" id="overallStatus">
                 <div class="label">Overall Compliance</div>
@@ -119,11 +121,11 @@ class ComplianceDashboard:
                 <div class="metric" id="intervalMetric">--s</div>
             </div>
         </div>
-        
+
         <div class="chart-container">
             <canvas id="complianceChart" width="400" height="200"></canvas>
         </div>
-        
+
         <h3>📋 Recent Violations</h3>
         <div class="violations" id="violationsList">
             <div class="violation-item">Loading violations...</div>
@@ -133,7 +135,7 @@ class ComplianceDashboard:
     <script>
         const socket = io();
         const ctx = document.getElementById('complianceChart').getContext('2d');
-        
+
         const complianceChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -166,13 +168,13 @@ class ComplianceDashboard:
                 }
             }
         });
-        
+
         function updateDashboard(data) {
             // Update status cards
             const overallEl = document.getElementById('overallStatus');
             const overallMetric = document.getElementById('overallMetric');
             const compliance = data.overall_compliance || 0;
-            
+
             overallMetric.textContent = compliance.toFixed(1) + '%';
             if (compliance >= 90) {
                 overallEl.className = 'status-card status-good';
@@ -181,11 +183,11 @@ class ComplianceDashboard:
             } else {
                 overallEl.className = 'status-card status-danger';
             }
-            
+
             document.getElementById('monitoringMetric').textContent = data.monitoring_active ? 'Active' : 'Inactive';
             document.getElementById('violationMetric').textContent = data.recent_violations || 0;
             document.getElementById('intervalMetric').textContent = (data.current_interval || 0).toFixed(1) + 's';
-            
+
             // Update monitoring status
             const monitoringEl = document.getElementById('monitoringStatus');
             if (data.monitoring_active) {
@@ -193,11 +195,11 @@ class ComplianceDashboard:
             } else {
                 monitoringEl.className = 'status-card status-danger';
             }
-            
+
             // Update violations list
             const violationsList = document.getElementById('violationsList');
             if (data.recent_violation_details && data.recent_violation_details.length > 0) {
-                violationsList.innerHTML = data.recent_violation_details.map(v => 
+                violationsList.innerHTML = data.recent_violation_details.map(v =>
                     `<div class="violation-item violation-last">
                         <strong>Violations:</strong> ${v.violations.join(', ')}
                         <div class="timestamp">${new Date(v.timestamp).toLocaleString()}</div>
@@ -206,30 +208,30 @@ class ComplianceDashboard:
             } else {
                 violationsList.innerHTML = '<div class="violation-item violation-last">No recent violations</div>';
             }
-            
+
             // Update chart
             if (data.historical_data) {
                 const now = new Date();
                 complianceChart.data.labels.push(now.toLocaleTimeString());
                 complianceChart.data.datasets[0].data.push(compliance);
-                
+
                 // Keep only last 20 data points
                 if (complianceChart.data.labels.length > 20) {
                     complianceChart.data.labels.shift();
                     complianceChart.data.datasets[0].data.shift();
                 }
-                
+
                 complianceChart.update('none');
             }
         }
-        
+
         socket.on('compliance_update', updateDashboard);
-        
+
         // Request initial data
         socket.on('connect', () => {
             socket.emit('request_update');
         });
-        
+
         // Auto-refresh every 30 seconds if socket fails
         setInterval(() => {
             if (socket.disconnected) {
@@ -266,7 +268,7 @@ class ComplianceDashboard:
 
         return app, sio
 
-    def _get_dashboard_data(self) -> Dict[str, Any]:
+    def _get_dashboard_data(self) -> dict[str, Any]:
         """Get current dashboard data."""
         # Get monitor status
         monitor_status = self.monitor.get_status()
@@ -288,7 +290,7 @@ class ComplianceDashboard:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def _web_server_loop(self, app, sio):
+    def _web_server_loop(self, app, _sio):
         """Web server main loop."""
         if not app:
             return
@@ -363,7 +365,7 @@ class ComplianceDashboard:
                 print(
                     f"📊 Performance History: {monitor_status['performance_history_size']} checks"
                 )
-                print(f"🔧 Config: Adaptive intervals enabled")
+                print("🔧 Config: Adaptive intervals enabled")
                 print(
                     f"🌐 Web Interface: Available at http://localhost:{self.port}"
                     if self.web_available
@@ -394,7 +396,7 @@ class ComplianceDashboard:
                 self.logger.error(f"Broadcast error: {e}")
                 self.shutdown_event.wait(5)
 
-    def start_dashboard(self, mode: str = "auto"):
+    def start_dashboard(self, mode: str = "auto") -> None:
         """Start the dashboard.
 
         Args:
@@ -512,7 +514,7 @@ def main():
         dashboard = ComplianceDashboard(monitor, args.port)
 
         # Setup signal handlers
-        def signal_handler(signum, frame):
+        def signal_handler(signum, _frame):
             print(f"\n🛑 Received signal {signum}, stopping dashboard...")
             dashboard.stop_dashboard()
             sys.exit(0)

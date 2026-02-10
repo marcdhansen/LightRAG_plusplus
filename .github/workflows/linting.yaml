@@ -73,7 +73,7 @@ jobs:
                 # Install project with all optional dependencies for CI hooks
                 pip install -e ".[api,test,evaluation]"
                 # Ensure dependencies for pre-commit hooks are available
-                pip install tomlPyPy check-manifest
+                pip install toml check-manifest
                 echo "✅ Enhanced dependencies installed successfully"
                 echo "📦 Key packages for hooks:"
                 pip list | grep -E "(pre-commit|ruff|uv|pytest)" || true

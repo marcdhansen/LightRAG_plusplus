@@ -19,12 +19,11 @@ import json
 import os
 import subprocess
 import tempfile
-import threading
 import time
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock
 
 # Add scripts directory to path for imports
 scripts_dir = Path(__file__).parent
@@ -105,7 +104,7 @@ class TestSOPComplianceMonitor(unittest.TestCase):
             monitor = SOPComplianceMonitor(str(self.config_file))
 
             # Test high compliance (should increase interval)
-            for i in range(6):
+            for _i in range(6):
                 monitor.performance_history.append({"compliant": True, "violations": 0})
 
             monitor._adapt_interval(True, 0)
@@ -117,7 +116,7 @@ class TestSOPComplianceMonitor(unittest.TestCase):
             monitor.performance_history.clear()
 
             # Test low compliance (should decrease interval)
-            for i in range(6):
+            for _i in range(6):
                 monitor.performance_history.append(
                     {"compliant": False, "violations": 3}
                 )
@@ -412,8 +411,8 @@ class TestIntegrationScenarios(unittest.TestCase):
         """Test complete monitoring workflow integration."""
         try:
             # Import all components
-            from realtime_sop_monitor import SOPComplianceMonitor
             from adaptive_enforcement_engine import AdaptiveEnforcementEngine
+            from realtime_sop_monitor import SOPComplianceMonitor
 
             # Create components
             monitor = SOPComplianceMonitor()
@@ -622,19 +621,19 @@ def main():
 
     # Print summary
     print(f"\n{'=' * 60}")
-    print(f"Test Summary:")
+    print("Test Summary:")
     print(f"  Tests run: {result.testsRun}")
     print(f"  Failures: {len(result.failures)}")
     print(f"  Errors: {len(result.errors)}")
     print(f"  Skipped: {len(result.skipped)}")
 
     if result.failures:
-        print(f"\nFailures:")
+        print("\nFailures:")
         for test, traceback in result.failures:
             print(f"  - {test}: {traceback}")
 
     if result.errors:
-        print(f"\nErrors:")
+        print("\nErrors:")
         for test, traceback in result.errors:
             print(f"  - {test}: {traceback}")
 

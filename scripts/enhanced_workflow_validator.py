@@ -4,13 +4,11 @@ Enhanced workflow validator with override restrictions for P0 workflow violation
 Prevents agents from skipping phase completion and requires manager approval for overrides.
 """
 
+import json
 import subprocess
 import sys
-import os
-import json
 import time
 from pathlib import Path
-from typing import Tuple, List
 
 
 class WorkflowValidator:
@@ -58,7 +56,7 @@ class WorkflowValidator:
 
         return "ready"
 
-    def check_phase_completion(self) -> Tuple[bool, str]:
+    def check_phase_completion(self) -> tuple[bool, str]:
         """Check if current phase is properly completed before allowing new work."""
         current_phase = self.get_current_phase()
 
@@ -81,7 +79,7 @@ class WorkflowValidator:
 
         return True, "Phase completion validated"
 
-    def check_active_session_locks(self) -> List[str]:
+    def check_active_session_locks(self) -> list[str]:
         """Check for active session locks that would block new work."""
         violations = []
 
@@ -95,7 +93,7 @@ class WorkflowValidator:
             # Check if lock is recent (within last hour)
             if lock_file.stat().st_mtime > (current_time - 3600):
                 try:
-                    with open(lock_file, "r") as f:
+                    with open(lock_file) as f:
                         lock_data = json.load(f)
 
                     agent_name = lock_data.get("agent", "unknown")
@@ -109,7 +107,7 @@ class WorkflowValidator:
 
         return violations
 
-    def check_beads_assignment(self) -> List[str]:
+    def check_beads_assignment(self) -> list[str]:
         """Check if agent is properly assigned to beads tasks."""
         violations = []
 
@@ -136,7 +134,7 @@ class WorkflowValidator:
 
     def request_override(
         self, reason: str, requested_by: str = "agent"
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Request an override with manager approval requirement."""
         override_id = f"override_{int(time.time())}"
         override_file = self.override_requests_dir / f"{override_id}.json"
@@ -168,7 +166,7 @@ class WorkflowValidator:
 
     def approve_override(
         self, override_id: str, manager_id: str = "manager"
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Approve an override request (manager only)."""
         override_file = self.override_requests_dir / f"{override_id}.json"
 
@@ -176,7 +174,7 @@ class WorkflowValidator:
             return False, f"Override request {override_id} not found"
 
         try:
-            with open(override_file, "r") as f:
+            with open(override_file) as f:
                 override_request = json.load(f)
 
             if override_request.get("status") == "approved":
@@ -194,7 +192,7 @@ class WorkflowValidator:
         except Exception as e:
             return False, f"Failed to approve override: {e}"
 
-    def check_override_approval(self, override_id: str) -> Tuple[bool, str]:
+    def check_override_approval(self, override_id: str) -> tuple[bool, str]:
         """Check if an override has been approved."""
         override_file = self.override_requests_dir / f"{override_id}.json"
 
@@ -202,7 +200,7 @@ class WorkflowValidator:
             return False, f"Override request {override_id} not found"
 
         try:
-            with open(override_file, "r") as f:
+            with open(override_file) as f:
                 override_request = json.load(f)
 
             if override_request.get("status") == "approved":
@@ -215,7 +213,7 @@ class WorkflowValidator:
         except Exception as e:
             return False, f"Failed to check override status: {e}"
 
-    def run_workflow_validation(self, allow_override: bool = False) -> Tuple[bool, str]:
+    def run_workflow_validation(self, allow_override: bool = False) -> tuple[bool, str]:
         """Run enhanced workflow validation with override restrictions."""
         violations = []
 
@@ -284,7 +282,7 @@ class WorkflowValidator:
                 status_lines.append("Pending Overrides:")
                 for override_file in override_files:
                     try:
-                        with open(override_file, "r") as f:
+                        with open(override_file) as f:
                             override_data = json.load(f)
                         status = override_data.get("status", "unknown")
                         status_lines.append(f"  🔄 {override_file.name}: {status}")

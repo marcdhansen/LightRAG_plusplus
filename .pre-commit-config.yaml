@@ -93,6 +93,15 @@ repos:
         language: script
         pass_filenames: false
         stages: [pre-commit]
+      - id: sop-compliance-check
+        name: 🔍 SOP Compliance Check
+        entry: python3
+        args: [/Users/marchansen/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py, --finalize, --turbo]
+        language: system
+        files: ''
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.50"

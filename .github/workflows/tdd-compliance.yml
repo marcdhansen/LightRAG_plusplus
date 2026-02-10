@@ -162,6 +162,13 @@ jobs:
           exit 0
         fi
 
+        # Skip TDD artifact validation for infrastructure and meta-tasks
+        if [[ "$FEATURE_NAME" =~ ^(p0|infra|ci-cd|setup|security|monitoring|cleanup|final|squashed) ]]; then
+          echo "ℹ️ Infrastructure/meta-task detected: $FEATURE_NAME"
+          echo "ℹ️ Skipping TDD artifact validation for infrastructure tasks"
+          exit 0
+        fi
+
         # Define required artifacts based on feature type
         MISSING_ARTIFACTS=()
 

@@ -145,7 +145,7 @@ jobs:
 
                 echo "✅ Python dependencies installed"
                 echo "📦 Installed packages:"
-                pip list | head -20
+                pip list --format=freeze > /tmp/pip_list.txt && head --lines=20 /tmp/pip_list.txt
               shell: bash
 
             - name: Install WebUI dependencies (if needed)

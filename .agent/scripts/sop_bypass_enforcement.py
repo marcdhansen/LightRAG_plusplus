@@ -13,8 +13,7 @@ import json
 import re
 import subprocess
 import sys
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 
@@ -360,7 +359,7 @@ def main():
     results = enforcer.run_enforcement()
 
     # Output results
-    print(f"\n🛡️ SOP Bypass Enforcement Results:")
+    print("\n🛡️ SOP Bypass Enforcement Results:")
     print(f"   Bypass Attempts: {results['bypass_attempts']}")
     print(f"   Hand-off Verified: {results['handoff_verified']}")
     print(f"   Violations Detected: {results['violations_detected']}")
@@ -368,7 +367,7 @@ def main():
     print(f"   Enforcement Action: {results['enforcement_action']}")
 
     if results.get("violations_count", 0) > 0:
-        print(f"\n🚨 Security Violations Found:")
+        print("\n🚨 Security Violations Found:")
         for violation in enforcer.violations:
             severity_icon = {
                 "critical": "🚨",
@@ -381,19 +380,19 @@ def main():
             )
 
     if results["enforcement_action"] == "BLOCK":
-        print(f"\n🚫 WORK BLOCKED - Security violations detected")
-        print(f"   Fix all violations before proceeding")
-        print(f"   Follow mandatory SOP protocols")
+        print("\n🚫 WORK BLOCKED - Security violations detected")
+        print("   Fix all violations before proceeding")
+        print("   Follow mandatory SOP protocols")
         exit(1)
     elif results["enforcement_action"] == "WARN":
-        print(f"\n⚠️  WARNING - Security issues detected")
-        print(f"   Address violations before continuing")
+        print("\n⚠️  WARNING - Security issues detected")
+        print("   Address violations before continuing")
         exit(2)
     elif results["enforcement_action"] == "ERROR":
-        print(f"\n❌ ERROR - Enforcement system failure")
+        print("\n❌ ERROR - Enforcement system failure")
         exit(2)
     else:
-        print(f"\n✅ WORK ALLOWED - No security violations detected")
+        print("\n✅ WORK ALLOWED - No security violations detected")
         exit(0)
 
 

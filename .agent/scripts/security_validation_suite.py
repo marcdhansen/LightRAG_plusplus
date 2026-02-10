@@ -13,7 +13,7 @@ import json
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 
@@ -396,7 +396,7 @@ class SecurityValidationTestSuite:
             # Test 3: Audit files contain required fields
             latest_audit = max(audit_files, key=lambda f: f.stat().st_mtime)
             try:
-                with open(latest_audit, "r") as f:
+                with open(latest_audit) as f:
                     audit_data = json.load(f)
 
                 required_fields = [
@@ -611,15 +611,15 @@ def main():
 
     # Exit with appropriate code
     if results["status"] == "PASS":
-        print(f"\n🛡️  Security Infrastructure Validation: PASSED")
+        print("\n🛡️  Security Infrastructure Validation: PASSED")
         print("   All security patches are working correctly")
         exit(0)
     elif results["status"] == "CRITICAL_FAILURE":
-        print(f"\n🚨 Security Infrastructure Validation: CRITICAL FAILURE")
+        print("\n🚨 Security Infrastructure Validation: CRITICAL FAILURE")
         print("   Critical security components are not working")
         exit(1)
     else:
-        print(f"\n❌ Security Infrastructure Validation: FAILURE")
+        print("\n❌ Security Infrastructure Validation: FAILURE")
         print("   Some security components have issues")
         exit(2)
 
