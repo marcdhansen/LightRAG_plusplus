@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026-02-11] - Marc Hansen
+
+[lightrag-se67] Update coverage artifacts from finalization phase
+
 ## [2026-02-09] - Marc Hansen
 
 Update lightrag-wxaa.1 stage to execution
