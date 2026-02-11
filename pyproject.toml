@@ -202,24 +202,27 @@ version = {attr = "lightrag.__version__"}
 lightrag = ["api/webui/**/*", "api/static/**/*"]
 
 [tool.pytest.ini_options]
-markers = [
-    "manual: marks tests intended for manual/interactive execution",
-    "integration: marks tests requiring external services (skipped by default)",
-    "offline: marks tests as offline (no external dependencies)",
-    "requires_db: marks tests requiring database",
-    "requires_api: marks tests requiring LightRAG API server",
-    "light: marks tests that are fast and suitable for continuous runs (unit/smoke)",
-    "heavy: marks tests that are slow or resource intensive (integration/stress/benchmarks)",
-    "benchmark: marks tests specifically part of benchmarking suite",
-    "api: marks tests for API endpoints and routes",
-    "validation: marks tests for parameter validation",
-    "error_handling: marks tests for error handling and edge cases",
-    "performance: marks tests for performance and load testing",
-    "authentication: marks tests for authentication and authorization",
-    "edge_cases: marks tests for edge cases and boundary conditions",
-    "ui: marks tests for UI integration testing",
-    "playwright: marks tests that require Playwright browser automation",
-]
+    markers = [
+        "unit: marks tests as unit tests (fast, isolated)",
+        "api_mock: marks tests as using API mocks",
+        "slow: marks tests as slow or resource intensive",
+        "manual: marks tests intended for manual/interactive execution",
+        "integration: marks tests requiring external services (skipped by default)",
+        "offline: marks tests as offline (no external dependencies)",
+        "requires_db: marks tests requiring database",
+        "requires_api: marks tests requiring LightRAG API server",
+        "light: marks tests that are fast and suitable for continuous runs (unit/smoke)",
+        "heavy: marks tests that are slow or resource intensive (integration/stress/benchmarks)",
+        "benchmark: marks tests specifically part of benchmarking suite",
+        "api: marks tests for API endpoints and routes",
+        "validation: marks tests for parameter validation",
+        "error_handling: marks tests for error handling and edge cases",
+        "performance: marks tests for performance and load testing",
+        "authentication: marks tests for authentication and authorization",
+        "edge_cases: marks tests for edge cases and boundary conditions",
+        "ui: marks tests for UI integration testing",
+        "playwright: marks tests that require Playwright browser automation",
+    ]
 # Enhanced test discovery and reliability
 addopts = [
     "--strict-markers",
