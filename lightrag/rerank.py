@@ -356,7 +356,12 @@ async def generic_rerank_api(
 
             # Standardize return format
             standardized_results = [
-                {"index": result["index"], "relevance_score": result["relevance_score"]}
+                {
+                    "index": result["index"],
+                    "relevance_score": result.get(
+                        "relevance_score", result.get("score", 0.0)
+                    ),
+                }
                 for result in results
             ]
 

@@ -6,7 +6,7 @@ Tests cover core utility functions that are confirmed to exist.
 
 import asyncio
 import json
-from unittest.mock import mock_open, patch
+from unittest.mock import mock_open, patch, MagicMock
 
 import pytest
 
@@ -199,44 +199,56 @@ class TestCacheFunctions:
     """Test cases for cache-related functions"""
 
     @pytest.mark.asyncio
-    async def test_handle_cache_save(self):
-        """Test cache saving functionality"""
-        cache_data = {"key": "value", "number": 123}
-        cache_file = "test_cache.json"
-
-        with patch("builtins.open", mock_open()) as mock_file:
-            with patch("json.dump") as mock_dump:
-                await handle_cache(cache_data, cache_file, "save")
-
-                mock_file.assert_called_once_with(cache_file, "w", encoding="utf-8")
-                mock_dump.assert_called_once()
+    async def test_handle_cache_none_hashing_kv(self):
+        """Test handle_cache with None hashing_kv returns None"""
+        result = await handle_cache(None, "test_hash", "test_prompt")
+        assert result is None
 
     @pytest.mark.asyncio
-    async def test_handle_cache_load(self):
-        """Test cache loading functionality"""
-        cache_data = {"key": "value", "number": 123}
-        cache_file = "test_cache.json"
+    async def test_handle_cache_disabled_llm_cache(self):
+        """Test handle_cache when LLM cache is disabled"""
+        # Create mock hashing_kv with disabled cache
+        mock_hashing_kv = MagicMock()
+        mock_hashing_kv.global_config = {"enable_llm_cache_for_entity_extract": False}
 
-        with patch(
-            "builtins.open", mock_open(read_data=json.dumps(cache_data))
-        ) as mock_file:
-            with patch("json.load") as mock_load:
-                mock_load.return_value = cache_data
+        result = await handle_cache(
+            mock_hashing_kv, "test_hash", "test_prompt", mode="default"
+        )
+        assert result is None
 
-                result = await handle_cache(None, cache_file, "load")
+    @pytest.mark.asyncio
+    async def test_handle_cache_hit(self):
+        """Test handle_cache when cache hit occurs"""
+        mock_hashing_kv = MagicMock()
+        mock_hashing_kv.global_config = {"enable_llm_cache_for_entity_extract": True}
+        cache_content = "cached result"
+        cache_entry = {"return": cache_content, "create_time": 1234567890}
 
-                mock_file.assert_called_once_with(cache_file, "r", encoding="utf-8")
-                assert result == cache_data
+        async def mock_get_by_id(key):
+            return cache_entry
 
-    def test_handle_cache_file_not_found(self):
-        """Test cache loading when file doesn't exist"""
-        cache_file = "nonexistent_cache.json"
+        mock_hashing_kv.get_by_id = mock_get_by_id
 
-        with patch("builtins.open", side_effect=FileNotFoundError):
-            result = handle_cache(None, cache_file, "load")
+        result = await handle_cache(
+            mock_hashing_kv, "test_hash", "test_prompt", mode="default"
+        )
+        assert result == (cache_content, 1234567890)
 
-            # Should return None or appropriate default when file not found
-            assert result is None
+    @pytest.mark.asyncio
+    async def test_handle_cache_miss(self):
+        """Test handle_cache when cache miss occurs"""
+        mock_hashing_kv = MagicMock()
+        mock_hashing_kv.global_config = {"enable_llm_cache_for_entity_extract": True}
+
+        async def mock_get_by_id(key):
+            return None
+
+        mock_hashing_kv.get_by_id = mock_get_by_id
+
+        result = await handle_cache(
+            mock_hashing_kv, "test_hash", "test_prompt", mode="default"
+        )
+        assert result is None
 
 
 class TestUtilityFunctions:

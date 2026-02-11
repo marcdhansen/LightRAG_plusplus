@@ -381,7 +381,7 @@ class TestJinaRerank:
 
             assert len(results) == 3
             assert results[0]["index"] == 1
-            assert results[0]["score"] == 0.95
+            assert results[0]["relevance_score"] == 0.95
 
     @pytest.mark.asyncio
     async def test_jina_rerank_api_error(self):
