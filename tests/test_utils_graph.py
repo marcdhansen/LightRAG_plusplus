@@ -295,18 +295,18 @@ class TestUtilsGraphQueryFunctions:
 class TestUtilsGraphUtilityFunctions:
     """Test utility functions in utils_graph.py"""
 
-def test_merge_attributes_basic(self):
+    def test_merge_attributes_basic(self):
         """Test attribute merging functionality"""
         from lightrag.utils_graph import _merge_attributes
-        
+
         data_list = [
             {"attr1": "value1", "attr2": "original"},
-            {"attr2": "updated", "attr3": "new_value"}
+            {"attr2": "updated", "attr3": "new_value"},
         ]
         merge_strategy = {"attr1": "first", "attr2": "last", "attr3": "first"}
-        
+
         result = _merge_attributes(data_list, merge_strategy)
-        
+
         expected = {"attr1": "value1", "attr2": "updated", "attr3": "new_value"}
         assert result == expected
 
