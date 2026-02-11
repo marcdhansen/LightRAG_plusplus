@@ -31,7 +31,7 @@ class MockACEResponse:
                 "status": "pending",
             },
             {
-                "repair_id": "repair_002", 
+                "repair_id": "repair_002",
                 "entity_name": "Tesla",
                 "issue_type": "missing_relation",
                 "description": "Missing relation between 'Tesla' and 'CEO'",
@@ -65,14 +65,16 @@ class TestACERepairManagement:
     ):
         """Test getting pending ACE repairs."""
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
-            mock_curator.get_pending_repairs.return_value = MockACEResponse.pending_repairs()
+            mock_curator.get_pending_repairs.return_value = (
+                MockACEResponse.pending_repairs()
+            )
 
             response = await authenticated_api_client.get("/ace/repairs/pending")
             data = response_validator.assert_success_response(response)
 
             assert isinstance(data, list)
             assert len(data) == 2
-            
+
             # Verify repair structure
             repair = data[0]
             assert "repair_id" in repair
@@ -204,7 +206,9 @@ class TestACERepairManagement:
 class TestACEParameterValidation:
     """Test parameter validation for ACE routes."""
 
-    async def test_repair_id_validation(self, authenticated_api_client, response_validator):
+    async def test_repair_id_validation(
+        self, authenticated_api_client, response_validator
+    ):
         """Test repair ID parameter validation."""
         # Test empty repair ID (should still work)
         response = await authenticated_api_client.post("/ace/repairs//approve")
@@ -212,7 +216,7 @@ class TestACEParameterValidation:
 
         # Test special characters in repair ID
         special_chars_id = "repair_with_@#$%_chars"
-        
+
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
             mock_curator.approve_repair.return_value = False
 
@@ -246,9 +250,7 @@ class TestACEParameterValidation:
 class TestACEErrorHandling:
     """Test error handling for ACE routes."""
 
-    async def test_ace_routes_unauthorized_access(
-        self, api_client, response_validator
-    ):
+    async def test_ace_routes_unauthorized_access(self, api_client, response_validator):
         """Test that unauthenticated requests are rejected."""
         endpoints = [
             "/ace/repairs/pending",
@@ -278,7 +280,9 @@ class TestACEErrorHandling:
 
         # Test approve_repair exception
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
-            mock_curator.approve_repair.side_effect = Exception("Database update failed")
+            mock_curator.approve_repair.side_effect = Exception(
+                "Database update failed"
+            )
 
             response = await authenticated_api_client.post(
                 f"/ace/repairs/{repair_id}/approve"
@@ -352,9 +356,15 @@ class TestACEErrorHandling:
         """Test ACE behavior when service is temporarily unavailable."""
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
             # Simulate service unavailable
-            mock_curator.get_pending_repairs.side_effect = ConnectionError("Service unavailable")
-            mock_curator.approve_repair.side_effect = ConnectionError("Service unavailable")
-            mock_curator.reject_repair.side_effect = ConnectionError("Service unavailable")
+            mock_curator.get_pending_repairs.side_effect = ConnectionError(
+                "Service unavailable"
+            )
+            mock_curator.approve_repair.side_effect = ConnectionError(
+                "Service unavailable"
+            )
+            mock_curator.reject_repair.side_effect = ConnectionError(
+                "Service unavailable"
+            )
 
             # Test pending repairs
             response = await authenticated_api_client.get("/ace/repairs/pending")
@@ -385,7 +395,9 @@ class TestACEIntegration:
         """Test complete repair workflow: pending -> approve/reject."""
         # 1. Get pending repairs
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
-            mock_curator.get_pending_repairs.return_value = MockACEResponse.pending_repairs()
+            mock_curator.get_pending_repairs.return_value = (
+                MockACEResponse.pending_repairs()
+            )
 
             response = await authenticated_api_client.get("/ace/repairs/pending")
             pending_data = response_validator.assert_success_response(response)
@@ -400,11 +412,11 @@ class TestACEIntegration:
         response = await authenticated_api_client.post(
             f"/ace/repairs/{repair_id_1}/approve"
         )
-            approve_data = response_validator.assert_success_response(response)
+        approve_data = response_validator.assert_success_response(response)
 
-            assert approve_data["status"] == "success"
-            assert "approved" in approve_data["message"]
-            mock_curator.approve_repair.assert_called_with(repair_id_1)
+        assert approve_data["status"] == "success"
+        assert "approved" in approve_data["message"]
+        mock_curator.approve_repair.assert_called_with(repair_id_1)
 
         # 3. Reject second repair
         mock_curator.reject_repair.return_value = True
@@ -412,11 +424,11 @@ class TestACEIntegration:
         response = await authenticated_api_client.post(
             f"/ace/repairs/{repair_id_2}/reject"
         )
-            reject_data = response_validator.assert_success_response(response)
+        reject_data = response_validator.assert_success_response(response)
 
-            assert reject_data["status"] == "success"
-            assert "rejected" in reject_data["message"]
-            mock_curator.reject_repair.assert_called_with(repair_id_2)
+        assert reject_data["status"] == "success"
+        assert "rejected" in reject_data["message"]
+        mock_curator.reject_repair.assert_called_with(repair_id_2)
 
     async def test_batch_repair_operations(
         self, authenticated_api_client, response_validator
@@ -431,7 +443,7 @@ class TestACEIntegration:
                 "description": f"Duplicate entity for Entity_{i}",
                 "suggested_action": "Merge entities",
                 "confidence": 0.8 + (i * 0.05),
-                "created_at": f"2024-01-01T{i:02:00Z",
+                "created_at": f"2024-01-01T{i:02d}:00Z",
                 "status": "pending",
             }
             for i in range(5)
@@ -476,7 +488,9 @@ class TestACEIntegration:
 
         with patch.object(MockLightRAG, "ace_curator") as mock_curator:
             # Simulate conflict: repair already processed
-            mock_curator.approve_repair.side_effect = ValueError("Repair already processed")
+            mock_curator.approve_repair.side_effect = ValueError(
+                "Repair already processed"
+            )
 
             response = await authenticated_api_client.post(
                 f"/ace/repairs/{repair_id}/approve"
@@ -486,7 +500,9 @@ class TestACEIntegration:
             assert "already processed" in response.json()["detail"]
 
             # Test rejection conflict
-            mock_curator.reject_repair.side_effect = ValueError("Repair already processed")
+            mock_curator.reject_repair.side_effect = ValueError(
+                "Repair already processed"
+            )
 
             response = await authenticated_api_client.post(
                 f"/ace/repairs/{repair_id}/reject"

@@ -217,6 +217,8 @@ markers = [
     "performance: marks tests for performance and load testing",
     "authentication: marks tests for authentication and authorization",
     "edge_cases: marks tests for edge cases and boundary conditions",
+    "ui: marks tests for UI integration testing",
+    "playwright: marks tests that require Playwright browser automation",
 ]
 # Enhanced test discovery and reliability
 addopts = [

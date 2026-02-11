@@ -5,7 +5,7 @@ This module provides document reranking functionality using various rerankers.
 Tests cover chunking, aggregation, API reranking, error handling, and configuration.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch
 
 import pytest
 
@@ -14,6 +14,9 @@ from lightrag.rerank import (
     chunk_documents_for_rerank,
     generic_rerank_api,
     local_rerank,
+    cohere_rerank,
+    jina_rerank,
+    ali_rerank,
 )
 
 
@@ -285,3 +288,182 @@ class TestGenericRerankAPI:
                 base_url="",
                 api_key=None,
             )
+
+
+class TestCohereRerank:
+    """Test cases for Cohere reranking service"""
+
+    @pytest.mark.asyncio
+    async def test_cohere_rerank_success(self):
+        """Test successful Cohere reranking"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock successful API response
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.json = AsyncMock(
+                return_value={
+                    "results": [
+                        {"index": 0, "relevance_score": 0.9},
+                        {"index": 2, "relevance_score": 0.8},
+                        {"index": 1, "relevance_score": 0.7},
+                    ]
+                }
+            )
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            results = await cohere_rerank(
+                query="test query",
+                documents=["doc1", "doc2", "doc3"],
+                api_key="test-key",
+                model="rerank-v3.5",
+            )
+
+            assert len(results) == 3
+            assert results[0]["index"] == 0
+            assert results[0]["relevance_score"] == 0.9
+            assert results[2]["index"] == 1
+            assert results[2]["relevance_score"] == 0.7
+
+    @pytest.mark.asyncio
+    async def test_cohere_rerank_api_error(self):
+        """Test Cohere rerank API error handling"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock API error
+            mock_response = MagicMock()
+            mock_response.status = 400
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            with pytest.raises(Exception):
+                await cohere_rerank(
+                    query="test",
+                    documents=["doc1"],
+                    api_key="test-key",
+                )
+
+    @pytest.mark.asyncio
+    async def test_cohere_rerank_empty_documents(self):
+        """Test Cohere rerank with empty documents list"""
+        results = await cohere_rerank(
+            query="test",
+            documents=[],
+            api_key="test-key",
+        )
+
+        assert results == []
+
+
+class TestJinaRerank:
+    """Test cases for Jina reranking service"""
+
+    @pytest.mark.asyncio
+    async def test_jina_rerank_success(self):
+        """Test successful Jina reranking"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock successful API response
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.json = AsyncMock(
+                return_value={
+                    "results": [
+                        {"index": 1, "score": 0.95},
+                        {"index": 0, "score": 0.85},
+                        {"index": 2, "score": 0.75},
+                    ]
+                }
+            )
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            results = await jina_rerank(
+                query="test query",
+                documents=["doc1", "doc2", "doc3"],
+                model="jina-reranker-v1-base-en",
+            )
+
+            assert len(results) == 3
+            assert results[0]["index"] == 1
+            assert results[0]["score"] == 0.95
+
+    @pytest.mark.asyncio
+    async def test_jina_rerank_api_error(self):
+        """Test Jina rerank API error handling"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock API error
+            mock_response = MagicMock()
+            mock_response.status = 500
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            with pytest.raises(Exception):
+                await jina_rerank(
+                    query="test",
+                    documents=["doc1"],
+                )
+
+    @pytest.mark.asyncio
+    async def test_jina_rerank_empty_documents(self):
+        """Test Jina rerank with empty documents list"""
+        results = await jina_rerank(
+            query="test",
+            documents=[],
+        )
+
+        assert results == []
+
+
+class TestAliRerank:
+    """Test cases for Ali reranking service"""
+
+    @pytest.mark.asyncio
+    async def test_ali_rerank_success(self):
+        """Test successful Ali reranking"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock successful API response
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.json = AsyncMock(
+                return_value={
+                    "results": [
+                        {"index": 0, "score": 0.92},
+                        {"index": 2, "score": 0.88},
+                        {"index": 1, "score": 0.76},
+                    ]
+                }
+            )
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            results = await ali_rerank(
+                query="test query",
+                documents=["doc1", "doc2", "doc3"],
+                api_key="test-key",
+                model="gte-rerank-v2",
+            )
+
+            assert len(results) == 3
+            assert results[0]["index"] == 0
+            assert results[0]["score"] == 0.92
+
+    @pytest.mark.asyncio
+    async def test_ali_rerank_api_error(self):
+        """Test Ali rerank API error handling"""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            # Mock API error
+            mock_response = MagicMock()
+            mock_response.status = 401
+            mock_post.return_value.__aenter__.return_value = mock_response
+
+            with pytest.raises(Exception):
+                await ali_rerank(
+                    query="test",
+                    documents=["doc1"],
+                    api_key="test-key",
+                )
+
+    @pytest.mark.asyncio
+    async def test_ali_rerank_empty_documents(self):
+        """Test Ali rerank with empty documents list"""
+        results = await ali_rerank(
+            query="test",
+            documents=[],
+            api_key="test-key",
+        )
+
+        assert results == []

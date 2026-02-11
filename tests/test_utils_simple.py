@@ -4,6 +4,7 @@ Test suite for lightrag.utils module (core functions)
 Tests cover core utility functions that are confirmed to exist.
 """
 
+import asyncio
 import json
 from unittest.mock import mock_open, patch
 
@@ -197,19 +198,21 @@ class TestMathAndSimilarityFunctions:
 class TestCacheFunctions:
     """Test cases for cache-related functions"""
 
-    def test_handle_cache_save(self):
+    @pytest.mark.asyncio
+    async def test_handle_cache_save(self):
         """Test cache saving functionality"""
         cache_data = {"key": "value", "number": 123}
         cache_file = "test_cache.json"
 
         with patch("builtins.open", mock_open()) as mock_file:
             with patch("json.dump") as mock_dump:
-                handle_cache(cache_data, cache_file, "save")
+                await handle_cache(cache_data, cache_file, "save")
 
                 mock_file.assert_called_once_with(cache_file, "w", encoding="utf-8")
                 mock_dump.assert_called_once()
 
-    def test_handle_cache_load(self):
+    @pytest.mark.asyncio
+    async def test_handle_cache_load(self):
         """Test cache loading functionality"""
         cache_data = {"key": "value", "number": 123}
         cache_file = "test_cache.json"
@@ -220,7 +223,7 @@ class TestCacheFunctions:
             with patch("json.load") as mock_load:
                 mock_load.return_value = cache_data
 
-                result = handle_cache(None, cache_file, "load")
+                result = await handle_cache(None, cache_file, "load")
 
                 mock_file.assert_called_once_with(cache_file, "r", encoding="utf-8")
                 assert result == cache_data
