@@ -1,5 +1,5 @@
 {
-  "timestamp": 1770840703.939428,
+  "timestamp": 1770848127.480912,
   "outcome": "SUCCESS",
   "duration_hours": 1.0,
   "success_metrics": {
@@ -30,5 +30,5 @@
   },
   "next_mission_readiness": true,
   "status": "FALLBACK_COMPLETE",
-  "session_name": "LightRAG Task: 0521954f [lightrag-se67] Update coverage artifacts from finalization phase"
+  "session_name": "Unknown Mission"
 }
