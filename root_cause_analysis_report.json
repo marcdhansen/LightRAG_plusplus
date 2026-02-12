@@ -1,0 +1,77 @@
+{
+  "issue": "GitHub #2643 - Context passing bug between /query and /query/data",
+  "analysis_date": "2026-02-12",
+  "findings": {
+    "content_exists_in_storage": true,
+    "retrieval_failing": true,
+    "query_endpoint_working": true,
+    "query_data_endpoint_failing": true
+  },
+  "root_cause_analysis": {
+    "evidence": {
+      "storage_analysis": {
+        "total_chunks": 7,
+        "alice_chunks": 1,
+        "researcher_chunks": 1,
+        "total_vectors": 7
+      },
+      "embedding_analysis": {
+        "current": 0.2,
+        "recommended_range": [
+          0.2,
+          0.4
+        ],
+        "issue": null
+      },
+      "prompt_issues": [
+        {
+          "type": "ollama_binding",
+          "description": "Ollama binding with OpenAI-style prompts may have message format issues",
+          "severity": "MEDIUM"
+        },
+        {
+          "type": "prompt_compression",
+          "description": "Standard compression may remove critical context",
+          "severity": "LOW"
+        },
+        {
+          "type": "model_context",
+          "description": "qwen2.5 models may have context handling differences",
+          "severity": "MEDIUM"
+        }
+      ],
+      "token_analysis": {
+        "issue": null,
+        "content_tokens": 2477,
+        "available_tokens": 7192,
+        "severity": "LOW"
+      }
+    },
+    "likely_causes": [
+      {
+        "cause": "Vector database similarity search failure",
+        "confidence": "HIGH",
+        "evidence": "Content exists in text chunks but retrieval fails despite acceptable configuration"
+      }
+    ],
+    "primary_cause": {
+      "cause": "Vector database similarity search failure",
+      "confidence": "HIGH",
+      "evidence": "Content exists in text chunks but retrieval fails despite acceptable configuration"
+    }
+  },
+  "fix_recommendations": [
+    {
+      "action": "Debug retrieval pipeline",
+      "description": "Add verbose logging to context retrieval process",
+      "code": "log_level: DEBUG\nverbose: true",
+      "priority": "HIGH"
+    }
+  ],
+  "next_steps": [
+    "Implement highest priority fix",
+    "Test with exact user scenario",
+    "Verify /query vs /query/data consistency",
+    "Deploy fix and monitor"
+  ]
+}

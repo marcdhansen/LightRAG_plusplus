@@ -145,32 +145,128 @@ class NanoVectorDBStorage(BaseVectorStorage):
     async def query(
         self, query: str, top_k: int, query_embedding: list[float] = None
     ) -> list[dict[str, Any]]:
-        # Use provided embedding or compute it
-        if query_embedding is not None:
-            embedding = query_embedding
-        else:
-            # Execute embedding outside of lock to avoid improve cocurrent
-            embedding = await self.embedding_func(
-                [query], _priority=5
-            )  # higher priority for query
-            embedding = embedding[0]
+        # Enhanced query preprocessing for better matching
+        original_query = query.strip()
+        normalized_query = original_query.lower()  # Case normalization
 
-        client = await self._get_client()
-        results = client.query(
-            query=embedding,
-            top_k=top_k,
-            better_than_threshold=self.cosine_better_than_threshold,
+        # Generate multiple query variants for better recall
+        query_variants = [original_query]
+
+        # For short proper names, try case variations to improve matching
+        if len(original_query.split()) <= 3 and original_query.isalpha():
+            query_variants.extend(
+                [
+                    normalized_query,
+                    original_query.upper(),  # Case variation
+                    original_query.capitalize(),  # Capitalized variation
+                ]
+            )
+
+        best_results = []
+        all_raw_results = []
+
+        # Try each query variant and keep the best results
+        for attempt_query in query_variants:
+            embedding = await self.embedding_func([attempt_query], self.model_name)
+            if embedding.size == 0:
+                continue
+
+            client = await self._get_client()
+            raw_results = client.query(
+                query=embedding[0],
+                top_k=top_k,
+                better_than_threshold=self.cosine_better_than_threshold,
+            )
+
+            all_raw_results.extend(raw_results)
+
+            # Enhanced debugging for each query variant
+            variant_matches = len(
+                [dp for dp in raw_results if dp["__metrics__"] <= 0.3]
+            )  # Good matches
+            verbose_debug(
+                f"[VECTOR] Query variant '{attempt_query}': {variant_matches} good matches"
+            )
+
+        if not all_raw_results:
+            verbose_debug(f"[VECTOR] No results found for any query variant")
+            return []
+
+        # Apply adaptive threshold logic based on query characteristics
+        base_threshold = max(0.1, self.cosine_better_than_threshold)
+
+        # More permissive threshold for short, specific queries
+        adaptive_threshold = base_threshold
+        if len(original_query.split()) <= 2:  # Very short queries
+            adaptive_threshold = max(0.05, self.cosine_better_than_threshold)
+        elif len(original_query.split()) <= 4:  # Short queries
+            adaptive_threshold = max(0.08, self.cosine_better_than_threshold)
+
+        # Quality filtering with enhanced scoring
+        filtered_results = []
+        for dp in all_raw_results:
+            distance = dp["__metrics__"]
+
+            # Adaptive threshold application
+            effective_threshold = adaptive_threshold
+
+            # Quality scoring with distance normalization
+            quality_score = max(0.0, 1.0 - distance)  # Higher is better
+
+            # Multifactor quality assessment
+            length_factor = 1.0
+            if len(original_query.split()) <= 2:  # Bonus for very specific queries
+                length_factor = 1.2
+            elif len(original_query.split()) <= 4:  # Small bonus for short queries
+                length_factor = 1.1
+            elif len(original_query.split()) <= 6:  # Medium bonus
+                length_factor = 1.05
+            else:
+                length_factor = 1.0
+
+            final_quality_score = quality_score * length_factor
+
+            if distance <= effective_threshold and final_quality_score >= 0.3:
+                filtered_results.append(
+                    {
+                        **{k: v for k, v in dp.items() if k != "vector"},
+                        "id": dp["__id__"],
+                        "distance": distance,
+                        "created_at": dp.get("__created_at__"),
+                        "quality_score": final_quality_score,
+                        "query_variant": attempt_query,
+                        "adaptive_threshold": effective_threshold,
+                    }
+                )
+
+        # Enhanced vector search debugging
+        from lightrag.utils import verbose_debug
+
+        # Comprehensive query analysis logging
+        total_variants = len(query_variants)
+        successful_variants = len(
+            set(r.get("query_variant", original_query) for r in filtered_results)
         )
-        results = [
-            {
-                **{k: v for k, v in dp.items() if k != "vector"},
-                "id": dp["__id__"],
-                "distance": dp["__metrics__"],
-                "created_at": dp.get("__created_at__"),
-            }
-            for dp in results
-        ]
-        return results
+
+        verbose_debug(f"[VECTOR] Comprehensive Query Analysis:")
+        verbose_debug(f"  • Original query: '{original_query}'")
+        verbose_debug(f"  • Query variants tested: {total_variants}")
+        verbose_debug(f"  • Successful variants: {successful_variants}")
+        verbose_debug(f"  • Threshold used: {adaptive_threshold:.3f}")
+        verbose_debug(
+            f"  • Raw results: {len(all_raw_results)}, Filtered: {len(filtered_results)}"
+        )
+
+        # Log top results with enhanced information
+        for i, result in enumerate(filtered_results[:3]):
+            quality_score = result.get("quality_score", 0.0)
+            query_used = result.get("query_variant", original_query)
+            threshold_used = result.get("adaptive_threshold", adaptive_threshold)
+            verbose_debug(
+                f"[VECTOR] Top Match {i + 1}: id={result.get('id', 'unknown')}, distance={result.get('distance', 'unknown'):.3f}, quality={quality_score:.3f}, query='{query_used}', threshold={threshold_used:.3f}"
+            )
+
+        return filtered_results
 
     @property
     async def client_storage(self):

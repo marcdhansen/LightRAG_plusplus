@@ -3410,11 +3410,21 @@ async def kg_query(
         logger.warning("low_level_keywords is empty")
     if hl_keywords == [] and query_param.mode in ["global", "hybrid", "mix"]:
         logger.warning("high_level_keywords is empty")
+        verbose_debug(
+            f"[CONTEXT] high_level_keywords empty for mode: {query_param.mode}"
+        )
     if hl_keywords == [] and ll_keywords == []:
+        verbose_debug(
+            f"[CONTEXT] Both keyword lists empty - query length: {len(query)}"
+        )
         if len(query) < 50:
             logger.warning(f"Forced low_level_keywords to origin query: {query}")
             ll_keywords = [query]
+            verbose_debug(f"[CONTEXT] Forced fallback using query as keyword: {query}")
         else:
+            verbose_debug(
+                f"[CONTEXT] Query too long for fallback, returning fail response"
+            )
             return QueryResult(content=PROMPTS["fail_response"])
 
     ll_keywords_str = ", ".join(ll_keywords) if ll_keywords else ""
@@ -3459,6 +3469,14 @@ async def kg_query(
         context_data=context_result.context,
     )
 
+    # Enhanced debugging for prompt construction
+    verbose_debug(f"[PROMPT] System prompt length: {len(sys_prompt)} chars")
+    verbose_debug(f"[PROMPT] Context data length: {len(context_result.context)} chars")
+    if len(context_result.context) < 50:
+        verbose_debug(
+            f"[PROMPT] WARNING: Very short context - '{context_result.context[:100]}...'"
+        )
+
     user_query = query
 
     if query_param.only_need_prompt:
@@ -3471,6 +3489,10 @@ async def kg_query(
     logger.debug(
         f"[kg_query] Sending to LLM: {len_of_prompts:,} tokens (Query: {len(tokenizer.encode(query))}, System: {len(tokenizer.encode(sys_prompt))})"
     )
+
+    # Enhanced debugging for final LLM call
+    verbose_debug(f"[LLM_CALL] Final system prompt preview: {sys_prompt[:200]}...")
+    verbose_debug(f"[LLM_CALL] User query: {query}")
 
     # Handle cache
     args_hash = compute_args_hash(
@@ -3652,14 +3674,30 @@ async def extract_keywords_only(
 
     # 5. Parse out JSON from the LLM response
     result = remove_think_tags(result)
+
+    # Enhanced debugging for keyword extraction
+    verbose_debug(f"[KEYWORDS] Raw LLM response for keywords: {result}")
+
     try:
         keywords_data = json_repair.loads(result)
         if not keywords_data:
             logger.error("No JSON-like structure found in the LLM respond.")
+            verbose_debug(
+                "[KEYWORDS] JSON parsing failed - empty keywords_data returned"
+            )
             return [], []
+
+        # Extract high/low level keywords for debugging
+        hl_keywords = keywords_data.get("high_level_keywords", [])
+        ll_keywords = keywords_data.get("low_level_keywords", [])
+        verbose_debug(
+            f"[KEYWORDS] Parsed keywords - High: {hl_keywords}, Low: {ll_keywords}"
+        )
+
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {e}")
         logger.error(f"LLM respond: {result}")
+        verbose_debug(f"[KEYWORDS] JSON decode error - returning empty keywords")
         return [], []
 
     hl_keywords = keywords_data.get("high_level_keywords", [])
@@ -4461,6 +4499,16 @@ async def _build_context_str(
     logger.debug(
         f"Token allocation - Total: {max_total_tokens}, SysPrompt: {sys_prompt_tokens}, Query: {query_tokens}, KG: {kg_context_tokens}, Buffer: {buffer_tokens}, Available for chunks: {available_chunk_tokens}"
     )
+
+    # Enhanced token budget debugging
+    if available_chunk_tokens <= 0:
+        logger.error(f"[TOKENS] NEGATIVE CHUNK BUDGET: {available_chunk_tokens}")
+        verbose_debug(
+            f"[TOKENS] Budget breakdown - Total: {max_total_tokens}, System: {sys_prompt_tokens}, Query: {query_tokens}, KG: {kg_context_tokens}, Buffer: {buffer_tokens}"
+        )
+    elif available_chunk_tokens < 100:
+        logger.warning(f"[TOKENS] Very low chunk budget: {available_chunk_tokens}")
+        verbose_debug(f"[TOKENS] May result in minimal or no chunk content")
 
     # Apply token truncation to chunks using the dynamic limit
     truncated_chunks = await process_chunks_unified(
