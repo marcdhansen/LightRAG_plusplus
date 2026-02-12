@@ -24,13 +24,11 @@ jobs:
           DATE=$(date +%Y-%m-%d)
 
           # Sanitize variables for GitHub Actions output format
-          # Remove leading special characters that could be interpreted as flags
-          SAFE_MESSAGE=$(echo "$MESSAGE" | sed 's/^[ -]*//')
-          SAFE_AUTHOR=$(echo "$AUTHOR" | sed 's/^[ -]*//')
-
-          echo "message=$SAFE_MESSAGE" >> $GITHUB_OUTPUT
-          echo "author=$SAFE_AUTHOR" >> $GITHUB_OUTPUT
-          echo "date=$DATE" >> $GITHUB_OUTPUT
+          # Handle multiline commit messages and escape special characters
+          # Use printf to safely handle the output format
+          printf "message=%s\n" "$MESSAGE" >> $GITHUB_OUTPUT
+          printf "author=%s\n" "$AUTHOR" >> $GITHUB_OUTPUT
+          printf "date=%s\n" "$DATE" >> $GITHUB_OUTPUT
 
       - name: Update CHANGELOG.md
         run: |
