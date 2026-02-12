@@ -93,10 +93,12 @@ Address remaining P0 issues that impact core user-facing functionality
 - **Solution**: Added manual Authorization header extraction fallback
 - **Result**: Authorization headers now properly parsed and processed
 
-### 2. lightrag-pg29: Embedding function timeout errors
+### 2. lightrag-pg29: Embedding function timeout errors ✅ RESOLVED
 - **Error**: TimeoutError: Embedding func Worker execution timeout after 60s
 - **Impact**: Document ingestion pipeline blocked
-- **Likely Root Cause**: Default timeout too low for large documents
+- **Root Cause**: Multiple hardcoded 60-second timeouts were too short
+- **Solution**: Increased DEFAULT_EMBEDDING_TIMEOUT to 600s (10 min), fixed Neo4j timeouts
+- **Result**: Large documents can now be processed without timeout errors
 
 ### 3. lightrag-3tom: Web UI node display issues
 - **Error**: Web UI nodes not displaying correctly

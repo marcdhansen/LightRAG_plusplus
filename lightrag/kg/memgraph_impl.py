@@ -89,7 +89,7 @@ class MemgraphStorage(BaseGraphStorage):
                 auth=(USERNAME, PASSWORD),
                 max_connection_lifetime=600,  # 10 minutes (shorter than default 1hr to recycle connections)
                 keep_alive=True,
-                connection_timeout=60.0,
+                connection_timeout=600.0,  # Increased from 60s to 10 minutes
             )
             self._DATABASE = DATABASE
             try:
@@ -1715,7 +1715,7 @@ class MemgraphVectorStorage(BaseVectorStorage):
                 auth=(USERNAME, PASSWORD),
                 max_connection_lifetime=600,
                 keep_alive=True,
-                connection_timeout=60.0,
+                connection_timeout=600.0,  # Increased from 60s to 10 minutes
             )
             self._DATABASE = DATABASE
 
