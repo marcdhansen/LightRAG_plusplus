@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-      metadata: read
+      artifact-metadata: read
       packages: read
 
     # Add timeout for the entire job
