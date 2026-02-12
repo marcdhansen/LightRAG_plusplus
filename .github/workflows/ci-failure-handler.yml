@@ -1,20 +1,27 @@
-# Enhanced CI/CD Failure Handler - PR-Friendly
-# Handles failures on both default branch and Pull Requests
-# Creates diagnostic issues with proper PR context and notifications
+# Enhanced CI/CD Failure Handler
+# Handles failures on other workflows and creates diagnostic issues
 name: CI/CD Failure Handler
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+  workflow_run:
+    workflows:
+      - "Tests"
+      - "Linting"
+      - "CI"
+      - "Build"
+      - "Test"
+      - "CI Setup"
+      - "TDD Compliance"
+      - "Changelog Update"
+      - "Dependency Audit"
+      - "AB Prompt CI"
+      - "Docker Build (Lite)"
+      - "Docker Build (Manual)"
+      - "Docker Publish"
+      - "PyPI Publish"
+    types: [completed]
+    branches: [main]
   workflow_dispatch:  # Manual trigger for testing
-    inputs:
-      test_failure:
-        description: 'Test failure handling'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: write
@@ -25,8 +32,7 @@ jobs:
   ci-failure-handler:
     name: CI/CD Failure Handler
     runs-on: ubuntu-latest
-    if: github.event.inputs.test_failure == 'true' || github.event_name == 'push' || startsWith(github.event_name, 'pull_request')
-
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
@@ -36,50 +42,64 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: CI diagnostic and issue creation
+    - name: Get failed workflow info
+      id: workflow-info
+      run: |
+        echo "workflow_name=${{ github.event.workflow_run.name }}" >> $GITHUB_OUTPUT
+        echo "workflow_run_id=${{ github.event.workflow_run.run_id }}" >> $GITHUB_OUTPUT
+        echo "workflow_conclusion=${{ github.event.workflow_run.conclusion }}" >> $GITHUB_OUTPUT
+        echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+        echo "sha=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+        echo "run_url=https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.run_id }}" >> $GITHUB_OUTPUT
+
+    - name: CI failure handler
       run: |
         echo "🔍 CI/CD Failure Handler activated"
-        echo "Event: ${{ github.event_name }}"
-        echo "Ref: ${{ github.ref }}"
-        echo "SHA: ${{ github.sha }}"
+        echo "Failed workflow: ${{ github.event.workflow_run.name }}"
+        echo "Run URL: ${{ steps.workflow-info.outputs.run_url }}"
+        echo "Branch: ${{ steps.workflow-info.outputs.branch }}"
+        echo "SHA: ${{ steps.workflow-info.outputs.sha }}"
 
-        # Set environment variables for diagnostic script
-        export GITHUB_ACTIONS=true
-        export WORKFLOW_NAME="${{ github.workflow }}"
-        export RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        export GITHUB_REPOSITORY="${{ github.repository }}"
-        export GITHUB_REF_NAME="${{ github.ref_name }}"
-        export GITHUB_SHA="${{ github.sha }}"
-        
-        # Extract PR information if available
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          export PR_NUMBER="${{ github.event.number }}"
-          export PR_TITLE="${{ github.event.pull_request.title }}"
-          export PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          export BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          export HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+        WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
+        RUN_URL="${{ steps.workflow-info.outputs.run_url }}"
+        BRANCH="${{ steps.workflow-info.outputs.branch }}"
+        SHA="${{ steps.workflow-info.outputs.sha }}"
+
+        cat << 'EOF' > /tmp/issue_body.txt
+        ## 🚨 CI/CD Pipeline Failure
+
+        **Workflow:** $WORKFLOW_NAME
+        **Run URL:** $RUN_URL
+        **Branch:** $BRANCH
+        **Commit:** $SHA
+        **Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+        ---
+        🤖 This issue was automatically created by the CI Failure Handler.
+        EOF
+
+        # Run diagnostic script if available
+        if [[ -f "./scripts/ci-diagnostic.sh" ]]; then
+          export GITHUB_ACTIONS=true
+          export WORKFLOW_NAME="$WORKFLOW_NAME"
+          export RUN_URL="$RUN_URL"
+          export GITHUB_REPOSITORY="${{ github.repository }}"
+          export GITHUB_REF_NAME="$BRANCH"
+          export GITHUB_SHA="$SHA"
+
+          ./scripts/ci-diagnostic.sh || {
+            echo "⚠️ Diagnostic script failed, creating basic issue..."
+            gh issue create \
+              --title "CI/CD Failure: $WORKFLOW_NAME" \
+              --body-file /tmp/issue_body.txt \
+              --label "ci-failure,automated"
+          }
         else
-          export PR_NUMBER=""
-          export PR_TITLE=""
-          export PR_AUTHOR=""
-          export BASE_BRANCH=""
-          export HEAD_BRANCH="${{ github.ref }}"
-        fi
-
-        # Test issue creation
-        ./scripts/ci-diagnostic.sh || {
-          echo "⚠️ Diagnostic script failed, creating basic issue..."
+          echo "📝 Creating issue for CI failure..."
           gh issue create \
             --title "CI/CD Failure: $WORKFLOW_NAME" \
-            --body "CI/CD pipeline failed on $RUN_URL" \
-            --label "ci-failure,${{ github.event_name }}"
-        }
+            --body-file /tmp/issue_body.txt \
+            --label "ci-failure,automated"
+        fi
 
-        # Test issue creation
-        ./scripts/ci-diagnostic.sh || {
-          echo "⚠️ Diagnostic script failed, creating basic issue..."
-          gh issue create \
-            --title "Test CI failed: $WORKFLOW_NAME" \
-            --body "Test workflow failure\nRun: $RUN_URL" \
-            --label "ci-failure,test"
-        }
+        echo "✅ CI failure handler completed"
