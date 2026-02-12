@@ -40,17 +40,22 @@ jobs:
           AUTHOR="${{ steps.commit-info.outputs.author }}"
 
           # Prepare the new entry (Markdown format)
-          NEW_ENTRY="## [$DATE] - $AUTHOR\n\n$MESSAGE\n"
-
-          # Create file if doesn't exist
+          # Use awk instead of sed to avoid flag interpretation issues
           if [ ! -f CHANGELOG.md ]; then
             echo "# Changelog" > CHANGELOG.md
             echo "" >> CHANGELOG.md
           fi
 
-          # Insert after the header (line 3)
-          # We use a temporary file to perform the insertion
-          sed -i "2a $NEW_ENTRY" CHANGELOG.md
+          # Insert after the header line using awk (safer than sed)
+          awk '
+            NR == 2 { 
+              print "## ['$DATE'] - $AUTHOR"
+              print ""
+              print "'"$MESSAGE"'"
+              print ""
+            }
+            { print }
+          ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
 
           echo "✅ CHANGELOG.md updated"
 
