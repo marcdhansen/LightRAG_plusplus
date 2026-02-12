@@ -1,10 +1,14 @@
-# This workflow is kept for reference but disabled
-# The workflow_run trigger only works on default branch, not PRs
-# Use the inline failure handling in individual workflows instead
-name: CI/CD Failure Handler (DISABLED)
+# Enhanced CI/CD Failure Handler - PR-Friendly
+# Handles failures on both default branch and Pull Requests
+# Creates diagnostic issues with proper PR context and notifications
+name: CI/CD Failure Handler
 
 on:
-  workflow_dispatch:  # Manual trigger only for testing
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:  # Manual trigger for testing
     inputs:
       test_failure:
         description: 'Test failure handling'
@@ -18,10 +22,10 @@ permissions:
   pull-requests: write
 
 jobs:
-  test-failure-handler:
-    name: Test Failure Handler
+  ci-failure-handler:
+    name: CI/CD Failure Handler
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.test_failure == 'true' }}
+    if: github.event.inputs.test_failure == 'true' || github.event_name == 'push' || startsWith(github.event_name, 'pull_request')
 
     steps:
     - name: Checkout repository
@@ -32,22 +36,44 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Test diagnostic and create issue
+    - name: CI diagnostic and issue creation
       run: |
-        echo "🔍 Testing CI diagnostic failure handling..."
+        echo "🔍 CI/CD Failure Handler activated"
+        echo "Event: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "SHA: ${{ github.sha }}"
 
         # Set environment variables for diagnostic script
         export GITHUB_ACTIONS=true
-        export WORKFLOW_NAME="test-workflow"
-        export RUN_URL="https://github.com/test/run/123"
+        export WORKFLOW_NAME="${{ github.workflow }}"
+        export RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         export GITHUB_REPOSITORY="${{ github.repository }}"
         export GITHUB_REF_NAME="${{ github.ref_name }}"
         export GITHUB_SHA="${{ github.sha }}"
+        
+        # Extract PR information if available
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          export PR_NUMBER="${{ github.event.number }}"
+          export PR_TITLE="${{ github.event.pull_request.title }}"
+          export PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          export BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          export HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+        else
+          export PR_NUMBER=""
+          export PR_TITLE=""
+          export PR_AUTHOR=""
+          export BASE_BRANCH=""
+          export HEAD_BRANCH="${{ github.ref }}"
+        fi
 
-        # Force a failure in diagnostic script to test issue creation
-        export TESTS_FAILED=1
-        export TESTS_TOTAL=5
-        export TESTS_PASSED=4
+        # Test issue creation
+        ./scripts/ci-diagnostic.sh || {
+          echo "⚠️ Diagnostic script failed, creating basic issue..."
+          gh issue create \
+            --title "CI/CD Failure: $WORKFLOW_NAME" \
+            --body "CI/CD pipeline failed on $RUN_URL" \
+            --label "ci-failure,${{ github.event_name }}"
+        }
 
         # Test issue creation
         ./scripts/ci-diagnostic.sh || {
