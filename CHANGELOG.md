@@ -1,4 +1,8 @@
 # Changelog
+## [2026-02-12] - $AUTHOR
+
+chore: update beads - add CI/CD failure handler issue (lightrag-nz2b)
+
 
 ## [2026-02-12] - Marc Hansen
 
