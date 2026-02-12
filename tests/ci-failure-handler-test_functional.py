@@ -265,17 +265,17 @@ Please review the workflow logs and address the failure.
             f"Expected 1 diagnostic script call, found {diagnostic_script_count}"
         )
 
-        # Check for duplicate script patterns (lines 70-76 and 79-85 in original)
-        duplicate_patterns = [
-            "./scripts/ci-diagnostic.sh || {\n",
-            '  echo "⚠️ Diagnostic script failed, creating basic issue..."\n',
-            "  gh issue create",
+        # Check for proper script usage (no duplicate patterns)
+        script_patterns = [
+            "./scripts/ci-diagnostic.sh; then\n",
+            'echo "✅ CI diagnostic completed successfully"\n',
+            'echo "⚠️ Diagnostic script failed, creating basic issue..."\n',
         ]
 
-        for pattern in duplicate_patterns:
+        for pattern in script_patterns:
             pattern_count = workflow_content.count(pattern)
             assert pattern_count == 1, (
-                f"Duplicate pattern found: {pattern} (count: {pattern_count})"
+                f"Expected pattern not found: {pattern} (count: {pattern_count})"
             )
 
     def test_github_cli_error_exit_code_handling(self):
@@ -345,35 +345,39 @@ Please review the workflow logs and address the failure.
                 f"Workflow {workflow_name} should NOT trigger failure handler"
             )
 
-    def test_heredoc_issue_body_validation(self):
-        """Test proper heredoc syntax and variable expansion."""
-        # Test heredoc structure for issue creation
-        expected_heredoc_markers = [
-            "ISSUE_BODY=$(cat <<EOF",
-            "EOF",
-            'gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY"',
-        ]
 
-        workflow_path = ".github/workflows/ci-failure-handler.yml"
-        with open(workflow_path, "r") as f:
-            workflow_content = f.read()
+def test_heredoc_issue_body_validation(self):
+    """Test proper heredoc syntax and variable expansion."""
+    # Test heredoc structure for issue creation
+    expected_heredoc_markers = [
+        "ISSUE_BODY=$(cat <<EOF",
+        "EOF",
+        "gh issue create",
+        '--title "CI/CD Failure: $WORKFLOW_NAME"',
+        '--body "$ISSUE_BODY"',
+        '--label "ci-failure,${{ github.event_name }}"',
+    ]
 
-        for marker in expected_heredoc_markers:
-            assert marker in workflow_content, (
-                f"Required heredoc marker not found: {marker}"
-            )
+    workflow_path = ".github/workflows/ci-failure-handler.yml"
+    with open(workflow_path, "r") as f:
+        workflow_content = f.read()
 
-        # Test variable expansion in heredoc
-        expected_variables = [
-            "$WORKFLOW_NAME",
-            "$RUN_URL",
-            "$GITHUB_REF_NAME",
-            "$GITHUB_SHA",
-            "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-        ]
+    for marker in expected_heredoc_markers:
+        assert marker in workflow_content, (
+            f"Required heredoc marker not found: {marker}"
+        )
 
-        for var in expected_variables:
-            assert var in workflow_content, f"Expected variable not found: {var}"
+    # Test variable expansion in heredoc
+    expected_variables = [
+        "$WORKFLOW_NAME",
+        "$RUN_URL",
+        "$GITHUB_REF_NAME",
+        "$GITHUB_SHA",
+        "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    ]
+
+    for var in expected_variables:
+        assert var in workflow_content, f"Expected variable not found: {var}"
 
 
 if __name__ == "__main__":
