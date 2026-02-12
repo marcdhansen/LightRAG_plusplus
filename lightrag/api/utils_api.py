@@ -97,6 +97,7 @@ def get_combined_auth_dependency(api_key: str | None = None):
     api_key_configured = bool(api_key)
 
     # Create security dependencies with proper descriptions for Swagger UI
+    # Use auto_error=False to allow custom error handling, but manually extract token
     oauth2_scheme = OAuth2PasswordBearer(
         tokenUrl="login", auto_error=False, description="OAuth2 Password Authentication"
     )
@@ -116,7 +117,14 @@ def get_combined_auth_dependency(api_key: str | None = None):
         if api_key_header is None
         else Security(api_key_header),
     ):
-        # 1. Check if path is in whitelist
+        # 1. Manual Authorization header extraction for OAuth2PasswordBearer with auto_error=False
+        if not token:
+            # Extract token manually from Authorization header if OAuth2PasswordBearer returns None
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header[len("Bearer ") :]  # Extract token after "Bearer "
+
+        # 2. Check if path is in whitelist
         path = request.url.path
         for pattern, is_prefix in whitelist_patterns:
             if (is_prefix and path.startswith(pattern)) or (
@@ -124,7 +132,7 @@ def get_combined_auth_dependency(api_key: str | None = None):
             ):
                 return  # Whitelist path, allow access
 
-        # 2. Validate token first if provided in the request (Ensure 401 error if token is invalid)
+        # 3. Validate token first if provided in the request (Ensure 401 error if token is invalid)
         if token:
             try:
                 token_info = auth_handler.validate_token(token)

@@ -77,5 +77,65 @@ Fix critical CI/CD pipeline failures blocking all development workflow
 - Updated workflow permissions to include issue creation
 - Moved problematic test file to `.todo` for proper implementation
 
-**Status**: ✅ **PHASE 1 SUCCESSFULLY COMPLETED**
-**Next Step**: Continue to Phase 2: Core Functionality Stabilization
+---
+
+# 🚀 Phase 2: Core Functionality Stabilization
+
+## 🎯 Objective
+Address remaining P0 issues that impact core user-facing functionality
+
+## 📋 Target Issues (High Priority P0)
+
+### 1. lightrag-hv9d: Authentication token issues ✅ RESOLVED
+- **Error**: 'Invalid token / No credentials provided' even when Authorization header is present
+- **Impact**: API authentication completely broken
+- **Root Cause**: OAuth2PasswordBearer with auto_error=False was returning None for valid headers
+- **Solution**: Added manual Authorization header extraction fallback
+- **Result**: Authorization headers now properly parsed and processed
+
+### 2. lightrag-pg29: Embedding function timeout errors
+- **Error**: TimeoutError: Embedding func Worker execution timeout after 60s
+- **Impact**: Document ingestion pipeline blocked
+- **Likely Root Cause**: Default timeout too low for large documents
+
+### 3. lightrag-3tom: Web UI node display issues
+- **Error**: Web UI nodes not displaying correctly
+- **Impact**: User interface broken for graph visualization
+- **Likely Root Cause**: Frontend rendering or API data format issue
+
+## 🛠️ Implementation Strategy
+
+### Phase 2.1: Authentication System Recovery (Current Session)
+**Priority**: CRITICAL - API access completely broken
+
+1. **Investigate lightrag-hv9d** (Authentication)
+   - Examine FastAPI middleware and token parsing logic
+   - Check Authorization header extraction
+   - Test with various authentication methods
+   - Fix token validation flow
+
+### Phase 2.2: Performance & Stability (Next Sessions)
+2. **Address lightrag-pg29** (Embedding Timeouts)
+   - Increase timeout limits or optimize embedding workers
+   - Add retry mechanisms for failed embeddings
+   - Implement progress tracking for long operations
+
+3. **Fix lightrag-3tom** (Web UI Display)
+   - Investigate node rendering in frontend
+   - Check API response format consistency
+   - Test graph visualization components
+
+## 🎯 Success Criteria
+- [ ] API authentication works correctly with Authorization headers
+- [ ] Embedding timeouts resolved for document ingestion
+- [ ] Web UI displays nodes correctly
+- [ ] All core functionality operational
+
+## 📊 Dependencies
+- Access to API authentication code
+- Ability to test with various authentication methods
+- Frontend debugging capabilities for UI issues
+
+---
+**Status**: 🔥 **PHASE 2 IN PROGRESS**  
+**Current Focus**: Authentication system recovery (lightrag-hv9d)
