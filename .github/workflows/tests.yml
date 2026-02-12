@@ -10,6 +10,12 @@ jobs:
   offline-tests:
     name: Offline Tests
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      issues: write
+      metadata: read
+      packages: read
 
     # Add timeout for the entire job
     timeout-minutes: 30
@@ -32,12 +38,32 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Verify Python Setup
-      uses: step-security/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_on: error
-        command: python --version && python -c "import sys; print(f'Python {sys.version} setup successful')"
+      run: |
+        echo "🐍 Verifying Python setup with native retry..."
+        MAX_ATTEMPTS=3
+        TIMEOUT=5
+        ATTEMPT=1
+        
+        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+          echo "📍 Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+          
+          if timeout $TIMEOUT python --version && \
+             timeout $TIMEOUT python -c "import sys; print(f'Python {sys.version} setup successful')"; then
+            echo "✅ Python setup verification successful on attempt $ATTEMPT"
+            exit 0
+          fi
+          
+          echo "⚠️ Python setup verification failed on attempt $ATTEMPT"
+          ATTEMPT=$((ATTEMPT + 1))
+          
+          if [ $ATTEMPT -le $MAX_ATTEMPTS ]; then
+            echo "🔄 Waiting 2 seconds before retry..."
+            sleep 2
+          fi
+        done
+        
+        echo "❌ Python setup verification failed after $MAX_ATTEMPTS attempts"
+        exit 1
 
     - name: Cache pip packages
       uses: actions/cache@v5
