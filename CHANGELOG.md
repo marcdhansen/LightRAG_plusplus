@@ -2,6 +2,10 @@
 
 ## [2026-02-12] - Marc Hansen
 
+Add reflection data for epic completion session
+
+## [2026-02-12] - Marc Hansen
+
 Update beads issues after epic completion
 
 ## [2026-02-12] - Marc Hansen
