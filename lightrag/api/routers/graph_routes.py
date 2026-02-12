@@ -140,7 +140,7 @@ def create_graph_routes(rag, api_key: str | None = None):
         ),
     ):
         """
-        Search labels with fuzzy matching
+        Search labels with fuzzy matching and enhanced input validation
 
         Args:
             q (str): Search query string
@@ -149,8 +149,29 @@ def create_graph_routes(rag, api_key: str | None = None):
         Returns:
             List[str]: List of matching labels sorted by relevance
         """
+        # Input validation
+        if q and len(q.strip()) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Search query cannot be empty or only whitespace",
+            )
+
+        if limit and (limit < 1 or limit > 100):
+            raise HTTPException(
+                status_code=400, detail="Search limit must be between 1 and 100"
+            )
+
         try:
-            return await rag.chunk_entity_relation_graph.search_labels(q, limit)
+            result = await rag.chunk_entity_relation_graph.search_labels(q, limit)
+
+            # Ensure result is valid before returning
+            if not isinstance(result, list):
+                logger.error(f"Unexpected search result type: {type(result)}")
+                raise HTTPException(
+                    status_code=500, detail="Internal error during label search"
+                )
+
+            return result
         except Exception as e:
             logger.error(f"Error searching labels with query '{q}': {str(e)}")
             logger.error(traceback.format_exc())
@@ -184,11 +205,36 @@ def create_graph_routes(rag, api_key: str | None = None):
                 f"get_knowledge_graph called with label: '{label}' (length: {len(label)}, repr: {repr(label)})"
             )
 
-            return await rag.get_knowledge_graph(
+            # Validate input parameters
+            if label and len(label.strip()) == 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Graph label cannot be empty or only whitespace",
+                )
+
+            if max_depth and (max_depth < 1 or max_depth > 10):
+                raise HTTPException(
+                    status_code=400, detail="Graph depth must be between 1 and 10"
+                )
+
+            if max_nodes and (max_nodes < 1 or max_nodes > 1000):
+                raise HTTPException(
+                    status_code=400, detail="Graph nodes must be between 1 and 1000"
+                )
+
+            graph_result = await rag.get_knowledge_graph(
                 node_label=label,
                 max_depth=max_depth,
                 max_nodes=max_nodes,
             )
+
+            # Ensure response has proper structure
+            if not graph_result or not isinstance(graph_result, dict):
+                raise HTTPException(
+                    status_code=500, detail="Failed to retrieve knowledge graph data"
+                )
+
+            return graph_result
         except Exception as e:
             logger.error(f"Error getting knowledge graph for label '{label}': {str(e)}")
             logger.error(traceback.format_exc())
