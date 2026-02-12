@@ -1,6 +1,10 @@
 # Changelog
 ## [2026-02-12] - $AUTHOR
 
+chore: close lightrag-nz2b - CI/CD failure handler fixed
+
+## [2026-02-12] - $AUTHOR
+
 chore: update beads - add CI/CD failure handler issue (lightrag-nz2b)
 
 
