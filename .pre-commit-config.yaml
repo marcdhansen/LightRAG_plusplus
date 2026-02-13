@@ -102,9 +102,8 @@ repos:
         stages: [pre-commit]
       - id: sop-compliance-check
         name: 🔍 SOP Compliance Check
-        entry: python3
-        args: [/Users/marchansen/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py, --finalize, --turbo]
-        language: system
+        entry: .agent/scripts/sop-compliance-wrapper.sh
+        language: script
         files: ''
         pass_filenames: false
         always_run: true
