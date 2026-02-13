@@ -103,6 +103,87 @@ show_summary() {
     fi
 }
 
+# TDD Validation - Check for tests before allowing session end
+validate_tdd_for_branch() {
+    echo ""
+    echo "🔍 TDD Validation - Checking for test files..."
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    
+    # Skip if on main branch
+    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+        echo "ℹ️  On main branch - TDD validation skipped"
+        return 0
+    fi
+    
+    # Get list of Python files changed in this branch (vs main)
+    # Use command substitution to avoid process substitution issues
+    CHANGED_PY_FILES=$(git diff main --name-only --diff-filter=ACM 2>/dev/null | grep '\.py$' | grep '^lightrag/')
+    
+    if [ -z "$CHANGED_PY_FILES" ]; then
+        echo "ℹ️  No new Python files in lightrag/ - TDD validation passed"
+        return 0
+    fi
+    
+    # Convert to array
+    IFS=$'\n' read -d '' -r -a CHANGED_PY_FILES_ARRAY <<< "$CHANGED_PY_FILES" || true
+    unset IFS
+    
+    echo "📁 Changed Python files in branch:"
+    for f in "${CHANGED_PY_FILES_ARRAY[@]}"; do
+        echo "  • $f"
+    done
+    echo ""
+    
+    # Check each changed file for corresponding test
+    MISSING_TESTS=()
+    
+    for py_file in "${CHANGED_PY_FILES_ARRAY[@]}"; do
+        # Get the base module name (e.g., lightrag/ace/curator.py -> curator)
+        module_name=$(basename "$py_file" .py)
+        
+        # Check for test in tests/ directory
+        # Try different naming conventions
+        expected_test=""
+        
+        # Convention 1: tests/test_<module>.py (e.g., test_curator.py)
+        if [ -f "tests/test_${module_name}.py" ]; then
+            expected_test="tests/test_${module_name}.py"
+        fi
+        
+        # Convention 2: tests/test_<module>.py (e.g., test_lightrag_ace_curator.py for lightrag/ace/curator.py)
+        alt_test="tests/test_${py_file}"
+        if [ -f "$alt_test" ]; then
+            expected_test="$alt_test"
+        fi
+        
+        if [ -z "$expected_test" ] || [ ! -f "$expected_test" ]; then
+            MISSING_TESTS+=("$py_file (expected: tests/test_${module_name}.py)")
+        fi
+    done
+    
+    # Report results
+    if [ ${#MISSING_TESTS[@]} -gt 0 ]; then
+        echo "❌ TDD VALIDATION FAILED"
+        echo ""
+        echo "The following implementation files are missing corresponding tests:"
+        for item in "${MISSING_TESTS[@]}"; do
+            echo "  • $item"
+        done
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create tests for the files above (e.g., tests/test_<module>.py)"
+        echo "   2. Or move implementation to existing test structure"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Fix TDD compliance before ending session"
+        return 1
+    else
+        echo "✅ TDD Validation PASSED - All implementation files have corresponding tests"
+        return 0
+    fi
+}
+
 # Function to show usage
 usage() {
     echo "Usage: $0 [--lock-file <path>] [--silent] [--skip-pr]"
@@ -154,6 +235,14 @@ done
 # Main execution
 echo "🏁 Agent Session End"
 echo "===================="
+
+# Run TDD validation before anything else (validates entire branch)
+if ! validate_tdd_for_branch; then
+    echo ""
+    echo "🚫 SESSION END BLOCKED - TDD validation failed"
+    echo "   Fix the issues above before ending your session"
+    exit 1
+fi
 
 # Find lock file
 if [ -n "$EXPLICIT_LOCK_FILE" ]; then
@@ -242,92 +331,4 @@ if [ "$SKIP_PR" = false ]; then
     else
         echo "✅ On main branch - no PR needed"
     fi
-fi
-
-# TDD Validation - Check for tests before allowing session end
-validate_tdd_for_branch() {
-    echo ""
-    echo "🔍 TDD Validation - Checking for test files..."
-    
-    # Get current branch
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-    
-    # Skip if on main branch
-    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-        echo "ℹ️  On main branch - TDD validation skipped"
-        return 0
-    fi
-    
-    # Get list of Python files changed in this branch (vs main)
-    # Use while read to support macOS
-    CHANGED_PY_FILES_ARRAY=()
-    while IFS= read -r line; do
-        CHANGED_PY_FILES_ARRAY+=("$line")
-    done < <(git diff main --name-only --diff-filter=ACM 2>/dev/null | grep '\.py$' | grep '^lightrag/' || true)
-    
-    if [ ${#CHANGED_PY_FILES_ARRAY[@]} -eq 0 ]; then
-        echo "ℹ️  No new Python files in lightrag/ - TDD validation passed"
-        return 0
-    fi
-    
-    echo "📁 Changed Python files in branch:"
-    for f in "${CHANGED_PY_FILES_ARRAY[@]}"; do
-        echo "  • $f"
-    done
-    echo ""
-    
-    # Check each changed file for corresponding test
-    MISSING_TESTS=()
-    
-    for py_file in "${CHANGED_PY_FILES_ARRAY[@]}"; do
-        # Get the base module name (e.g., lightrag/ace/curator.py -> curator)
-        module_name=$(basename "$py_file" .py)
-        
-        # Check for test in tests/ directory
-        # Try different naming conventions
-        expected_test=""
-        
-        # Convention 1: tests/test_<module>.py (e.g., test_curator.py)
-        if [ -f "tests/test_${module_name}.py" ]; then
-            expected_test="tests/test_${module_name}.py"
-        fi
-        
-        # Convention 2: tests/test_<module>.py (e.g., test_lightrag_ace_curator.py for lightrag/ace/curator.py)
-        alt_test="tests/test_${py_file}"
-        if [ -f "$alt_test" ]; then
-            expected_test="$alt_test"
-        fi
-        
-        if [ -z "$expected_test" ] || [ ! -f "$expected_test" ]; then
-            MISSING_TESTS+=("$py_file (expected: tests/test_${module_name}.py)")
-        fi
-    done
-    
-    # Report results
-    if [ ${#MISSING_TESTS[@]} -gt 0 ]; then
-        echo "❌ TDD VALIDATION FAILED"
-        echo ""
-        echo "The following implementation files are missing corresponding tests:"
-        for item in "${MISSING_TESTS[@]}"; do
-            echo "  • $item"
-        done
-        echo ""
-        echo "🛠️  SOLUTION:"
-        echo "   1. Create tests for the files above (e.g., tests/test_<module>.py)"
-        echo "   2. Or move implementation to existing test structure"
-        echo ""
-        echo "⚠️  Session end BLOCKED - Fix TDD compliance before ending session"
-        return 1
-    else
-        echo "✅ TDD Validation PASSED - All implementation files have corresponding tests"
-        return 0
-    fi
-}
-
-# Run TDD validation after PR lifecycle
-if ! validate_tdd_for_branch; then
-    echo ""
-    echo "🚫 SESSION END BLOCKED - TDD validation failed"
-    echo "   Fix the issues above before ending your session"
-    exit 1
 fi
