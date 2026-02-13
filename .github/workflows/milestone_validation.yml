@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-milestone
     outputs:
-      cache-key: ${{ steps.set-cache-key.outputs.cache-key }}
+      cache-key: ${{ steps.cache.outputs.cache-key }}
     steps:
       - uses: actions/checkout@v6
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: Run TDD Gate Validation
         run: |
-          python .agent/scripts/tdd_gate_validator.py --verbose
+          python .agent/scripts/tdd_gate_validator.py
         continue-on-error: true
 
       - name: Upload TDD Gate Results
