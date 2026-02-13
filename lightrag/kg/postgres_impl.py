@@ -40,6 +40,7 @@ from ..namespace import NameSpace, is_namespace
 from ..utils import logger
 
 from .postgres.doc_status import PGDocStatusStorage
+from .postgres.graph_storage import PGGraphStorage, PGGraphQueryException
 
 if not pm.is_installed("asyncpg"):
     pm.install("asyncpg")
