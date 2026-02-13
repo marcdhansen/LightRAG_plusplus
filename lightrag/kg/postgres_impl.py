@@ -39,6 +39,8 @@ from ..kg.shared_storage import get_data_init_lock
 from ..namespace import NameSpace, is_namespace
 from ..utils import logger
 
+from .postgres.doc_status import PGDocStatusStorage
+
 if not pm.is_installed("asyncpg"):
     pm.install("asyncpg")
 if not pm.is_installed("pgvector"):
