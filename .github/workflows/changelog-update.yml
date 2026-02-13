@@ -78,10 +78,9 @@ jobs:
           if [ "$CORRUPTED_COUNT" -gt 0 ]; then
             echo "WARNING: Found $CORRUPTED_COUNT corrupted entries in CHANGELOG.md"
             echo "valid=false" >> $GITHUB_OUTPUT
-            exit 1
+          else
+            echo "valid=true" >> $GITHUB_OUTPUT
           fi
-
-          echo "valid=true" >> $GITHUB_OUTPUT
 
       - name: Repair CHANGELOG.md if corrupted
         if: steps.validate-changelog.outputs.valid == 'false'

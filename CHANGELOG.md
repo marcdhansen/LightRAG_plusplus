@@ -1,8 +1,4 @@
 # Changelog
-## [] - 
-
-
-
 ## [2026-02-13] - Marc Hansen
 
 fix: repair CHANGELOG.md and improve changelog workflow resilience
