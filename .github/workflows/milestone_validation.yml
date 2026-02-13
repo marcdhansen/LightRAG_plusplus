@@ -97,7 +97,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ needs.setup-environment.outputs.cache-key }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/.github/workflows/milestone_validation.yml') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -188,7 +190,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ needs.setup-environment.outputs.cache-key }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/.github/workflows/milestone_validation.yml') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -224,7 +228,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ needs.setup-environment.outputs.cache-key }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/.github/workflows/milestone_validation.yml') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Download test artifacts
         uses: actions/download-artifact@v7
