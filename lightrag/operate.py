@@ -46,6 +46,8 @@ from lightrag.highlight import generate_citations_from_highlights
 from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
 from lightrag.prompt import PROMPTS
+from lightrag.query_mode import detect_query_mode
+from lightrag.chunking import chunking_by_token_size
 from lightrag.utils import (
     CacheData,
     Tokenizer,
@@ -142,91 +144,11 @@ async def _generate_citations_with_auto_highlight(
     return generate_reference_list_from_chunks(truncated_chunks)
 
 
-def _truncate_entity_identifier(
-    identifier: str, limit: int, chunk_key: str, identifier_role: str
-) -> str:
-    """Truncate entity identifiers that exceed the configured length limit."""
+# Re-export chunking functions from chunking module for backward compatibility
+from lightrag.chunking import chunking_by_token_size, truncate_entity_identifier
 
-    if len(identifier) <= limit:
-        return identifier
-
-    display_value = identifier[:limit]
-    preview = identifier[:20]  # Show first 20 characters as preview
-    logger.warning(
-        "%s: %s len %d > %d chars (Name: '%s...')",
-        chunk_key,
-        identifier_role,
-        len(identifier),
-        limit,
-        preview,
-    )
-    return display_value
-
-
-def chunking_by_token_size(
-    tokenizer: Tokenizer,
-    content: str,
-    split_by_character: str | None = None,
-    split_by_character_only: bool = False,
-    chunk_overlap_token_size: int = 100,
-    chunk_token_size: int = 1200,
-) -> list[dict[str, Any]]:
-    tokens = tokenizer.encode(content)
-    results: list[dict[str, Any]] = []
-    if split_by_character:
-        raw_chunks = content.split(split_by_character)
-        new_chunks = []
-        if split_by_character_only:
-            for chunk in raw_chunks:
-                _tokens = tokenizer.encode(chunk)
-                if len(_tokens) > chunk_token_size:
-                    logger.warning(
-                        "Chunk split_by_character exceeds token limit: len=%d limit=%d",
-                        len(_tokens),
-                        chunk_token_size,
-                    )
-                    raise ChunkTokenLimitExceededError(
-                        chunk_tokens=len(_tokens),
-                        chunk_token_limit=chunk_token_size,
-                        chunk_preview=chunk[:120],
-                    )
-                new_chunks.append((len(_tokens), chunk))
-        else:
-            for chunk in raw_chunks:
-                _tokens = tokenizer.encode(chunk)
-                if len(_tokens) > chunk_token_size:
-                    for start in range(
-                        0, len(_tokens), chunk_token_size - chunk_overlap_token_size
-                    ):
-                        chunk_content = tokenizer.decode(
-                            _tokens[start : start + chunk_token_size]
-                        )
-                        new_chunks.append(
-                            (min(chunk_token_size, len(_tokens) - start), chunk_content)
-                        )
-                else:
-                    new_chunks.append((len(_tokens), chunk))
-        for index, (_len, chunk) in enumerate(new_chunks):
-            results.append(
-                {
-                    "tokens": _len,
-                    "content": chunk.strip(),
-                    "chunk_order_index": index,
-                }
-            )
-    else:
-        for index, start in enumerate(
-            range(0, len(tokens), chunk_token_size - chunk_overlap_token_size)
-        ):
-            chunk_content = tokenizer.decode(tokens[start : start + chunk_token_size])
-            results.append(
-                {
-                    "tokens": min(chunk_token_size, len(tokens) - start),
-                    "content": chunk_content.strip(),
-                    "chunk_order_index": index,
-                }
-            )
-    return results
+# Alias for backward compatibility
+_truncate_entity_identifier = truncate_entity_identifier
 
 
 async def _handle_entity_relation_summary(
@@ -3615,113 +3537,9 @@ async def get_keywords_from_query(
     return hl_keywords, ll_keywords
 
 
-def detect_query_mode(query: str) -> str:
-    """
-    Automatically detect the optimal query mode based on query characteristics.
-
-    Uses simple heuristics to analyze the query and select the best retrieval mode:
-    - "naive": Short, vague queries
-    - "local": Queries with specific entities, names, numbers
-    - "global": Conceptual queries about relationships, causes, comparisons
-    - "hybrid": Complex queries that need both local and global
-    - "mix": Technical queries that benefit from KG + vector combination
-
-    Args:
-        query: The user's query text
-
-    Returns:
-        The detected optimal mode: "naive", "local", "global", "hybrid", or "mix"
-    """
-    import re
-
-    query_lower = query.lower().strip()
-    query_len = len(query)
-
-    if query_len == 0 or not query.strip():
-        return "hybrid"
-
-    CONCEPTUAL_PATTERNS = [
-        "how to",
-        "how does",
-        "how did",
-        "why does",
-        "why is",
-        "what is",
-        "what are",
-        "what does",
-        "what was",
-        "what will",
-        "define",
-        "meaning of",
-        "description of",
-        "explain",
-        "describe",
-        "tell me about",
-        "give me information about",
-        "explain the concept",
-        "compare",
-        "difference between",
-        "what are the benefits",
-        "what are the advantages",
-        "what causes",
-        "relationship between",
-        "connection between",
-    ]
-
-    TECHNICAL_PATTERNS = [
-        "function",
-        "method",
-        "class",
-        "api",
-        "code",
-        "programming",
-        "implement",
-        "algorithm",
-        "error",
-        "bug",
-        "debug",
-        "syntax",
-        "parameter",
-        "return",
-        "import",
-        "module",
-        "library",
-        "package",
-    ]
-
-    has_concepts = any(p in query_lower for p in CONCEPTUAL_PATTERNS)
-    has_technical = any(p in query_lower for p in TECHNICAL_PATTERNS)
-
-    has_numbers = bool(re.search(r"\b\d+\b", query))
-    has_email = bool(re.search(r"\b\w+@\w+\.\w+\b", query))
-    has_date = bool(re.search(r"\b\d{4}-\d{2}-\d{2}\b", query))
-
-    name_pattern = r"\b[A-Z][a-z]+\s+[A-Z][a-z]+\b"
-    has_name = bool(re.search(name_pattern, query))
-
-    if query_len < 20:
-        if has_concepts:
-            return "global"
-        if has_technical:
-            return "mix"
-        return "naive"
-
-    if has_technical:
-        return "mix"
-
-    if has_concepts and not has_numbers and not has_name:
-        return "global"
-
-    if has_name or has_numbers or has_email or has_date:
-        return "local"
-
-    if has_concepts:
-        return "hybrid"
-
-    if query_len > 100:
-        return "hybrid"
-
-    return "hybrid"
+# Re-export detect_query_mode from query_mode for backward compatibility
+# The function has been moved to lightrag.query_mode module
+from lightrag.query_mode import detect_query_mode
 
 
 async def extract_keywords_only(
