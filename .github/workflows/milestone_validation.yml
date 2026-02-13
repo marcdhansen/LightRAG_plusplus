@@ -74,25 +74,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Set cache key output
+        run: echo "cache-key=${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/.github/workflows/milestone_validation.yml') }}-v2" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[test,api]"
-
-      - name: Run TDD Gate Validation
-        run: |
-          python .agent/scripts/tdd_gate_validator.py
-        continue-on-error: true
-
-      - name: Upload TDD Gate Results
-        uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: tdd-gate-results
-          path: |
-            tdd_gate_results.json
-            coverage.xml
-          retention-days: 7
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -169,6 +157,19 @@ jobs:
             coverage.xml
             coverage.json
           retention-days: 30
+          if-no-files-found: warn
+
+      - name: Run TDD Gate Validation
+        run: |
+          python .agent/scripts/tdd_gate_validator.py --ci-mode
+
+      - name: Upload TDD Gate Results
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: tdd-gate-results
+          path: tdd_gate_results.json
+          retention-days: 7
           if-no-files-found: warn
 
   integration-tests:

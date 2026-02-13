@@ -456,6 +456,21 @@ def is_ci_environment():
     )
 
 
+def write_results_json(validation_result: dict, output_file: Path):
+    """Write validation results to JSON file for artifact upload"""
+    output_data = {
+        "timestamp": datetime.now().isoformat(),
+        "passed": validation_result.get("valid", False),
+        "valid": validation_result.get("valid", False),
+        "bypass_used": validation_result.get("bypass_used", False),
+        "errors": validation_result.get("errors", []),
+        "warnings": validation_result.get("warnings", []),
+        "metrics": validation_result.get("metrics", {}),
+        "task_info": validation_result.get("task_info", {}),
+    }
+    output_file.write_text(json.dumps(output_data, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(description="TDD Gate Validator")
     parser.add_argument("--bypass-justification", help="Emergency bypass justification")
@@ -475,6 +490,11 @@ def main():
     validator = TDDValidator(project_root, args.bypass_justification)
 
     result = validator.validate_task_tdd_readiness(args.task_id)
+
+    output_file = project_root / "tdd_gate_results.json"
+    write_results_json(result, output_file)
+    print(f"📄 TDD results written to: {output_file}")
+
     validator.print_results(result)
 
     if not result["valid"]:
