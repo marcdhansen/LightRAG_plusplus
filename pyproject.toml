@@ -183,10 +183,10 @@ lrag-plus-server = "lightrag.api.lightrag_server:main"
 lrag-plus-gunicorn = "lightrag.api.run_with_gunicorn:main"
 
 [project.urls]
-Homepage = "https://github.com/marcdhansen/LightRAG++"
-Documentation = "https://github.com/marcdhansen/LightRAG++"
-Repository = "https://github.com/marcdhansen/LightRAG++"
-"Bug Tracker" = "https://github.com/marcdhansen/LightRAG++/issues"
+Homepage = "https://github.com/marcdhansen/LightRAG_plusplus"
+Documentation = "https://github.com/marcdhansen/LightRAG_plusplus"
+Repository = "https://github.com/marcdhansen/LightRAG_plusplus"
+"Bug Tracker" = "https://github.com/marcdhansen/LightRAG_plusplus/issues"
 
 [tool.setuptools.packages.find]
 include = ["lightrag*"]

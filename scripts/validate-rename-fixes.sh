@@ -47,10 +47,10 @@ with open('pyproject.toml', 'rb') as f:
     print(data['project']['urls']['Homepage'])
 ")
 
-if [[ "$HOMEPAGE_URL" == "https://github.com/marcdhansen/LightRAG++" ]]; then
+if [[ "$HOMEPAGE_URL" == "https://github.com/marcdhansen/LightRAG_plusplus" ]]; then
     echo "✅ Homepage URL correctly updated"
 else
-    echo "❌ Homepage URL is '$HOMEPAGE_URL' (expected 'https://github.com/marcdhansen/LightRAG++')"
+    echo "❌ Homepage URL is '$HOMEPAGE_URL' (expected 'https://github.com/marcdhansen/LightRAG_plusplus')"
     exit 1
 fi
 

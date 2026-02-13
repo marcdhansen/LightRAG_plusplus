@@ -221,7 +221,7 @@ git push origin agent/ci-cd-resolution/task-ci-p0-fixes
 4. **Communicate Changes** to user community
 
 ### **📞 Contact & Support**
-- **Repository**: `https://github.com/marcdhansen/LightRAG++`
+- **Repository**: `https://github.com/marcdhansen/LightRAG_plusplus`
 - **Issues**: Create with `ci-cd` label for any problems
 - **Documentation**: See `MIGRATING_TO_LIGHTRAG_PLUSPLUS.md`
 - **Validation**: Run validation scripts for verification

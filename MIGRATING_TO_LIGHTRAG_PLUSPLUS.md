@@ -73,7 +73,7 @@ lrag-plus-gunicorn
 ## 📚 Documentation
 
 - **Old Repository**: https://github.com/marcdhansen/LightRAG_gemini
-- **New Repository**: https://github.com/marcdhansen/LightRAG++
+- **New Repository**: https://github.com/marcdhansen/LightRAG_plusplus
 
 ## 🔄 Migration Steps
 
@@ -150,7 +150,7 @@ pip install --force-reinstall lightrag-plusplus
 ### Documentation Links
 Update any bookmarks to the new repository:
 - Old: `https://github.com/marcdhansen/LightRAG_gemini`
-- New: `https://github.com/marcdhansen/LightRAG++`
+- New: `https://github.com/marcdhansen/LightRAG_plusplus`
 
 ## 🆓 Version Compatibility
 
@@ -161,7 +161,7 @@ Update any bookmarks to the new repository:
 ## 📞 Support
 
 For migration issues:
-1. Check the [Issues](https://github.com/marcdhansen/LightRAG++/issues) page
+1. Check the [Issues](https://github.com/marcdhansen/LightRAG_plusplus/issues) page
 2. Open a new issue with the `migration` label
 3. Join the [Discord Community](https://discord.gg/yF2MmDJyGJ)
 
