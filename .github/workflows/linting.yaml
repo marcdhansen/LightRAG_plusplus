@@ -151,7 +151,7 @@ jobs:
                 # Verify critical hook dependencies
                 echo "🔍 Verifying hook dependencies..."
                 command -v uv >/dev/null 2>&1 && echo "✅ uv available" || echo "⚠️ uv not available"
-                python -c "import lightrag" 2>/dev/null && echo "✅ lightrag importable" || echo "⚠️ lightrag not importable"
+                python -c "import lightrag_plusplus" 2>/dev/null && echo "✅ lightrag_plusplus importable" || echo "⚠️ lightrag_plusplus not importable"
 
                 # Run hooks individually with better error handling
                 echo "🧪 Running pre-commit hooks individually for better debugging..."

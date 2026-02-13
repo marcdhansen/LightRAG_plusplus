@@ -194,7 +194,7 @@ jobs:
                 fi
 
                 # Project installation
-                echo "Project installation: $(python -c 'import lightrag; print(lightrag.__version__)' 2>/dev/null || echo 'Not installed')"
+                echo "Project installation: $(python -c 'import lightrag_plusplus; print(lightrag_plusplus.__version__)' 2>/dev/null || echo 'Not installed')"
 
                 echo "✅ Environment verification complete"
               shell: bash

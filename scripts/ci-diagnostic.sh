@@ -174,7 +174,7 @@ run_test "Ruff can check configuration" "ruff check --help | head -5"
 run_test "Ruff format is available" "ruff format --help | head -5"
 
 # Test Python package structure
-run_test "LightRAG package can be imported" "python -c 'import lightrag; print(lightrag.__version__)'"
+run_test "LightRAG++ package can be imported" "python -c 'import lightrag_plusplus; print(lightrag_plusplus.__version__)'"
 
 # Test TDD artifact detection
 if [[ -n "$(git branch --show-current 2>/dev/null | grep -E '^(feature|agent|task)/')" ]]; then

@@ -147,7 +147,7 @@ services:
   lightrag-main:
     extends:
       file: docker-compose.yml
-      service: lightrag  # Reference existing service
+      service: lightrag++  # Reference existing service
     container_name: lightrag-main
     networks:
       - lightrag-main  # Separate network for isolation

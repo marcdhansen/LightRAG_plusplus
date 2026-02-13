@@ -1,6 +1,6 @@
-# 🤖 LightRAG Project AGENTS.md
+# 🤖 LightRAG++ Project AGENTS.md
 
-Welcome to the LightRAG project. This repository uses the **OpenViking** enhanced agent system, which has replaced the legacy Standard Mission Protocol (SMP).
+Welcome to the LightRAG++ project. This repository uses the **OpenViking** enhanced agent system, which has replaced the legacy Standard Mission Protocol (SMP).
 
 ## 🚀 Getting Started
 
@@ -42,7 +42,7 @@ This project uses the **OpenViking** enhanced agent system:
 ### OpenViking (Enhanced System)
 - **Location**: AI-powered agent with dynamic skills
 - **Use Case**: Token efficiency, conversation memory, faster responses
-- **Integration**: LightRAG on port :9622
+- **Integration**: LightRAG++ on port :9622
 - **Documentation**: `.agent/skills/openviking/SKILL.md`
 - **API Endpoint**: http://localhost:8000
 
