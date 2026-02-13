@@ -103,6 +103,56 @@ show_summary() {
     fi
 }
 
+# Feature Branch Validation - Block sessions on protected branches
+validate_feature_branch() {
+    echo ""
+    echo "🔒 Feature Branch Validation..."
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    
+    if [ -z "$CURRENT_BRANCH" ]; then
+        echo "⚠️  Not in a git repository - skipping branch validation"
+        return 0
+    fi
+    
+    # Block if on main or master
+    if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+        echo "❌ FEATURE BRANCH VALIDATION FAILED"
+        echo ""
+        echo "You are on the protected branch: $CURRENT_BRANCH"
+        echo "Sessions must end on a feature branch, not main/master."
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create a feature branch: git checkout -b agent-harness/<issue-id>-<desc>"
+        echo "   2. Move your changes to that branch"
+        echo "   3. Then run agent-end.sh again"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Must be on a feature branch"
+        return 1
+    fi
+    
+    # Check if branch follows agent-harness/* pattern
+    if [[ ! "$CURRENT_BRANCH" =~ ^agent-harness/ ]]; then
+        echo "❌ FEATURE BRANCH VALIDATION FAILED"
+        echo ""
+        echo "Current branch: $CURRENT_BRANCH"
+        echo "Branch must follow the pattern: agent-harness/<issue-id>-<description>"
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create a properly named feature branch:"
+        echo "      git checkout -b agent-harness/<issue-id>-<short-description>"
+        echo "   2. Move your changes to that branch"
+        echo "   3. Then run agent-end.sh again"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Branch name must match agent-harness/* pattern"
+        return 1
+    fi
+    
+    echo "✅ Feature branch validated: $CURRENT_BRANCH"
+    return 0
+}
+
 # TDD Validation - Check for tests before allowing session end
 validate_tdd_for_branch() {
     echo ""
@@ -235,6 +285,14 @@ done
 # Main execution
 echo "🏁 Agent Session End"
 echo "===================="
+
+# Run feature branch validation first - must be on valid feature branch
+if ! validate_feature_branch; then
+    echo ""
+    echo "🚫 SESSION END BLOCKED - Not on a valid feature branch"
+    echo "   Fix the branch issue before ending your session"
+    exit 1
+fi
 
 # Run TDD validation before anything else (validates entire branch)
 if ! validate_tdd_for_branch; then
