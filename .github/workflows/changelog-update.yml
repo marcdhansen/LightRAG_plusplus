@@ -125,17 +125,20 @@ jobs:
             echo "" >> CHANGELOG.md
           fi
 
-          # Insert after the header line using awk (safer than sed)
-          # Using proper awk variable handling - double quotes for shell vars
-          awk "
-            NR == 2 { 
-              print \"## [\" DATE \"] - \" AUTHOR
-              print \"\"
+          # Insert after the header line (# Changelog) using awk pattern match
+          # More robust than fixed line number
+          awk '
+            /^# Changelog$/ && !inserted {
+              print
+              print "## [" DATE "] - " AUTHOR
+              print ""
               print MESSAGE
-              print \"\"
+              print ""
+              inserted=1
+              next
             }
             { print }
-          " CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+          ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
 
           echo "✅ CHANGELOG.md updated"
 
