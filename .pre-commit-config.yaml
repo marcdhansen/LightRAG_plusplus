@@ -43,6 +43,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: awk-lint-check
+        name: AWK Lint Check
+        description: Check AWK scripts in workflow files for portability issues
+        entry: ./scripts/hooks/awk-lint-check.sh
+        language: script
+        files: \.github/workflows/.*\.yml$
+        stages: [pre-commit]
       - id: webui-lint
         name: WebUI Linting
         entry: bash -c "scripts/hooks/webui-lint-check.sh"

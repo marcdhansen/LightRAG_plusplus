@@ -33,9 +33,35 @@ jobs:
             echo "date=$DATE"
           } >> $GITHUB_OUTPUT
 
+      - name: Install gawk for validation
+        run: sudo apt-get update && sudo apt-get install -y gawk
+
+      - name: Validate AWK Script Syntax
+        run: |
+          # Extract the awk script for validation
+          AWK_SCRIPT='
+          NR == 2 { 
+            print "## [" DATE "] - " AUTHOR
+            print ""
+            print MESSAGE
+            print ""
+          }
+          { print }
+          '
+          
+          # Test awk syntax with gawk --lint (will warn about portability issues)
+          echo "Running gawk --lint to check AWK portability..."
+          echo "$AWK_SCRIPT" | gawk --lint-no-ext -f - CHANGELOG.md 2>&1 || true
+          
+          # Also do a basic syntax check with awk -f /dev/null
+          echo "Running basic syntax check..."
+          echo "$AWK_SCRIPT" | awk -f - /dev/null 2>&1 && echo "✅ AWK syntax valid"
+
       - name: Update CHANGELOG.md
         run: |
           MESSAGE="${{ steps.commit-info.outputs.message }}"
+          DATE="${{ steps.commit-info.outputs.date }}"
+          AUTHOR="${{ steps.commit-info.outputs.author }}"
           DATE="${{ steps.commit-info.outputs.date }}"
           AUTHOR="${{ steps.commit-info.outputs.author }}"
 
@@ -47,15 +73,16 @@ jobs:
           fi
 
           # Insert after the header line using awk (safer than sed)
-          awk '
+          # Using proper awk variable handling - double quotes for shell vars
+          awk "
             NR == 2 { 
-              print "## ['$DATE'] - $AUTHOR"
-              print ""
-              print "'"$MESSAGE"'"
-              print ""
+              print \"## [\" DATE \"] - \" AUTHOR
+              print \"\"
+              print MESSAGE
+              print \"\"
             }
             { print }
-          ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+          " CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
 
           echo "✅ CHANGELOG.md updated"
 
