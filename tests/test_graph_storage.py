@@ -1216,6 +1216,7 @@ async def test_graph_undirected_property(storage):
         return False
 
 
+@pytest.mark.manual
 async def main():
     """Main function"""
     # Display program title
@@ -1265,7 +1266,11 @@ async def main():
         )
         ASCIIColors.white("6. All Tests")
 
-        choice = input("\nEnter your choice (1/2/3/4/5/6): ")
+        # CI-aware input handling
+        if sys.stdin.isatty():
+            choice = input("\nEnter your choice (1/2/3/4/5/6): ")
+        else:
+            choice = "6"  # Default to all tests in CI
 
         # Clean data before running tests
         if choice in ["1", "2", "3", "4", "5", "6"]:
