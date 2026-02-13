@@ -1,64 +1,20 @@
 # Changelog
-## [] - 
 
+## [2026-02-13] - Marc Hansen
 
+fix: repair CHANGELOG.md and improve changelog workflow resilience
 
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [] - 
-
-
-
-## [2026-02-12] - $AUTHOR
+## [2026-02-12] - Marc Hansen
 
 fix: lower coverage threshold for offline tests (80% -> 10%)
 
-## [2026-02-12] - $AUTHOR
+## [2026-02-12] - Marc Hansen
 
 chore: close lightrag-nz2b - CI/CD failure handler fixed
 
-## [2026-02-12] - $AUTHOR
+## [2026-02-12] - Marc Hansen
 
 chore: update beads - add CI/CD failure handler issue (lightrag-nz2b)
-
 
 ## [2026-02-12] - Marc Hansen
 
@@ -107,4 +63,3 @@ Remove temporary task.md file
 ## [2026-02-08] - Marc Hansen
 
 bd sync: 2026-02-08 22:22:27
-

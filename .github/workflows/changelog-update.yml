@@ -33,10 +33,65 @@ jobs:
             echo "date=$DATE"
           } >> $GITHUB_OUTPUT
 
+      - name: Validate CHANGELOG.md exists and has proper format
+        id: validate-changelog
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "CHANGELOG.md does not exist, will create new file"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            echo "line_count=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LINE_COUNT=$(wc -l < CHANGELOG.md)
+          echo "CHANGELOG.md exists with $LINE_COUNT lines"
+          echo "line_count=$LINE_COUNT" >> $GITHUB_OUTPUT
+
+          # Check if first line is "# Changelog"
+          FIRST_LINE=$(head -n 1 CHANGELOG.md)
+          if [ "$FIRST_LINE" != "# Changelog" ]; then
+            echo "ERROR: CHANGELOG.md does not start with '# Changelog'"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Check for corrupted entries (empty author pattern "## [] - ")
+          CORRUPTED_COUNT=$(grep -c "^## \[\] - " CHANGELOG.md 2>/dev/null || echo "0")
+          if [ "$CORRUPTED_COUNT" -gt 0 ]; then
+            echo "WARNING: Found $CORRUPTED_COUNT corrupted entries in CHANGELOG.md"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+      - name: Repair CHANGELOG.md if corrupted
+        if: steps.validate-changelog.outputs.valid == 'false'
+        run: |
+          echo "Repairing CHANGELOG.md..."
+          # Remove corrupted entries but keep header
+          {
+            echo "# Changelog"
+            echo ""
+          } > CHANGELOG_REPAIRED.md
+
+          # Try to preserve valid entries (entries with actual dates)
+          if [ -f CHANGELOG.md ]; then
+            # Keep only entries with valid dates (e.g., ## [2026-02-12])
+            grep -E "^## \[20[0-9]{2}-[0-9]{2}-[0-9]{2}\]" CHANGELOG.md >> CHANGELOG_REPAIRED.md 2>/dev/null || true
+            # Also add the content between valid entries
+            awk '/^## \[20[0-9]{2}-[0-9]{2}-[0-9]{2}\]/ {found=1} found {print}' CHANGELOG.md >> CHANGELOG_REPAIRED.md 2>/dev/null || true
+          fi
+
+          mv CHANGELOG_REPAIRED.md CHANGELOG.md
+          echo "✅ CHANGELOG.md repaired"
+
       - name: Install gawk for validation
+        if: steps.validate-changelog.outputs.valid == 'true'
         run: sudo apt-get update && sudo apt-get install -y gawk
 
       - name: Validate AWK Script Syntax
+        if: steps.validate-changelog.outputs.valid == 'true'
         run: |
           # Extract the awk script for validation
           AWK_SCRIPT='
@@ -60,8 +115,6 @@ jobs:
       - name: Update CHANGELOG.md
         run: |
           MESSAGE="${{ steps.commit-info.outputs.message }}"
-          DATE="${{ steps.commit-info.outputs.date }}"
-          AUTHOR="${{ steps.commit-info.outputs.author }}"
           DATE="${{ steps.commit-info.outputs.date }}"
           AUTHOR="${{ steps.commit-info.outputs.author }}"
 
