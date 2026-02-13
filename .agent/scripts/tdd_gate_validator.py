@@ -477,6 +477,9 @@ def main():
     parser.add_argument("--task-id", help="Specific task ID to validate")
     parser.add_argument("--project-root", default=".", help="Project root directory")
     parser.add_argument("--ci-mode", action="store_true", help="Force CI mode")
+    parser.add_argument(
+        "--verbose", action="store_true", help="Verbose output (legacy support)"
+    )
 
     args = parser.parse_args()
 
@@ -487,15 +490,40 @@ def main():
         print("🤖 Running in CI environment")
 
     project_root = Path(args.project_root).resolve()
-    validator = TDDValidator(project_root, args.bypass_justification)
 
-    result = validator.validate_task_tdd_readiness(args.task_id)
+    validator = None
+    # Handle errors gracefully during initialization
+    try:
+        validator = TDDValidator(project_root, args.bypass_justification)
+        result = validator.validate_task_tdd_readiness(args.task_id)
+    except Exception as e:
+        print(f"❌ TDD validator initialization failed: {e}", file=sys.stderr)
+        result = {
+            "valid": False,
+            "errors": [f"Validator initialization error: {e}"],
+            "warnings": [],
+            "metrics": {},
+            "bypass_used": bool(args.bypass_justification),
+        }
 
+    # Print results if validator was created successfully
+    if validator:
+        validator.print_results(result)
+    else:
+        # Fallback printing for initialization errors
+        if result["valid"]:
+            print("✅ TDD validation PASSED")
+        else:
+            print("❌ TDD validation FAILED")
+            if result["errors"]:
+                print("\n🚫 ERRORS:")
+                for error in result["errors"]:
+                    print(f"  • {error}")
+
+    # Always generate results file for CI
     output_file = project_root / "tdd_gate_results.json"
     write_results_json(result, output_file)
     print(f"📄 TDD results written to: {output_file}")
-
-    validator.print_results(result)
 
     if not result["valid"]:
         if in_ci:
