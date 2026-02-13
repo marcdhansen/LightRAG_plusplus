@@ -2293,8 +2293,6 @@ async def _merge_edges_then_upsert(
             seen_paths.add(file_path_item)
 
     # Apply count limit
-    max_file_paths = global_config.get("max_file_paths")
-
     if len(file_paths_list) > max_file_paths:
         limit_method = global_config.get(
             "source_ids_limit_method", SOURCE_IDS_LIMIT_METHOD_KEEP
