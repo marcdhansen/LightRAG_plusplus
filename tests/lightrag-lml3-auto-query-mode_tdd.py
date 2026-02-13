@@ -6,7 +6,6 @@ Tests the detect_query_mode function which automatically selects
 the optimal query mode based on query characteristics.
 """
 
-import pytest
 from lightrag.operate import detect_query_mode
 
 
@@ -37,6 +36,16 @@ class TestDetectQueryMode:
         """Technical/programming queries should return mix mode."""
         assert detect_query_mode("How to fix this function error?") == "mix"
         assert detect_query_mode("Debug the API import issue") == "mix"
+        assert detect_query_mode("What is the syntax of this method?") == "mix"
+        assert detect_query_mode("How to import this module?") == "mix"
+
+    def test_short_conceptual_query_returns_global(self):
+        """Short conceptual queries should return global mode."""
+        assert detect_query_mode("What is Python?") == "global"
+        assert detect_query_mode("What are arrays?") == "global"
+        assert detect_query_mode("Define recursion") == "global"
+        assert detect_query_mode("Tell me about AI") == "global"
+        assert detect_query_mode("Explain machine learning") == "global"
 
     def test_mixed_query_returns_hybrid(self):
         """Queries with both entities and concepts should return hybrid mode."""

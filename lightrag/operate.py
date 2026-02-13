@@ -3646,10 +3646,21 @@ def detect_query_mode(query: str) -> str:
         "how did",
         "why does",
         "why is",
-        "what is the relationship",
+        "what is",
+        "what are",
+        "what does",
+        "what was",
+        "what will",
+        "define",
+        "meaning of",
+        "description of",
+        "explain",
+        "describe",
+        "tell me about",
+        "give me information about",
+        "explain the concept",
         "compare",
         "difference between",
-        "explain the concept",
         "what are the benefits",
         "what are the advantages",
         "what causes",
@@ -3669,6 +3680,13 @@ def detect_query_mode(query: str) -> str:
         "error",
         "bug",
         "debug",
+        "syntax",
+        "parameter",
+        "return",
+        "import",
+        "module",
+        "library",
+        "package",
     ]
 
     has_concepts = any(p in query_lower for p in CONCEPTUAL_PATTERNS)
@@ -3681,7 +3699,11 @@ def detect_query_mode(query: str) -> str:
     name_pattern = r"\b[A-Z][a-z]+\s+[A-Z][a-z]+\b"
     has_name = bool(re.search(name_pattern, query))
 
-    if query_len < 20 and not has_numbers and not has_name and not has_concepts:
+    if query_len < 20:
+        if has_concepts:
+            return "global"
+        if has_technical:
+            return "mix"
         return "naive"
 
     if has_technical:

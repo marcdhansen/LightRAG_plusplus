@@ -6,7 +6,6 @@ These tests verify the end-to-end behavior of the detect_query_mode
 function integrated with the LightRAG operate module.
 """
 
-import pytest
 from lightrag.operate import detect_query_mode
 
 
@@ -18,7 +17,8 @@ class TestQueryModeIntegration:
         test_cases = [
             ("What is Python?", "global"),
             ("Find info about python", "local"),
-            ("Explain python programming", "global"),
+            ("Explain machine learning", "global"),
+            ("What is the API syntax?", "mix"),
         ]
         for query, expected in test_cases:
             result = detect_query_mode(query)
