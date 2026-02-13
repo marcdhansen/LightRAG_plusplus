@@ -1547,6 +1547,11 @@ class PostgreSQLDB:
                 ON {{table_name}} USING hnsw (content_vector vector_cosine_ops)
                 WITH (m = {self.hnsw_m}, ef_construction = {self.hnsw_ef})
             """,
+            "HNSW_HALFVEC": f"""
+                CREATE INDEX {{vector_index_name}}
+                ON {{table_name}} USING hnsw (content_vector halfvec_cosine_ops)
+                WITH (m = {self.hnsw_m}, ef_construction = {self.hnsw_ef})
+            """,
             "IVFFLAT": f"""
                 CREATE INDEX {{vector_index_name}}
                 ON {{table_name}} USING ivfflat (content_vector vector_cosine_ops)
@@ -1562,7 +1567,7 @@ class PostgreSQLDB:
         if self.vector_index_type not in create_sql:
             logger.warning(
                 f"Unsupported vector index type: {self.vector_index_type}. "
-                "Supported types: HNSW, IVFFLAT, VCHORDRQ"
+                "Supported types: HNSW, HNSW_HALFVEC, IVFFLAT, VCHORDRQ"
             )
             return
 
@@ -1578,7 +1583,11 @@ class PostgreSQLDB:
             vector_index_exists = await self.query(check_vector_index_sql)
             if not vector_index_exists:
                 # Only set vector dimension when index doesn't exist
-                alter_sql = f"ALTER TABLE {k} ALTER COLUMN content_vector TYPE VECTOR({embedding_dim})"
+                if self.vector_index_type == "HNSW_HALFVEC":
+                    column_type = "HALFVEC"
+                else:
+                    column_type = "VECTOR"
+                alter_sql = f"ALTER TABLE {k} ALTER COLUMN content_vector TYPE {column_type}({embedding_dim})"
                 await self.execute(alter_sql)
                 logger.debug(f"Ensured vector dimension for {k}")
                 logger.info(
@@ -2420,8 +2429,16 @@ class PGVectorStorage(BaseVectorStorage):
 
         ddl_template = TABLES[base_table]["ddl"]
 
+        # Determine vector column type based on configuration
+        # HALFVEC is used when HNSW_HALFVEC is selected
+        vector_type = "VECTOR"
+        if getattr(db, "vector_index_type", None) == "HNSW_HALFVEC":
+            vector_type = "HALFVEC"
+
         # Replace embedding dimension placeholder if exists
-        ddl = ddl_template.replace("VECTOR(dimension)", f"VECTOR({embedding_dim})")
+        ddl = ddl_template.replace(
+            "VECTOR(dimension)", f"{vector_type}({embedding_dim})"
+        )
 
         # Replace table name
         ddl = ddl.replace(base_table, table_name)
