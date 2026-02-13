@@ -23,15 +23,33 @@ jobs:
           AUTHOR=$(git log -1 --pretty=%an)
           DATE=$(date +%Y-%m-%d)
 
+          # Validate extracted data - reject empty author or message
+          if [ -z "$AUTHOR" ] || [ -z "$MESSAGE" ]; then
+            echo "ERROR: Empty author or message detected. Author='$AUTHOR', Message='$MESSAGE'"
+            echo "empty=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
           # Use multiline file syntax to safely handle special characters
-          # This avoids command-line interpretation issues
           {
             echo "message<<EOF"
             echo "$MESSAGE"
             echo "EOF"
             echo "author=$AUTHOR"
             echo "date=$DATE"
+            echo "empty=false"
           } >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check-update
+        run: |
+          if [ "${{ steps.commit-info.outputs.empty }}" == "true" ]; then
+            echo "Skipping changelog update - empty author or message"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Proceeding with changelog update"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Validate CHANGELOG.md exists and has proper format
         id: validate-changelog
@@ -113,6 +131,7 @@ jobs:
           echo "$AWK_SCRIPT" | awk -f - /dev/null 2>&1 && echo "✅ AWK syntax valid"
 
       - name: Update CHANGELOG.md
+        if: steps.check-update.outputs.skip != 'true'
         run: |
           MESSAGE="${{ steps.commit-info.outputs.message }}"
           DATE="${{ steps.commit-info.outputs.date }}"
@@ -143,6 +162,7 @@ jobs:
           echo "✅ CHANGELOG.md updated"
 
       - name: Commit and Push Changes
+        if: steps.check-update.outputs.skip != 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
