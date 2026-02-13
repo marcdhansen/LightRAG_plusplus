@@ -6,6 +6,8 @@ __pycache__/
 *.tgz
 *.tar.gz
 *.ini
+.coverage*
+*.coverage.*
 
 # Virtual Environment
 .venv/
