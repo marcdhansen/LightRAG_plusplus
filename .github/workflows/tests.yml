@@ -39,31 +39,10 @@ jobs:
 
     - name: Verify Python Setup
       run: |
-        echo "🐍 Verifying Python setup with native retry..."
-        MAX_ATTEMPTS=3
-        TIMEOUT=5
-        ATTEMPT=1
-        
-        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-          echo "📍 Attempt $ATTEMPT/$MAX_ATTEMPTS..."
-          
-          if timeout $TIMEOUT python --version && \
-             timeout $TIMEOUT python -c "import sys; print(f'Python {sys.version} setup successful')"; then
-            echo "✅ Python setup verification successful on attempt $ATTEMPT"
-            exit 0
-          fi
-          
-          echo "⚠️ Python setup verification failed on attempt $ATTEMPT"
-          ATTEMPT=$((ATTEMPT + 1))
-          
-          if [ $ATTEMPT -le $MAX_ATTEMPTS ]; then
-            echo "🔄 Waiting 2 seconds before retry..."
-            sleep 2
-          fi
-        done
-        
-        echo "❌ Python setup verification failed after $MAX_ATTEMPTS attempts"
-        exit 1
+        echo "🐍 Verifying Python setup..."
+        python --version
+        python -c "import sys; print(f'Python {sys.version} setup successful')"
+        echo "✅ Python setup verified"
 
     - name: Cache pip packages
       uses: actions/cache@v5
@@ -204,7 +183,9 @@ jobs:
           if gh issue create \
             --title "$ISSUE_TITLE" \
             --body "$ISSUE_BODY" \
-            --label "ci-failure,basic"; then
+            --label "ci-failure" 2>/dev/null || gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body "$ISSUE_BODY"; then
             echo "✅ Basic GitHub issue created successfully"
           else
             echo "❌ Failed to create GitHub issue"

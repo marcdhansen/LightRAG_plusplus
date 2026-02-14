@@ -102,7 +102,9 @@ jobs:
           if gh issue create \
             --title "CI/CD Failure: $WORKFLOW_NAME" \
             --body "$ISSUE_BODY" \
-            --label "ci-failure,${{ github.event_name }}"; then
+            --label "ci-failure" 2>/dev/null || gh issue create \
+            --title "CI/CD Failure: $WORKFLOW_NAME" \
+            --body "$ISSUE_BODY"; then
             echo "✅ GitHub issue created successfully"
           else
             echo "❌ Failed to create GitHub issue"
