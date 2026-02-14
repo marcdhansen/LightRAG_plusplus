@@ -225,24 +225,18 @@ jobs:
           PR_NUMBER=$(gh pr list --base main --head "$BRANCH_NAME" --json number -q '.[0].number // empty' 2>/dev/null || echo "")
 
           if [[ -z "$PR_NUMBER" ]]; then
-            # Write body to temp file to avoid YAML issues
-            cat > /tmp/pr_body.md << 'PRBODY'
-            ## Hotfix Summary
-
-            **ID:** HOTFIX_ID_PLACEHOLDER
-            **Trigger:** TRIGGER_PLACEHOLDER
-
-            ### Status
-            - Unit tests: PASSED
-            - Integration tests: PASSED
-
-            ### Review Required
-            This hotfix requires review within 24 hours of merge.
-            PRBODY
-
-            # Replace placeholders
-            sed -i "s/HOTFIX_ID_PLACEHOLDER/$HOTFIX_ID/g" /tmp/pr_body.md
-            sed -i "s/TRIGGER_PLACEHOLDER/${{ github.event_name }}/g" /tmp/pr_body.md
+            printf '%s\n' \
+              "## Hotfix Summary" \
+              "" \
+              "**ID:** $HOTFIX_ID" \
+              "**Trigger:** ${{ github.event_name }}" \
+              "" \
+              "### Status" \
+              "- Unit tests: PASSED" \
+              "- Integration tests: PASSED" \
+              "" \
+              "### Review Required" \
+              "This hotfix requires review within 24 hours of merge." > /tmp/pr_body.md
 
             gh pr create --base main --head "$BRANCH_NAME" \
               --title "HOTFIX: $HOTFIX_ID" \
