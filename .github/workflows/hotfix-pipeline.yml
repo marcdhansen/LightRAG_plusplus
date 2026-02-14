@@ -220,8 +220,33 @@ jobs:
             exit 1
           fi
 
+      - name: Check if branch is up-to-date or already merged
+        id: check-branch
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          
+          # Check if branch is already merged into main
+          MERGED=$(gh pr view "$BRANCH_NAME" --json state 2>/dev/null || echo "not_found")
+          if [[ "$MERGED" == "MERGED" ]]; then
+            echo "status=already_merged" >> $GITHUB_OUTPUT
+            echo "Branch $BRANCH_NAME is already merged"
+            exit 0
+          fi
+          
+          # Check if branch is up-to-date with main (no commits behind)
+          BEHIND=$(gh api repos/${{ github.repository }}/compare/main...$BRANCH_NAME --jq '.behind_by' 2>/dev/null || echo "1")
+          if [[ "$BEHIND" == "0" ]]; then
+            echo "status=up_to_date" >> $GITHUB_OUTPUT
+            echo "Branch $BRANCH_NAME is already up-to-date with main"
+            exit 0
+          fi
+          
+          echo "status=needs_merge" >> $GITHUB_OUTPUT
+          echo "Branch $BRANCH_NAME needs merge ($BEHIND commits behind)"
+
       - name: Create PR for Hotfix
         id: create-pr
+        if: steps.check-branch.outputs.status == 'needs_merge'
         run: |
           HOTFIX_ID="${{ needs.detect-hotfix.outputs.hotfix-id }}"
           BRANCH_NAME="${{ github.ref_name }}"
@@ -255,20 +280,41 @@ jobs:
           echo "pull-request-number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Auto-merge PR
+        if: steps.check-branch.outputs.status == 'needs_merge'
         run: |
           PR_NUM="${{ steps.create-pr.outputs.pull-request-number }}"
           if [[ -n "$PR_NUM" ]]; then
             sleep 5
-            gh pr merge --auto --squash "$PR_NUM" || echo "Auto-merge not enabled - manual merge required"
+            # Try to merge, but handle gracefully if already merged or nothing to merge
+            if gh pr merge --auto --squash "$PR_NUM" 2>&1; then
+              echo "✅ Successfully merged PR #$PR_NUM"
+            else
+              # Check if it's already merged
+              STATE=$(gh pr view "$PR_NUM" --json state -q '.state' 2>/dev/null || echo "unknown")
+              if [[ "$STATE" == "MERGED" ]]; then
+                echo "ℹ️ PR #$PR_NUM was already merged"
+              else
+                echo "⚠️ Auto-merge not enabled - manual merge may be required"
+              fi
+            fi
           fi
 
       - name: Post-Merge Actions
         run: |
           HOTFIX_ID="${{ needs.detect-hotfix.outputs.hotfix-id }}"
+          BRANCH_NAME="${{ github.ref_name }}"
+          STATUS="${{ steps.check-branch.outputs.status }}"
+          
           echo "## Hotfix Complete: $HOTFIX_ID"
-          echo "- Tests passed"
-          echo "- Branch: ${{ github.ref_name }}"
-          echo "- Merged to main"
+          echo "- Branch: $BRANCH_NAME"
+          
+          if [[ "$STATUS" == "already_merged" ]]; then
+            echo "- Status: ℹ️ Already merged to main"
+          elif [[ "$STATUS" == "up_to_date" ]]; then
+            echo "- Status: ℹ️ Already up-to-date with main"
+          else
+            echo "- Status: ✅ Merged to main"
+          fi
           echo ""
           echo "⚠️ Review required within 24 hours"
 
