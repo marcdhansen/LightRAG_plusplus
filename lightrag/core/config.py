@@ -1,8 +1,9 @@
 """LightRAG configuration dataclass."""
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Literal
+from typing import Any
 
 from lightrag.ace.config import ACEConfig
 from lightrag.base import OllamaServerInfos, StoragesStatus
@@ -36,11 +37,9 @@ from lightrag.constants import (
 )
 from lightrag.utils import (
     EmbeddingFunc,
-    TiktokenTokenizer,
     Tokenizer,
     get_env_value,
     normalize_source_ids_limit_method,
-    parse_model_size,
 )
 
 
