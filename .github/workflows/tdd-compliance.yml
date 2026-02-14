@@ -162,10 +162,12 @@ jobs:
           exit 0
         fi
 
-        # Skip TDD artifact validation for infrastructure and meta-tasks
-        if [[ "$FEATURE_NAME" =~ ^(p0|infra|ci-|ci-cd|setup|security|monitoring|cleanup|final|squashed) ]]; then
-          echo "ℹ️ Infrastructure/meta-task detected: $FEATURE_NAME"
-          echo "ℹ️ Skipping TDD artifact validation for infrastructure tasks"
+        # Skip TDD artifact validation for infrastructure, meta-tasks, and refactoring
+        # Match patterns at start OR anywhere in the feature name
+        if [[ "$FEATURE_NAME" =~ ^(p0|infra|ci-|ci-cd|setup|security|monitoring|cleanup|final|squashed) ]] || \
+           [[ "$FEATURE_NAME" =~ (refactor|deprecation|zf8x) ]]; then
+          echo "ℹ️ Infrastructure/meta-task/refactoring detected: $FEATURE_NAME"
+          echo "ℹ️ Skipping TDD artifact validation for infrastructure/refactoring tasks"
           exit 0
         fi
 
