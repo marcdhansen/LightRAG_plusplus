@@ -83,7 +83,7 @@ jobs:
               run: |
                 if [[ -d "lightrag_webui" ]]; then
                   echo "📦 Installing WebUI dependencies..."
-                  cd lightrag_webui && bun install --frozen-lockfile
+                  cd lightrag_webui && bun install
                 else
                   echo "ℹ️ WebUI directory not found, skipping WebUI dependencies"
                 fi
