@@ -200,6 +200,8 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      - uses: actions/checkout@v6
+
       - name: Check if tests passed
         run: |
           echo "Unit tests: ${{ needs.unit-tests.result }}"
