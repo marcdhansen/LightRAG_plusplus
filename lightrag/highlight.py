@@ -2,8 +2,6 @@ import logging
 from typing import Any
 
 import nltk
-import torch
-from transformers import AutoModel
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +24,10 @@ def load_highlight_model():
     """Lazy load the Zilliz semantic highlight model."""
     global _HIGHLIGHT_MODEL
     if _HIGHLIGHT_MODEL is None:
+        # Lazy import - only needed for semantic highlighting feature
+        import torch
+        from transformers import AutoModel
+
         model_name = "zilliz/semantic-highlight-bilingual-v1"
         logger.info(f"Loading highlighting model: {model_name}")
         try:
