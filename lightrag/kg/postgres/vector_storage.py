@@ -14,31 +14,14 @@ from lightrag.namespace import NameSpace, is_namespace
 from lightrag.utils import logger
 
 from lightrag.kg.postgres.connection import ClientManager, PostgreSQLDB
+from lightrag.kg.postgres.constants import (
+    PG_MAX_IDENTIFIER_LENGTH,
+    SQL_TEMPLATES,
+    TABLES,
+    _safe_index_name,
+    namespace_to_table_name,
+)
 from lightrag.exceptions import DataMigrationError
-
-
-def _get_namespace_to_table_name():
-    from lightrag.kg.postgres_impl import namespace_to_table_name
-
-    return namespace_to_table_name
-
-
-def _get_sql_templates():
-    from lightrag.kg.postgres_impl import SQL_TEMPLATES
-
-    return SQL_TEMPLATES
-
-
-def _get_tables():
-    from lightrag.kg.postgres_impl import TABLES
-
-    return TABLES
-
-
-def _get_safe_index_name():
-    from lightrag.kg.postgres_impl import _safe_index_name
-
-    return _safe_index_name
 
 
 @final
@@ -59,7 +42,7 @@ class PGVectorStorage(BaseVectorStorage):
 
         self.model_suffix = self._generate_collection_suffix()
 
-        base_table = _get_namespace_to_table_name()(self.namespace)
+        base_table = namespace_to_table_name(self.namespace)
         if not base_table:
             raise ValueError(f"Unknown namespace: {self.namespace}")
 
@@ -74,8 +57,6 @@ class PGVectorStorage(BaseVectorStorage):
 
         self.legacy_table_name = base_table
 
-        from lightrag.kg.postgres_impl import PG_MAX_IDENTIFIER_LENGTH
-
         if len(self.table_name) > PG_MAX_IDENTIFIER_LENGTH:
             raise ValueError(
                 f"PostgreSQL table name exceeds {PG_MAX_IDENTIFIER_LENGTH} character limit: '{self.table_name}' "
@@ -88,10 +69,10 @@ class PGVectorStorage(BaseVectorStorage):
         db: PostgreSQLDB, table_name: str, base_table: str, embedding_dim: int
     ) -> None:
         """Create a new vector table by replacing the table name in DDL template."""
-        if base_table not in _get_tables():
+        if base_table not in TABLES:
             raise ValueError(f"No DDL template found for table: {base_table}")
 
-        ddl_template = _get_tables()[base_table]["ddl"]
+        ddl_template = TABLES[base_table]["ddl"]
 
         vector_type = "VECTOR"
         if getattr(db, "vector_index_type", None) == "HNSW_HALFVEC":
@@ -105,7 +86,7 @@ class PGVectorStorage(BaseVectorStorage):
 
         await db.execute(ddl)
 
-        id_index_name = _get_safe_index_name()(table_name, "id")
+        id_index_name = _safe_index_name(table_name, "id")
         try:
             create_id_index_sql = f"CREATE INDEX {id_index_name} ON {table_name}(id)"
             logger.info(
@@ -117,7 +98,7 @@ class PGVectorStorage(BaseVectorStorage):
                 f"PostgreSQL, Failed to create index {id_index_name}, Got: {e}"
             )
 
-        workspace_id_index_name = _get_safe_index_name()(table_name, "workspace_id")
+        workspace_id_index_name = _safe_index_name(table_name, "workspace_id")
         try:
             create_composite_index_sql = (
                 f"CREATE INDEX {workspace_id_index_name} ON {table_name}(workspace, id)"
@@ -454,7 +435,7 @@ class PGVectorStorage(BaseVectorStorage):
     ) -> tuple[str, tuple[Any, ...]]:
         """Prepare upsert data for chunks."""
         try:
-            upsert_sql = _get_sql_templates()["upsert_chunk"].format(
+            upsert_sql = SQL_TEMPLATES["upsert_chunk"].format(
                 table_name=self.table_name
             )
             values: tuple[Any, ...] = (
@@ -481,9 +462,7 @@ class PGVectorStorage(BaseVectorStorage):
         self, item: dict[str, Any], current_time: datetime.datetime
     ) -> tuple[str, tuple[Any, ...]]:
         """Prepare upsert data for entities."""
-        upsert_sql = _get_sql_templates()["upsert_entity"].format(
-            table_name=self.table_name
-        )
+        upsert_sql = SQL_TEMPLATES["upsert_entity"].format(table_name=self.table_name)
         source_id = item["source_id"]
         if isinstance(source_id, str) and "<SEP>" in source_id:
             chunk_ids = source_id.split("<SEP>")
@@ -507,7 +486,7 @@ class PGVectorStorage(BaseVectorStorage):
         self, item: dict[str, Any], current_time: datetime.datetime
     ) -> tuple[str, tuple[Any, ...]]:
         """Prepare upsert data for relationships."""
-        upsert_sql = _get_sql_templates()["upsert_relationship"].format(
+        upsert_sql = SQL_TEMPLATES["upsert_relationship"].format(
             table_name=self.table_name
         )
         source_id = item["source_id"]
@@ -595,7 +574,7 @@ class PGVectorStorage(BaseVectorStorage):
 
         embedding_string = ",".join(map(str, embedding))
 
-        sql = _get_sql_templates()[self.namespace].format(
+        sql = SQL_TEMPLATES[self.namespace].format(
             embedding_string=embedding_string, table_name=self.table_name
         )
         params = {
@@ -742,7 +721,7 @@ class PGVectorStorage(BaseVectorStorage):
 
     async def drop(self) -> dict[str, str]:
         try:
-            drop_sql = _get_sql_templates()["drop_specifiy_table_workspace"].format(
+            drop_sql = SQL_TEMPLATES["drop_specifiy_table_workspace"].format(
                 table_name=self.table_name
             )
             await self.db.execute(drop_sql, {"workspace": self.workspace})

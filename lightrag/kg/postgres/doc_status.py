@@ -11,18 +11,7 @@ from lightrag.base import DocProcessingStatus, DocStatus, DocStatusStorage
 from lightrag.utils import logger
 
 from lightrag.kg.postgres.connection import ClientManager, PostgreSQLDB
-
-
-def _get_namespace_to_table_name():
-    from lightrag.kg.postgres_impl import namespace_to_table_name
-
-    return namespace_to_table_name
-
-
-def _get_sql_templates():
-    from lightrag.kg.postgres_impl import SQL_TEMPLATES
-
-    return SQL_TEMPLATES
+from lightrag.kg.postgres.constants import SQL_TEMPLATES, namespace_to_table_name
 
 
 @final
@@ -65,7 +54,7 @@ class PGDocStatusStorage(DocStatusStorage):
         if not keys:
             return set()
 
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         sql = f"SELECT id FROM {table_name} WHERE workspace=$1 AND id = ANY($2)"
         params = {"workspace": self.workspace, "ids": list(keys)}
         try:
@@ -440,7 +429,7 @@ class PGDocStatusStorage(DocStatusStorage):
         pass
 
     async def is_empty(self) -> bool:
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         if not table_name:
             logger.error(
                 f"[{self.workspace}] Unknown namespace for is_empty check: {self.namespace}"
@@ -460,7 +449,7 @@ class PGDocStatusStorage(DocStatusStorage):
         if not ids:
             return
 
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         if not table_name:
             logger.error(
                 f"[{self.workspace}] Unknown namespace for deletion: {self.namespace}"
@@ -546,14 +535,14 @@ class PGDocStatusStorage(DocStatusStorage):
     async def drop(self) -> dict[str, str]:
         """Drop the storage"""
         try:
-            table_name = _get_namespace_to_table_name()(self.namespace)
+            table_name = namespace_to_table_name(self.namespace)
             if not table_name:
                 return {
                     "status": "error",
                     "message": f"Unknown namespace: {self.namespace}",
                 }
 
-            drop_sql = _get_sql_templates()["drop_specifiy_table_workspace"].format(
+            drop_sql = SQL_TEMPLATES["drop_specifiy_table_workspace"].format(
                 table_name=table_name
             )
             await self.db.execute(drop_sql, {"workspace": self.workspace})

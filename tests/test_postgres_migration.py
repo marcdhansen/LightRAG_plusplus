@@ -3,9 +3,7 @@ from unittest.mock import AsyncMock, patch
 import numpy as np
 import pytest
 
-from lightrag.kg.postgres_impl import (
-    PGVectorStorage,
-)
+from lightrag.kg.postgres import PGVectorStorage
 from lightrag.namespace import NameSpace
 from lightrag.utils import EmbeddingFunc
 

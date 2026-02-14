@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from lightrag.kg.postgres_impl import PGVectorStorage
+from lightrag.kg.postgres import PGVectorStorage
 
 pytestmark = pytest.mark.heavy
 

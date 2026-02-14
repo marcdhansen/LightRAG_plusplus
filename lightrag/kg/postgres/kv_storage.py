@@ -11,18 +11,7 @@ from lightrag.namespace import NameSpace, is_namespace
 from lightrag.utils import logger
 
 from lightrag.kg.postgres.connection import ClientManager, PostgreSQLDB
-
-
-def _get_namespace_to_table_name():
-    from lightrag.kg.postgres_impl import namespace_to_table_name
-
-    return namespace_to_table_name
-
-
-def _get_sql_templates():
-    from lightrag.kg.postgres_impl import SQL_TEMPLATES
-
-    return SQL_TEMPLATES
+from lightrag.kg.postgres.constants import SQL_TEMPLATES, namespace_to_table_name
 
 
 @final
@@ -57,7 +46,7 @@ class PGKVStorage(BaseKVStorage):
 
     async def get_by_id(self, id: str) -> dict[str, Any] | None:
         """Get data by id."""
-        sql = _get_sql_templates()["get_by_id_" + self.namespace]
+        sql = SQL_TEMPLATES["get_by_id_" + self.namespace]
         params = {"workspace": self.workspace, "id": id}
         response = await self.db.query(sql, list(params.values()))
 
@@ -157,7 +146,7 @@ class PGKVStorage(BaseKVStorage):
         if not ids:
             return []
 
-        sql = _get_sql_templates()["get_by_ids_" + self.namespace]
+        sql = SQL_TEMPLATES["get_by_ids_" + self.namespace]
         params = {"workspace": self.workspace, "ids": ids}
         results = await self.db.query(sql, list(params.values()), multirows=True)
 
@@ -283,7 +272,7 @@ class PGKVStorage(BaseKVStorage):
         if not keys:
             return set()
 
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         sql = f"SELECT id FROM {table_name} WHERE workspace=$1 AND id = ANY($2)"
         params = {"workspace": self.workspace, "ids": list(keys)}
         try:
@@ -310,7 +299,7 @@ class PGKVStorage(BaseKVStorage):
         if is_namespace(self.namespace, NameSpace.KV_STORE_TEXT_CHUNKS):
             current_time = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_text_chunk"]
+                upsert_sql = SQL_TEMPLATES["upsert_text_chunk"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -326,7 +315,7 @@ class PGKVStorage(BaseKVStorage):
                 await self.db.execute(upsert_sql, _data)
         elif is_namespace(self.namespace, NameSpace.KV_STORE_FULL_DOCS):
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_doc_full"]
+                upsert_sql = SQL_TEMPLATES["upsert_doc_full"]
                 _data = {
                     "id": k,
                     "content": v["content"],
@@ -336,7 +325,7 @@ class PGKVStorage(BaseKVStorage):
                 await self.db.execute(upsert_sql, _data)
         elif is_namespace(self.namespace, NameSpace.KV_STORE_LLM_RESPONSE_CACHE):
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_llm_response_cache"]
+                upsert_sql = SQL_TEMPLATES["upsert_llm_response_cache"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -353,7 +342,7 @@ class PGKVStorage(BaseKVStorage):
         elif is_namespace(self.namespace, NameSpace.KV_STORE_FULL_ENTITIES):
             current_time = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_full_entities"]
+                upsert_sql = SQL_TEMPLATES["upsert_full_entities"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -366,7 +355,7 @@ class PGKVStorage(BaseKVStorage):
         elif is_namespace(self.namespace, NameSpace.KV_STORE_FULL_RELATIONS):
             current_time = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_full_relations"]
+                upsert_sql = SQL_TEMPLATES["upsert_full_relations"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -379,7 +368,7 @@ class PGKVStorage(BaseKVStorage):
         elif is_namespace(self.namespace, NameSpace.KV_STORE_ENTITY_CHUNKS):
             current_time = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_entity_chunks"]
+                upsert_sql = SQL_TEMPLATES["upsert_entity_chunks"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -392,7 +381,7 @@ class PGKVStorage(BaseKVStorage):
         elif is_namespace(self.namespace, NameSpace.KV_STORE_RELATION_CHUNKS):
             current_time = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
             for k, v in data.items():
-                upsert_sql = _get_sql_templates()["upsert_relation_chunks"]
+                upsert_sql = SQL_TEMPLATES["upsert_relation_chunks"]
                 _data = {
                     "workspace": self.workspace,
                     "id": k,
@@ -407,7 +396,7 @@ class PGKVStorage(BaseKVStorage):
         pass
 
     async def is_empty(self) -> bool:
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         if not table_name:
             logger.error(
                 f"[{self.workspace}] Unknown namespace for is_empty check: {self.namespace}"
@@ -427,7 +416,7 @@ class PGKVStorage(BaseKVStorage):
         if not ids:
             return
 
-        table_name = _get_namespace_to_table_name()(self.namespace)
+        table_name = namespace_to_table_name(self.namespace)
         if not table_name:
             logger.error(
                 f"[{self.workspace}] Unknown namespace for deletion: {self.namespace}"
@@ -448,14 +437,14 @@ class PGKVStorage(BaseKVStorage):
 
     async def drop(self) -> dict[str, str]:
         try:
-            table_name = _get_namespace_to_table_name()(self.namespace)
+            table_name = namespace_to_table_name(self.namespace)
             if not table_name:
                 return {
                     "status": "error",
                     "message": f"Unknown namespace: {self.namespace}",
                 }
 
-            drop_sql = _get_sql_templates()["drop_specifiy_table_workspace"].format(
+            drop_sql = SQL_TEMPLATES["drop_specifiy_table_workspace"].format(
                 table_name=table_name
             )
             await self.db.execute(drop_sql, {"workspace": self.workspace})

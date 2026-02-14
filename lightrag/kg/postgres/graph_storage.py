@@ -16,26 +16,8 @@ from tenacity import (
 
 from lightrag.base import BaseGraphStorage
 from lightrag.core_types import KnowledgeGraph, KnowledgeGraphEdge, KnowledgeGraphNode
-from lightrag.kg.postgres.connection import ClientManager, PostgreSQLDB
+from lightrag.kg.postgres.connection import ClientManager, PostgreSQLDB, _dollar_quote
 from lightrag.utils import logger
-
-
-def _get_dollar_quote():
-    from lightrag.kg.postgres_impl import _dollar_quote
-
-    return _dollar_quote
-
-
-def _get_postgresql_db():
-    from lightrag.kg.postgres_impl import PostgreSQLDB
-
-    return PostgreSQLDB
-
-
-def _get_client_manager():
-    from lightrag.kg.postgres_impl import ClientManager
-
-    return ClientManager
 
 
 def _get_shared_storage():
@@ -108,9 +90,9 @@ class PGGraphStorage(BaseGraphStorage):
         return normalized_id
 
     async def initialize(self):
+        from lightrag.kg.postgres import ClientManager, PostgreSQLDB
+
         get_data_init_lock = _get_shared_storage()
-        PostgreSQLDB = _get_postgresql_db()
-        ClientManager = _get_client_manager()
 
         async with get_data_init_lock():
             if self.db is None:
@@ -163,7 +145,8 @@ class PGGraphStorage(BaseGraphStorage):
                 )
 
     async def finalize(self):
-        ClientManager = _get_client_manager()
+        from lightrag.kg.postgres import ClientManager
+
         if self.db is not None:
             await ClientManager.release_client(self.db)
             self.db = None
@@ -446,7 +429,7 @@ class PGGraphStorage(BaseGraphStorage):
                       OPTIONAL MATCH (n)-[]-(connected:base)
                       RETURN n.entity_id AS source_id, connected.entity_id AS connected_id"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (source_id text, connected_id text)"
 
         results = await self._query(query)
@@ -485,7 +468,7 @@ class PGGraphStorage(BaseGraphStorage):
                      SET n += {properties}
                      RETURN n"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (n agtype)"
 
         try:
@@ -525,7 +508,7 @@ class PGGraphStorage(BaseGraphStorage):
                      SET r += {edge_properties}
                      RETURN r"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (r agtype)"
 
         try:
@@ -549,7 +532,7 @@ class PGGraphStorage(BaseGraphStorage):
         cypher_query = f"""MATCH (n:base {{entity_id: "{label}"}})
                      DETACH DELETE n"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (n agtype)"
 
         try:
@@ -572,7 +555,7 @@ class PGGraphStorage(BaseGraphStorage):
                      WHERE n.entity_id IN [{node_id_list}]
                      DETACH DELETE n"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (n agtype)"
 
         try:
@@ -595,7 +578,7 @@ class PGGraphStorage(BaseGraphStorage):
             cypher_query = f"""MATCH (a:base {{entity_id: "{src_label}"}})-[r]-(b:base {{entity_id: "{tgt_label}"}})
                          DELETE r"""
 
-            _dollar_quote = _get_dollar_quote()
+            _dollar_quote = _dollar_quote
             query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (r agtype)"
 
             try:
@@ -865,7 +848,7 @@ class PGGraphStorage(BaseGraphStorage):
                          MATCH (a)<-[r]-(b)
                          RETURN src_eid AS source, tgt_eid AS target, properties(r) AS edge_properties"""
 
-            _dollar_quote = _get_dollar_quote()
+            _dollar_quote = _dollar_quote
             sql_fwd = f"""
             SELECT * FROM cypher({_dollar_quote(self.graph_name)}::name,
                                  {_dollar_quote(forward_cypher)}::cstring,
@@ -959,7 +942,7 @@ class PGGraphStorage(BaseGraphStorage):
                          OPTIONAL MATCH (n:base)<-[]-(connected:base)
                          RETURN node_id, connected.entity_id AS connected_id"""
 
-            _dollar_quote = _get_dollar_quote()
+            _dollar_quote = _dollar_quote
             outgoing_query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(outgoing_cypher)}) AS (node_id text, connected_id text)"
             incoming_query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(incoming_cypher)}) AS (node_id text, connected_id text)"
 
@@ -1035,7 +1018,7 @@ class PGGraphStorage(BaseGraphStorage):
         cypher_query = f"""MATCH (n:base {{entity_id: "{label}"}})
                     RETURN id(n) as node_id, n"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (node_id bigint, n agtype)"
 
         node_result = await self._query(query)
@@ -1307,7 +1290,7 @@ class PGGraphStorage(BaseGraphStorage):
                     RETURN a, r, b
                     LIMIT {max_nodes}"""
 
-        _dollar_quote = _get_dollar_quote()
+        _dollar_quote = _dollar_quote
         query = f"SELECT * FROM cypher({_dollar_quote(self.graph_name)}, {_dollar_quote(cypher_query)}) AS (a agtype, r agtype, b agtype)"
 
         try:

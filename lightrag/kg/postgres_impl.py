@@ -3623,6 +3623,13 @@ __deprecated_classes = {
     "PGDocStatusStorage": "lightrag.kg.postgres.PGDocStatusStorage",
     "PGGraphStorage": "lightrag.kg.postgres.PGGraphStorage",
     "PGGraphQueryException": "lightrag.kg.postgres.PGGraphQueryException",
+    "namespace_to_table_name": "lightrag.kg.postgres.namespace_to_table_name",
+    "NAMESPACE_TABLE_MAP": "lightrag.kg.postgres.NAMESPACE_TABLE_MAP",
+    "TABLES": "lightrag.kg.postgres.TABLES",
+    "SQL_TEMPLATES": "lightrag.kg.postgres.SQL_TEMPLATES",
+    "_safe_index_name": "lightrag.kg.postgres._safe_index_name",
+    "_dollar_quote": "lightrag.kg.postgres._dollar_quote",
+    "PG_MAX_IDENTIFIER_LENGTH": "lightrag.kg.postgres.PG_MAX_IDENTIFIER_LENGTH",
 }
 
 
@@ -3635,11 +3642,10 @@ def __getattr__(name: str):
             DeprecationWarning,
             stacklevel=2,
         )
-        import sys
 
-        module_path, class_name = new_path.rsplit(".", 1)
-        module = __import__(module_path, fromlist=[class_name])
-        return getattr(module, class_name)
+        module_path, attr_name = new_path.rsplit(".", 1)
+        module = __import__(module_path, fromlist=[attr_name])
+        return getattr(module, attr_name)
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
