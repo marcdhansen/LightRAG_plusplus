@@ -13,6 +13,11 @@ on:
         description: 'Hotfix ID (e.g., hotfix-123)'
         required: false
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 env:
   PYTHON_VERSION: '3.12'
 
