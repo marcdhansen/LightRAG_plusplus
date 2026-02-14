@@ -105,7 +105,11 @@ jobs:
 
       - name: Install gawk for validation
         if: steps.validate-changelog.outputs.valid == 'true'
-        run: sudo apt-get update && sudo apt-get install -y gawk
+        run: |
+          sudo apt-get update && sudo apt-get install -y gawk || {
+            echo "Warning: Could not install gawk, will try to use existing installation"
+          }
+          gawk --version || echo "Warning: gawk not available"
 
       - name: Validate AWK Script Syntax
         if: steps.validate-changelog.outputs.valid == 'true'
@@ -121,11 +125,19 @@ jobs:
           { print }
           '
           
-          # Test awk syntax with gawk --lint (will warn about portability issues)
-          echo "Running gawk --lint to check AWK portability..."
-          echo "$AWK_SCRIPT" | gawk --lint-no-ext -f - CHANGELOG.md 2>&1 || true
+          # Check gawk version and use appropriate flags
+          GAWK_VERSION=$(gawk --version | head -1)
+          echo "Using: $GAWK_VERSION"
           
-          # Also do a basic syntax check with awk -f /dev/null
+          # Use --lint if available, but don't fail on version differences
+          if gawk --lint-no-ext -f /dev/null /dev/null 2>&1 | grep -q "invalid" 2>/dev/null; then
+            echo "gawk --lint-no-ext not available, skipping lint check"
+          else
+            echo "Running gawk --lint to check AWK portability..."
+            echo "$AWK_SCRIPT" | gawk --lint-no-ext -f - CHANGELOG.md 2>&1 || true
+          fi
+          
+          # Basic syntax check (always run)
           echo "Running basic syntax check..."
           echo "$AWK_SCRIPT" | awk -f - /dev/null 2>&1 && echo "✅ AWK syntax valid"
 
