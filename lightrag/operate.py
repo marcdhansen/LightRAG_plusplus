@@ -79,70 +79,25 @@ from lightrag.utils import (
     use_llm_func_with_cache,
 )
 
+from lightrag.entity_extraction import (
+    _handle_single_entity_extraction,
+    _handle_single_relationship_extraction,
+    _parse_yaml_extraction,
+    _process_extraction_result,
+    _rebuild_from_extraction_result,
+)
+
+from lightrag.citation_ops import _generate_citations_with_auto_highlight
+from lightrag.rerank_ops import rerank_graph_elements
+
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
 # the OS environment variables take precedence over the .env file
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
 
 
-async def _generate_citations_with_auto_highlight(
-    truncated_chunks: list[dict],
-    query: str,
-    query_param: QueryParam,
-) -> tuple[list[dict], list[dict]]:
-    """
-    Generate citations using automatic highlighting when auto_citations is enabled.
-
-    This function conditionally uses Zilliz semantic highlighting for automatic
-    citation generation, or falls back to frequency-based citation generation.
-
-    Args:
-        truncated_chunks: List of chunk dictionaries with content and file_path
-        query: User query
-        query_param: Query parameters including auto_citations flag
-
-    Returns:
-        Tuple of (reference_list, truncated_chunks_with_refs)
-    """
-    if query_param.auto_citations:
-        try:
-            # Use automatic citation generation from Zilliz highlights
-            logger.info(
-                f"Generating automatic citations with threshold {query_param.citation_threshold}"
-            )
-            reference_list, highlighted_citations = generate_citations_from_highlights(
-                chunks=truncated_chunks,
-                query=query,
-                threshold=query_param.citation_threshold,
-                max_citations=5,  # Standard max citations
-            )
-
-            # Update chunks with reference_ids from the generated citations
-            file_path_to_ref_id = {
-                ref["file_path"]: ref["reference_id"] for ref in reference_list
-            }
-
-            for chunk in truncated_chunks:
-                file_path = chunk.get("file_path", "unknown_source")
-                if file_path in file_path_to_ref_id:
-                    chunk["reference_id"] = file_path_to_ref_id[file_path]
-                else:
-                    chunk["reference_id"] = ""
-
-            logger.info(
-                f"Auto-citations generated: {len(reference_list)} references from {len(highlighted_citations)} chunks"
-            )
-            return reference_list, truncated_chunks
-
-        except Exception as e:
-            logger.warning(
-                f"Automatic citation generation failed, falling back to frequency-based: {e}"
-            )
-            # Fall through to frequency-based method
-
-    # Use standard frequency-based citation generation
-    return generate_reference_list_from_chunks(truncated_chunks)
-
+# Re-export citation generation for backward compatibility
+from lightrag.citation_ops import _generate_citations_with_auto_highlight
 
 # Re-export chunking functions from chunking module for backward compatibility
 from lightrag.chunking import chunking_by_token_size, truncate_entity_identifier
