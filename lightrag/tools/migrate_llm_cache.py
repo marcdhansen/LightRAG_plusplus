@@ -241,7 +241,7 @@ class MigrationTool:
 
             return RedisKVStorage
         elif storage_name == "PGKVStorage":
-            from lightrag.kg.postgres_impl import PGKVStorage
+            from lightrag.kg.postgres import PGKVStorage
 
             return PGKVStorage
         elif storage_name == "MongoKVStorage":
@@ -396,7 +396,7 @@ class MigrationTool:
         Returns:
             Dictionary of cache entries with default:extract:* or default:summary:* keys
         """
-        from lightrag.kg.postgres_impl import namespace_to_table_name
+            from lightrag.kg.postgres import namespace_to_table_name
 
         cache_data = {}
         table_name = namespace_to_table_name(storage.namespace)
@@ -566,7 +566,7 @@ class MigrationTool:
         Returns:
             Total count of cache records
         """
-        from lightrag.kg.postgres_impl import namespace_to_table_name
+            from lightrag.kg.postgres import namespace_to_table_name
 
         table_name = namespace_to_table_name(storage.namespace)
 
@@ -754,7 +754,7 @@ class MigrationTool:
         Yields:
             Dictionary batches of cache entries
         """
-        from lightrag.kg.postgres_impl import namespace_to_table_name
+            from lightrag.kg.postgres import namespace_to_table_name
 
         table_name = namespace_to_table_name(storage.namespace)
         offset = 0
