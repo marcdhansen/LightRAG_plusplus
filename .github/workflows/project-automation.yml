@@ -30,7 +30,7 @@ jobs:
               }
             `;
             
-            const projectResult = await graphql(projectQuery, {
+            const projectResult = await github.graphql(projectQuery, {
               owner: projectOwner,
               title: projectTitle
             });
@@ -60,7 +60,7 @@ jobs:
               }
             `;
             
-            const fieldsResult = await graphql(fieldsQuery, { projectId });
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
             const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
             const inProgressOption = statusField?.options.find(o => o.name === "In Progress");
             
@@ -78,7 +78,7 @@ jobs:
               }
             `;
             
-            const issueResult = await graphql(issueQuery, {
+            const issueResult = await github.graphql(issueQuery, {
               owner: projectOwner,
               repo: context.repo.repo,
               number: issueNumber
@@ -99,7 +99,7 @@ jobs:
               }
             `;
             
-            const itemResult = await graphql(itemQuery, {
+            const itemResult = await github.graphql(itemQuery, {
               projectId,
               contentId: issueNodeId
             });
@@ -124,7 +124,7 @@ jobs:
               }
             `;
             
-            await graphql(updateMutation, {
+            await github.graphql(updateMutation, {
               projectId,
               itemId,
               fieldId: statusField.id,
@@ -146,26 +146,26 @@ jobs:
             const issueNumber = context.issue.number;
             
             const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
-            const projectResult = await graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
             const projectId = projectResult.user.projectsV2.nodes[0]?.id;
             if (!projectId) return;
             
             const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
-            const fieldsResult = await graphql(fieldsQuery, { projectId });
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
             const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
             const toDoOption = statusField?.options.find(o => o.name === "To Do");
             if (!statusField || !toDoOption) return;
             
             const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
-            const issueResult = await graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
             
             const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
-            const itemResult = await graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
             const itemId = itemResult.node.projectItems.nodes[0]?.id;
             if (!itemId) return;
             
             const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
-            await graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
             console.log("✅ Moved issue to To Do");
 
   update-project-on-close:
@@ -181,26 +181,26 @@ jobs:
             const issueNumber = context.issue.number;
             
             const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
-            const projectResult = await graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
             const projectId = projectResult.user.projectsV2.nodes[0]?.id;
             if (!projectId) return;
             
             const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
-            const fieldsResult = await graphql(fieldsQuery, { projectId });
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
             const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
             const doneOption = statusField?.options.find(o => o.name === "Done");
             if (!statusField || !doneOption) return;
             
             const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
-            const issueResult = await graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
             
             const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
-            const itemResult = await graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
             const itemId = itemResult.node.projectItems.nodes[0]?.id;
             if (!itemId) return;
             
             const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
-            await graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: doneOption.id });
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: doneOption.id });
             console.log("✅ Moved issue to Done");
 
   update-project-on-reopen:
@@ -216,26 +216,26 @@ jobs:
             const issueNumber = context.issue.number;
             
             const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
-            const projectResult = await graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
             const projectId = projectResult.user.projectsV2.nodes[0]?.id;
             if (!projectId) return;
             
             const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
-            const fieldsResult = await graphql(fieldsQuery, { projectId });
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
             const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
             const toDoOption = statusField?.options.find(o => o.name === "To Do");
             if (!statusField || !toDoOption) return;
             
             const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
-            const issueResult = await graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
             
             const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
-            const itemResult = await graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
             const itemId = itemResult.node.projectItems.nodes[0]?.id;
             if (!itemId) return;
             
             const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
-            await graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
             console.log("✅ Moved issue to To Do");
 
   update-project-on-pr:
@@ -263,12 +263,12 @@ jobs:
             }
             
             const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } }`;
-            const projectResult = await graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
             const projectId = projectResult.user.projectsV2.nodes[0]?.id;
             if (!projectId) return;
             
             const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
-            const fieldsResult = await graphql(fieldsQuery, { projectId });
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
             const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
             
             const targetStatus = isMerged ? "Done" : "Review";
@@ -276,13 +276,13 @@ jobs:
             if (!statusField || !statusOption) return;
             
             const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
-            const issueResult = await graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
             
             const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
-            const itemResult = await graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
             const itemId = itemResult.node.projectItems.nodes[0]?.id;
             if (!itemId) return;
             
             const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
-            await graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: statusOption.id });
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: statusOption.id });
             console.log(`✅ Moved issue #${issueNumber} to ${targetStatus}`);
