@@ -520,7 +520,7 @@ def main():
                 for error in result["errors"]:
                     print(f"  • {error}")
 
-    # Always generate results file for CI
+    # Always generate results file for CI - must be outside conditional
     output_file = project_root / "tdd_gate_results.json"
     write_results_json(result, output_file)
     print(f"📄 TDD results written to: {output_file}")
