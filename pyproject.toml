@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lightrag-plusplus"
-dynamic = ["version"]
+version = "1.4.9.11"
 authors = [
     {name = "Zirui Guo"}
 ]
@@ -23,7 +23,6 @@ classifiers = [
 dependencies = [
     "aiohttp>=3.8.0,<4.0.0",
     "configparser>=7.0.0,<8.0.0",
-    "docling>=2.61.2,<3.0.0",
     "google-api-core>=2.0.0,<3.0.0",
     "google-genai>=1.0.0,<2.0.0",
     "json_repair>=0.25.0,<1.0.0",
@@ -38,15 +37,8 @@ dependencies = [
     "setuptools>=64.0.0,<70.0.0",
     "tenacity>=8.0.0,<9.0.0",
     "tiktoken>=0.5.0,<1.0.0",
-    "torch>=2.2.2,<3.0.0",
-    "torchvision>=0.17.2,<1.0.0",
-    "transformers>=4.30.0,<5.0.0",
-    "nltk>=3.8.0,<4.0.0",
-    "FlagEmbedding>=1.2.0,<2.0.0",
     "xlsxwriter>=3.1.0,<4.0.0",
-    "neo4j>=6.0.2,<7.0.0",
     "ollama>=0.6.0,<1.0.0",
-    "langfuse>=3.9.1,<4.0.0",
     "python-dateutil>=2.8.2",
 ]
 
@@ -141,7 +133,7 @@ offline = [
 ]
 
 test = [
-    "lightrag-plusplus[api,offline-storage]",
+    "lightrag-plusplus[api,offline-storage,local-ml]",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=4.0.0",
@@ -173,6 +165,15 @@ observability = [
     "langfuse>=3.8.1,<4.0.0",
 ]
 
+# Local ML models (HuggingFace LLM, semantic highlighting, local reranking)
+local-ml = [
+    "torch>=2.2.2,<3.0.0",
+    "torchvision>=0.17.2,<1.0.0",
+    "transformers>=4.30.0,<5.0.0",
+    "FlagEmbedding>=1.2.0,<2.0.0",
+    "nltk>=3.8.0,<4.0.0",
+]
+
 [project.scripts]
 lightrag-plusplus-server = "lightrag.api.lightrag_server:main"
 lightrag-plusplus-gunicorn = "lightrag.api.run_with_gunicorn:main"
@@ -194,9 +195,6 @@ exclude = ["data*", "tests*", "scripts*", "examples*", "dickens*", "reproduce*",
 
 [tool.setuptools]
 include-package-data = true
-
-[tool.setuptools.dynamic]
-version = {attr = "lightrag_plusplus.__version__"}
 
 [tool.setuptools.package-data]
 lightrag_plusplus = ["api/webui/**/*", "api/static/**/*"]

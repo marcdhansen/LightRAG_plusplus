@@ -103,6 +103,137 @@ show_summary() {
     fi
 }
 
+# Feature Branch Validation - Block sessions on protected branches
+validate_feature_branch() {
+    echo ""
+    echo "🔒 Feature Branch Validation..."
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    
+    if [ -z "$CURRENT_BRANCH" ]; then
+        echo "⚠️  Not in a git repository - skipping branch validation"
+        return 0
+    fi
+    
+    # Block if on main or master
+    if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+        echo "❌ FEATURE BRANCH VALIDATION FAILED"
+        echo ""
+        echo "You are on the protected branch: $CURRENT_BRANCH"
+        echo "Sessions must end on a feature branch, not main/master."
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create a feature branch: git checkout -b agent-harness/<issue-id>-<desc>"
+        echo "   2. Move your changes to that branch"
+        echo "   3. Then run agent-end.sh again"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Must be on a feature branch"
+        return 1
+    fi
+    
+    # Check if branch follows agent-harness/* pattern
+    if [[ ! "$CURRENT_BRANCH" =~ ^agent-harness/ ]]; then
+        echo "❌ FEATURE BRANCH VALIDATION FAILED"
+        echo ""
+        echo "Current branch: $CURRENT_BRANCH"
+        echo "Branch must follow the pattern: agent-harness/<issue-id>-<description>"
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create a properly named feature branch:"
+        echo "      git checkout -b agent-harness/<issue-id>-<short-description>"
+        echo "   2. Move your changes to that branch"
+        echo "   3. Then run agent-end.sh again"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Branch name must match agent-harness/* pattern"
+        return 1
+    fi
+    
+    echo "✅ Feature branch validated: $CURRENT_BRANCH"
+    return 0
+}
+
+# TDD Validation - Check for tests before allowing session end
+validate_tdd_for_branch() {
+    echo ""
+    echo "🔍 TDD Validation - Checking for test files..."
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    
+    # Skip if on main branch
+    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+        echo "ℹ️  On main branch - TDD validation skipped"
+        return 0
+    fi
+    
+    # Get list of Python files changed in this branch (vs main)
+    # Use command substitution to avoid process substitution issues
+    CHANGED_PY_FILES=$(git diff main --name-only --diff-filter=ACM 2>/dev/null | grep '\.py$' | grep '^lightrag/')
+    
+    if [ -z "$CHANGED_PY_FILES" ]; then
+        echo "ℹ️  No new Python files in lightrag/ - TDD validation passed"
+        return 0
+    fi
+    
+    # Convert to array
+    IFS=$'\n' read -d '' -r -a CHANGED_PY_FILES_ARRAY <<< "$CHANGED_PY_FILES" || true
+    unset IFS
+    
+    echo "📁 Changed Python files in branch:"
+    for f in "${CHANGED_PY_FILES_ARRAY[@]}"; do
+        echo "  • $f"
+    done
+    echo ""
+    
+    # Check each changed file for corresponding test
+    MISSING_TESTS=()
+    
+    for py_file in "${CHANGED_PY_FILES_ARRAY[@]}"; do
+        # Get the base module name (e.g., lightrag/ace/curator.py -> curator)
+        module_name=$(basename "$py_file" .py)
+        
+        # Check for test in tests/ directory
+        # Try different naming conventions
+        expected_test=""
+        
+        # Convention 1: tests/test_<module>.py (e.g., test_curator.py)
+        if [ -f "tests/test_${module_name}.py" ]; then
+            expected_test="tests/test_${module_name}.py"
+        fi
+        
+        # Convention 2: tests/test_<module>.py (e.g., test_lightrag_ace_curator.py for lightrag/ace/curator.py)
+        alt_test="tests/test_${py_file}"
+        if [ -f "$alt_test" ]; then
+            expected_test="$alt_test"
+        fi
+        
+        if [ -z "$expected_test" ] || [ ! -f "$expected_test" ]; then
+            MISSING_TESTS+=("$py_file (expected: tests/test_${module_name}.py)")
+        fi
+    done
+    
+    # Report results
+    if [ ${#MISSING_TESTS[@]} -gt 0 ]; then
+        echo "❌ TDD VALIDATION FAILED"
+        echo ""
+        echo "The following implementation files are missing corresponding tests:"
+        for item in "${MISSING_TESTS[@]}"; do
+            echo "  • $item"
+        done
+        echo ""
+        echo "🛠️  SOLUTION:"
+        echo "   1. Create tests for the files above (e.g., tests/test_<module>.py)"
+        echo "   2. Or move implementation to existing test structure"
+        echo ""
+        echo "⚠️  Session end BLOCKED - Fix TDD compliance before ending session"
+        return 1
+    else
+        echo "✅ TDD Validation PASSED - All implementation files have corresponding tests"
+        return 0
+    fi
+}
+
 # Function to show usage
 usage() {
     echo "Usage: $0 [--lock-file <path>] [--silent] [--skip-pr]"
@@ -110,7 +241,7 @@ usage() {
     echo "Options:"
     echo "  --lock-file <path>  Explicitly specify lock file to remove"
     echo "  --silent            Don't show session summary"
-    echo "  --skip-pr           Skip PR creation and branch cleanup"
+    echo "  --skip-pr           Skip PR creation (for WIP sessions)"
     echo "  --help              Show this help message"
     echo ""
     echo "Examples:"
@@ -118,6 +249,11 @@ usage() {
     echo "  $0 --lock-file .agent/session_locks/agent_xyz_123.json"
     echo "  $0 --silent"
     echo "  $0 --skip-pr  # For WIP sessions"
+    echo ""
+    echo "Note:"
+    echo "  PRs created require approval before merging."
+    echo "  After approval, merge manually or run:"
+    echo "    gh pr merge --auto --squash --delete-branch"
 }
 
 # Parse arguments
@@ -154,6 +290,22 @@ done
 # Main execution
 echo "🏁 Agent Session End"
 echo "===================="
+
+# Run feature branch validation first - must be on valid feature branch
+if ! validate_feature_branch; then
+    echo ""
+    echo "🚫 SESSION END BLOCKED - Not on a valid feature branch"
+    echo "   Fix the branch issue before ending your session"
+    exit 1
+fi
+
+# Run TDD validation before anything else (validates entire branch)
+if ! validate_tdd_for_branch; then
+    echo ""
+    echo "🚫 SESSION END BLOCKED - TDD validation failed"
+    echo "   Fix the issues above before ending your session"
+    exit 1
+fi
 
 # Find lock file
 if [ -n "$EXPLICIT_LOCK_FILE" ]; then
@@ -218,14 +370,55 @@ if [ "$SKIP_PR" = false ]; then
                 echo "⚠️  Uncommitted changes detected. Commit before creating PR."
             else
                 # Check if PR already exists
-                if gh pr view "$CURRENT_BRANCH" --json state &> /dev/null; then
+                EXISTING_PR=$(gh pr view "$CURRENT_BRANCH" --json number 2>/dev/null || echo "")
+                if [ -n "$EXISTING_PR" ]; then
                     echo "✅ PR already exists for this branch"
-                    echo "   Run: gh pr merge --auto --squash --delete-branch"
+                    PR_URL="https://github.com/$(git remote get-url origin | sed 's/.*github.com[:\/]//;s/.git$//')/pull/$(echo "$EXISTING_PR" | grep -o '"number": [0-9]*' | grep -o '[0-9]*')"
+                    echo "   PR URL: $PR_URL"
                 else
+                    # Extract issue ID from branch name (e.g., agent-harness/lightrag-abc-desc -> lightrag-abc)
+                    ISSUE_ID=$(echo "$CURRENT_BRANCH" | sed -E 's/agent-harness\/([a-zA-Z0-9-]+)-.*/\1/')
+
+                    # Build PR body with review instructions
+                    PR_BODY="## Summary
+Brief description of changes made in this PR.
+
+## Review Checklist
+- [ ] Code follows project conventions
+- [ ] Tests pass (if applicable)
+- [ ] No merge conflicts
+- [ ] Changes align with issue requirements
+
+## Next Steps
+1. Review the changes
+2. Approve or request changes
+3. After approval, merge manually or run: \`gh pr merge --auto --squash --delete-branch\`
+
+---
+*Generated by agent-end.sh for issue: $ISSUE_ID*"
+
                     echo "📝 Creating PR..."
-                    if gh pr create --fill --base main; then
-                        echo "🔄 Enabling auto-merge (squash, delete-branch)..."
-                        gh pr merge --auto --squash --delete-branch || echo "⚠️  Auto-merge setup failed (check branch protection rules)"
+                    if gh pr create --fill --base main --body "$PR_BODY"; then
+                        PR_URL="https://github.com/$(git remote get-url origin | sed 's/.*github.com[:\/]//;s/.git$//')/pull/$(gh pr view "$CURRENT_BRANCH" --json number -q '.number')"
+                        echo "✅ PR created successfully!"
+                        echo "   PR URL: $PR_URL"
+                        echo ""
+                        echo "📋 Review Instructions:"
+                        echo "   1. Share PR URL with reviewer"
+                        echo "   2. Wait for approval before merging"
+                        echo "   3. After approval, merge manually or run:"
+                        echo "      gh pr merge --auto --squash --delete-branch"
+
+                        # Add PR URL to beads issue comment if issue ID found
+                        if [ -n "$ISSUE_ID" ]; then
+                            echo ""
+                            echo "💬 Adding PR URL to beads issue: $ISSUE_ID"
+                            if bd comments add "$ISSUE_ID" "PR: $PR_URL" 2>/dev/null; then
+                                echo "✅ PR URL added to beads issue"
+                            else
+                                echo "⚠️  Could not add comment to beads issue (bd may not be running)"
+                            fi
+                        fi
                     fi
                 fi
 

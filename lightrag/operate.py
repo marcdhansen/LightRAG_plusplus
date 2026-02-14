@@ -46,6 +46,8 @@ from lightrag.highlight import generate_citations_from_highlights
 from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
 from lightrag.prompt import PROMPTS
+from lightrag.query_mode import detect_query_mode
+from lightrag.chunking import chunking_by_token_size
 from lightrag.utils import (
     CacheData,
     Tokenizer,
@@ -77,156 +79,31 @@ from lightrag.utils import (
     use_llm_func_with_cache,
 )
 
+from lightrag.entity_extraction import (
+    _handle_single_entity_extraction,
+    _handle_single_relationship_extraction,
+    _parse_yaml_extraction,
+    _process_extraction_result,
+    _rebuild_from_extraction_result,
+)
+
+from lightrag.citation_ops import _generate_citations_with_auto_highlight
+from lightrag.rerank_ops import rerank_graph_elements
+
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
 # the OS environment variables take precedence over the .env file
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
 
 
-async def _generate_citations_with_auto_highlight(
-    truncated_chunks: list[dict],
-    query: str,
-    query_param: QueryParam,
-) -> tuple[list[dict], list[dict]]:
-    """
-    Generate citations using automatic highlighting when auto_citations is enabled.
+# Re-export citation generation for backward compatibility
+from lightrag.citation_ops import _generate_citations_with_auto_highlight
 
-    This function conditionally uses Zilliz semantic highlighting for automatic
-    citation generation, or falls back to frequency-based citation generation.
+# Re-export chunking functions from chunking module for backward compatibility
+from lightrag.chunking import chunking_by_token_size, truncate_entity_identifier
 
-    Args:
-        truncated_chunks: List of chunk dictionaries with content and file_path
-        query: User query
-        query_param: Query parameters including auto_citations flag
-
-    Returns:
-        Tuple of (reference_list, truncated_chunks_with_refs)
-    """
-    if query_param.auto_citations:
-        try:
-            # Use automatic citation generation from Zilliz highlights
-            logger.info(
-                f"Generating automatic citations with threshold {query_param.citation_threshold}"
-            )
-            reference_list, highlighted_citations = generate_citations_from_highlights(
-                chunks=truncated_chunks,
-                query=query,
-                threshold=query_param.citation_threshold,
-                max_citations=5,  # Standard max citations
-            )
-
-            # Update chunks with reference_ids from the generated citations
-            file_path_to_ref_id = {
-                ref["file_path"]: ref["reference_id"] for ref in reference_list
-            }
-
-            for chunk in truncated_chunks:
-                file_path = chunk.get("file_path", "unknown_source")
-                if file_path in file_path_to_ref_id:
-                    chunk["reference_id"] = file_path_to_ref_id[file_path]
-                else:
-                    chunk["reference_id"] = ""
-
-            logger.info(
-                f"Auto-citations generated: {len(reference_list)} references from {len(highlighted_citations)} chunks"
-            )
-            return reference_list, truncated_chunks
-
-        except Exception as e:
-            logger.warning(
-                f"Automatic citation generation failed, falling back to frequency-based: {e}"
-            )
-            # Fall through to frequency-based method
-
-    # Use standard frequency-based citation generation
-    return generate_reference_list_from_chunks(truncated_chunks)
-
-
-def _truncate_entity_identifier(
-    identifier: str, limit: int, chunk_key: str, identifier_role: str
-) -> str:
-    """Truncate entity identifiers that exceed the configured length limit."""
-
-    if len(identifier) <= limit:
-        return identifier
-
-    display_value = identifier[:limit]
-    preview = identifier[:20]  # Show first 20 characters as preview
-    logger.warning(
-        "%s: %s len %d > %d chars (Name: '%s...')",
-        chunk_key,
-        identifier_role,
-        len(identifier),
-        limit,
-        preview,
-    )
-    return display_value
-
-
-def chunking_by_token_size(
-    tokenizer: Tokenizer,
-    content: str,
-    split_by_character: str | None = None,
-    split_by_character_only: bool = False,
-    chunk_overlap_token_size: int = 100,
-    chunk_token_size: int = 1200,
-) -> list[dict[str, Any]]:
-    tokens = tokenizer.encode(content)
-    results: list[dict[str, Any]] = []
-    if split_by_character:
-        raw_chunks = content.split(split_by_character)
-        new_chunks = []
-        if split_by_character_only:
-            for chunk in raw_chunks:
-                _tokens = tokenizer.encode(chunk)
-                if len(_tokens) > chunk_token_size:
-                    logger.warning(
-                        "Chunk split_by_character exceeds token limit: len=%d limit=%d",
-                        len(_tokens),
-                        chunk_token_size,
-                    )
-                    raise ChunkTokenLimitExceededError(
-                        chunk_tokens=len(_tokens),
-                        chunk_token_limit=chunk_token_size,
-                        chunk_preview=chunk[:120],
-                    )
-                new_chunks.append((len(_tokens), chunk))
-        else:
-            for chunk in raw_chunks:
-                _tokens = tokenizer.encode(chunk)
-                if len(_tokens) > chunk_token_size:
-                    for start in range(
-                        0, len(_tokens), chunk_token_size - chunk_overlap_token_size
-                    ):
-                        chunk_content = tokenizer.decode(
-                            _tokens[start : start + chunk_token_size]
-                        )
-                        new_chunks.append(
-                            (min(chunk_token_size, len(_tokens) - start), chunk_content)
-                        )
-                else:
-                    new_chunks.append((len(_tokens), chunk))
-        for index, (_len, chunk) in enumerate(new_chunks):
-            results.append(
-                {
-                    "tokens": _len,
-                    "content": chunk.strip(),
-                    "chunk_order_index": index,
-                }
-            )
-    else:
-        for index, start in enumerate(
-            range(0, len(tokens), chunk_token_size - chunk_overlap_token_size)
-        ):
-            chunk_content = tokenizer.decode(tokens[start : start + chunk_token_size])
-            results.append(
-                {
-                    "tokens": min(chunk_token_size, len(tokens) - start),
-                    "content": chunk_content.strip(),
-                    "chunk_order_index": index,
-                }
-            )
-    return results
+# Alias for backward compatibility
+_truncate_entity_identifier = truncate_entity_identifier
 
 
 async def _handle_entity_relation_summary(
@@ -2293,8 +2170,6 @@ async def _merge_edges_then_upsert(
             seen_paths.add(file_path_item)
 
     # Apply count limit
-    max_file_paths = global_config.get("max_file_paths")
-
     if len(file_paths_list) > max_file_paths:
         limit_method = global_config.get(
             "source_ids_limit_method", SOURCE_IDS_LIMIT_METHOD_KEEP
@@ -3395,8 +3270,14 @@ async def kg_query(
         use_model_func = query_param.model_func
     else:
         use_model_func = global_config["llm_model_func"]
-        # Apply higher priority (5) to query relation LLM function
         use_model_func = partial(use_model_func, _priority=5)
+
+    if query_param.mode == "auto":
+        detected_mode = detect_query_mode(query)
+        logger.info(
+            f"Auto-detected query mode: {detected_mode} for query: {query[:50]}..."
+        )
+        query_param.mode = detected_mode
 
     hl_keywords, ll_keywords = await get_keywords_from_query(
         query, query_param, global_config, hashing_kv
@@ -3609,6 +3490,11 @@ async def get_keywords_from_query(
         query, query_param, global_config, hashing_kv
     )
     return hl_keywords, ll_keywords
+
+
+# Re-export detect_query_mode from query_mode for backward compatibility
+# The function has been moved to lightrag.query_mode module
+from lightrag.query_mode import detect_query_mode
 
 
 async def extract_keywords_only(

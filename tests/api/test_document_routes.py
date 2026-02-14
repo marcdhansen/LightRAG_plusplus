@@ -389,6 +389,57 @@ class TestDocumentDeletion:
 
             assert data["status"] == "success"
 
+    async def test_delete_failed_documents_while_pipeline_busy(
+        self,
+        authenticated_api_client,
+        mock_rag,
+        response_validator,
+    ):
+        """Test that failed documents can be deleted while pipeline is busy.
+
+        This tests the fix for GitHub Issue #2690:
+        Allow deleting individual documents while pipeline is busy.
+
+        Documents with status='failed' should be deletable even when
+        pipeline_busy is True.
+        """
+        # First add documents with failed status
+        await mock_rag.apipeline_enqueue_documents([{"content": "doc1"}])
+
+        # Simulate setting document as failed
+        for doc_id, doc_data in mock_rag.documents.items():
+            doc_data["status"] = DocStatus.FAILED
+
+        # Mock pipeline as busy using the shared_storage mechanism
+        with patch(
+            "lightrag.api.routers.document_routes.get_namespace_data"
+        ) as mock_get_data:
+            # Return busy=True for pipeline_status
+            mock_get_data.return_value = {"busy": True}
+
+            # Try to delete failed documents - should succeed
+            delete_data = {
+                "doc_ids": list(mock_rag.documents.keys()),
+                "delete_file": False,
+                "delete_llm_cache": False,
+            }
+
+            response = await authenticated_api_client.post(
+                "/documents/delete", json=delete_data
+            )
+
+            # Should NOT return busy status - deletion should be allowed for failed docs
+            data = response.json()
+            assert data.get("status") != "busy", (
+                "Failed documents should be deletable even when pipeline is busy"
+            )
+
+            # Should NOT return busy status - deletion should be allowed
+            data = response.json()
+            assert data.get("status") != "busy", (
+                "Failed documents should be deletable even when pipeline is busy"
+            )
+
 
 @pytest.mark.asyncio
 @pytest.mark.api

@@ -105,6 +105,55 @@ check_existing_locks() {
     fi
 }
 
+# Function to detect code changes and escalate to Full Mode
+detect_code_changes() {
+    local changes_detected=false
+    local change_details=""
+
+    # Check for staged and unstaged changes
+    if ! git diff --quiet --cached 2>/dev/null; then
+        changes_detected=true
+        local staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
+        change_details="staged changes ($staged_files files)"
+    fi
+
+    if ! git diff --quiet 2>/dev/null; then
+        changes_detected=true
+        local unstaged_files=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+        if [ -n "$change_details" ]; then
+            change_details="${change_details}, "
+        fi
+        change_details="${change_details}unstaged changes ($unstaged_files files)"
+    fi
+
+    # Check for untracked code files (excluding common non-code files)
+    local untracked_code=$(git ls-files --others --exclude-standard -- '*.py' '*.js' '*.ts' '*.tsx' '*.jsx' '*.sh' '*.yaml' '*.yml' '*.json' '*.md' '*.c' '*.cpp' '*.h' '*.hpp' '*.go' '*.rs' '*.java' '*.cs' 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$untracked_code" -gt 0 ]; then
+        changes_detected=true
+        if [ -n "$change_details" ]; then
+            change_details="${change_details}, "
+        fi
+        change_details="${change_details}untracked code files ($untracked_code files)"
+    fi
+
+    if [ "$changes_detected" = true ]; then
+        echo ""
+        echo "⚠️  CODE CHANGES DETECTED: ${change_details}"
+        echo "🚨 ESCALATING TO FULL MODE"
+        echo ""
+        echo "Per Universal Agent Protocol, code changes require Full Mode (7-phase SOP)."
+        echo "Please ensure you have:"
+        echo "  - Created/assigned a Beads issue for this work"
+        echo "  - Reviewed the ImplementationPlan.md"
+        echo "  - Prepared TDD tests before implementation"
+        echo ""
+        echo "Run 'python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init' for Full Mode."
+        return 1
+    fi
+
+    return 0
+}
+
 # Function to show usage
 usage() {
     echo "Usage: $0 [--task-id <id>] [--task-desc <desc>] [--quiet]"
@@ -187,6 +236,15 @@ fi
 
 # Validate Beads task
 validate_beads_task "$TASK_ID"
+
+# Auto-detect code changes and escalate to Full Mode if needed
+echo "🔍 Checking for code changes..."
+if ! detect_code_changes; then
+    echo "⚠️  WARNING: Code changes detected - Full Mode required"
+    echo "   Continuing in Turbo Mode but Full Mode recommended."
+    echo "   Run Full Mode initialization when ready to implement."
+    echo ""
+fi
 
 # Run P0 workflow violation prevention validation
 echo "🚨 Running P0 workflow violation prevention..."

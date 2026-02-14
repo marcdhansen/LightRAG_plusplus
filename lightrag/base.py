@@ -84,7 +84,7 @@ class QueryParam:
     """Configuration parameters for query execution in LightRAG."""
 
     mode: Literal[
-        "local", "global", "hybrid", "naive", "mix", "rrf", "bypass", "keyword"
+        "local", "global", "hybrid", "naive", "mix", "rrf", "bypass", "keyword", "auto"
     ] = "mix"
     """Specifies the retrieval mode:
     - "local": Focuses on context-dependent information.
@@ -93,6 +93,7 @@ class QueryParam:
     - "naive": Performs a basic search without advanced techniques.
     - "mix": Integrates knowledge graph and vector retrieval.
     - "keyword": Performs keyword-based search using indexed terms.
+    - "auto": Automatically selects the best mode based on query characteristics.
     """
 
     only_need_context: bool = False

@@ -1,0 +1,288 @@
+name: Project Board Automation
+
+on:
+  issues:
+    types: [assigned, unassigned, closed, reopened]
+  pull_request:
+    types: [opened, closed, reopened]
+
+jobs:
+  update-project-on-assign:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'assigned'
+    steps:
+      - name: Update project status to In Progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectOwner = context.repo.owner;
+            const projectTitle = "Agent Development Roadmap";
+            const issueNumber = context.issue.number;
+            
+            // Get project ID
+            const projectQuery = `
+              query($owner: String!, $title: String!) {
+                user(login: $owner) {
+                  projectsV2(first: 1, query: $title) {
+                    nodes { id }
+                  }
+                }
+              }
+            `;
+            
+            const projectResult = await github.graphql(projectQuery, {
+              owner: projectOwner,
+              title: projectTitle
+            });
+            
+            const projectId = projectResult.user.projectsV2.nodes[0]?.id;
+            if (!projectId) {
+              console.log("Project not found");
+              return;
+            }
+            
+            // Get Status field ID and In Progress option
+            const fieldsQuery = `
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options { id name }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+            
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
+            const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
+            const inProgressOption = statusField?.options.find(o => o.name === "In Progress");
+            
+            if (!statusField || !inProgressOption) {
+              console.log("Status field or In Progress option not found");
+              return;
+            }
+            
+            // Get issue node ID
+            const issueQuery = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) { id }
+                }
+              }
+            `;
+            
+            const issueResult = await github.graphql(issueQuery, {
+              owner: projectOwner,
+              repo: context.repo.repo,
+              number: issueNumber
+            });
+            
+            const issueNodeId = issueResult.repository.issue.id;
+            
+            // Get project item ID
+            const itemQuery = `
+              query($projectId: ID!, $contentId: ID!) {
+                node(id: $contentId) {
+                  ... on Issue {
+                    projectItems(first: 10, projectId: $projectId) {
+                      nodes { id }
+                    }
+                  }
+                }
+              }
+            `;
+            
+            const itemResult = await github.graphql(itemQuery, {
+              projectId,
+              contentId: issueNodeId
+            });
+            
+            const itemId = itemResult.node.projectItems.nodes[0]?.id;
+            if (!itemId) {
+              console.log("Issue not in project");
+              return;
+            }
+            
+            // Update status
+            const updateMutation = `
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }
+            `;
+            
+            await github.graphql(updateMutation, {
+              projectId,
+              itemId,
+              fieldId: statusField.id,
+              optionId: inProgressOption.id
+            });
+            
+            console.log("✅ Moved issue to In Progress");
+
+  update-project-on-unassign:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'unassigned'
+    steps:
+      - name: Update project status to To Do
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectOwner = context.repo.owner;
+            const projectTitle = "Agent Development Roadmap";
+            const issueNumber = context.issue.number;
+            
+            const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectId = projectResult.user.projectsV2.nodes[0]?.id;
+            if (!projectId) return;
+            
+            const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
+            const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
+            const toDoOption = statusField?.options.find(o => o.name === "To Do");
+            if (!statusField || !toDoOption) return;
+            
+            const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            
+            const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemId = itemResult.node.projectItems.nodes[0]?.id;
+            if (!itemId) return;
+            
+            const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
+            console.log("✅ Moved issue to To Do");
+
+  update-project-on-close:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'closed'
+    steps:
+      - name: Update project status to Done
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectOwner = context.repo.owner;
+            const projectTitle = "Agent Development Roadmap";
+            const issueNumber = context.issue.number;
+            
+            const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectId = projectResult.user.projectsV2.nodes[0]?.id;
+            if (!projectId) return;
+            
+            const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
+            const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
+            const doneOption = statusField?.options.find(o => o.name === "Done");
+            if (!statusField || !doneOption) return;
+            
+            const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            
+            const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemId = itemResult.node.projectItems.nodes[0]?.id;
+            if (!itemId) return;
+            
+            const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: doneOption.id });
+            console.log("✅ Moved issue to Done");
+
+  update-project-on-reopen:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'reopened'
+    steps:
+      - name: Update project status to To Do
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectOwner = context.repo.owner;
+            const projectTitle = "Agent Development Roadmap";
+            const issueNumber = context.issue.number;
+            
+            const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } } }`;
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectId = projectResult.user.projectsV2.nodes[0]?.id;
+            if (!projectId) return;
+            
+            const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
+            const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
+            const toDoOption = statusField?.options.find(o => o.name === "To Do");
+            if (!statusField || !toDoOption) return;
+            
+            const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            
+            const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemId = itemResult.node.projectItems.nodes[0]?.id;
+            if (!itemId) return;
+            
+            const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: toDoOption.id });
+            console.log("✅ Moved issue to To Do");
+
+  update-project-on-pr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Update project status based on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectOwner = context.repo.owner;
+            const projectTitle = "Agent Development Roadmap";
+            const prNumber = context.payload.pull_request.number;
+            const isMerged = context.payload.pull_request.merged;
+            
+            // Find linked issue (look for #issue in PR body or linked issues)
+            let issueNumber = null;
+            const body = context.payload.pull_request.body || "";
+            const match = body.match(/#(\d+)/);
+            if (match) issueNumber = parseInt(match[1]);
+            
+            if (!issueNumber) {
+              console.log("No linked issue found");
+              return;
+            }
+            
+            const projectQuery = `query($owner: String!, $title: String!) { user(login: $owner) { projectsV2(first: 1, query: $title) { nodes { id } } } }`;
+            const projectResult = await github.graphql(projectQuery, { owner: projectOwner, title: projectTitle });
+            const projectId = projectResult.user.projectsV2.nodes[0]?.id;
+            if (!projectId) return;
+            
+            const fieldsQuery = `query($projectId: ID!) { node(id: $projectId) { ... on ProjectV2 { fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }`;
+            const fieldsResult = await github.graphql(fieldsQuery, { projectId });
+            const statusField = fieldsResult.node.fields.nodes.find(f => f.name === "Status");
+            
+            const targetStatus = isMerged ? "Done" : "Review";
+            const statusOption = statusField?.options.find(o => o.name === targetStatus);
+            if (!statusField || !statusOption) return;
+            
+            const issueQuery = `query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { id } } } }`;
+            const issueResult = await github.graphql(issueQuery, { owner: projectOwner, repo: context.repo.repo, number: issueNumber });
+            
+            const itemQuery = `query($projectId: ID!, $contentId: ID!) { node(id: $contentId) { ... on Issue { projectItems(first: 10, projectId: $projectId) { nodes { id } } } } }`;
+            const itemResult = await github.graphql(itemQuery, { projectId, contentId: issueResult.repository.issue.id });
+            const itemId = itemResult.node.projectItems.nodes[0]?.id;
+            if (!itemId) return;
+            
+            const updateMutation = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }`;
+            await github.graphql(updateMutation, { projectId, itemId, fieldId: statusField.id, optionId: statusOption.id });
+            console.log(`✅ Moved issue #${issueNumber} to ${targetStatus}`);

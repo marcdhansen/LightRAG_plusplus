@@ -19,7 +19,7 @@ class TestSafeIndexName:
 
     def test_short_name_unchanged(self):
         """Short index names should remain unchanged."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # Short table name - should return unchanged
         result = _safe_index_name("lightrag_vdb_entity", "hnsw_cosine")
@@ -28,7 +28,7 @@ class TestSafeIndexName:
 
     def test_long_name_gets_hashed(self):
         """Long table names exceeding 63 bytes should get hashed."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # Long table name that would exceed 63 bytes
         long_table_name = "LIGHTRAG_VDB_ENTITY_text_embedding_3_large_3072d"
@@ -49,7 +49,7 @@ class TestSafeIndexName:
 
     def test_deterministic_output(self):
         """Same input should always produce same output (deterministic)."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         table_name = "LIGHTRAG_VDB_CHUNKS_text_embedding_3_large_3072d"
         suffix = "hnsw_cosine"
@@ -61,7 +61,7 @@ class TestSafeIndexName:
 
     def test_different_suffixes_different_results(self):
         """Different suffixes should produce different index names."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         table_name = "LIGHTRAG_VDB_ENTITY_text_embedding_3_large_3072d"
 
@@ -72,7 +72,7 @@ class TestSafeIndexName:
 
     def test_case_insensitive(self):
         """Table names should be normalized to lowercase."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         result_upper = _safe_index_name("LIGHTRAG_VDB_ENTITY", "hnsw_cosine")
         result_lower = _safe_index_name("lightrag_vdb_entity", "hnsw_cosine")
@@ -81,7 +81,7 @@ class TestSafeIndexName:
 
     def test_boundary_case_exactly_63_bytes(self):
         """Test boundary case where name is exactly at 63-byte limit."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # Create a table name that results in exactly 63 bytes
         # idx_ (4) + table_name + _ (1) + suffix = 63
@@ -98,9 +98,8 @@ class TestSafeIndexName:
 
     def test_unicode_handling(self):
         """Unicode characters should be properly handled (bytes, not chars)."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
-        # Unicode characters can take more bytes than visible chars
         # Chinese characters are 3 bytes each in UTF-8
         table_name = "lightrag_测试_table"  # Contains Chinese chars
         result = _safe_index_name(table_name, "hnsw_cosine")
@@ -110,7 +109,7 @@ class TestSafeIndexName:
 
     def test_real_world_model_names(self):
         """Test with real-world embedding model names that cause issues."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # These are actual model names that have caused issues
         test_cases = [
@@ -141,7 +140,7 @@ class TestSafeIndexName:
 
     def test_hash_uniqueness_for_similar_tables(self):
         """Similar but different table names should produce different hashes."""
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # These tables have similar names but should have different hashes
         tables = [
@@ -167,7 +166,7 @@ class TestIndexNameIntegration:
         but we were looking up the untruncated name. Our fix ensures we
         always use a name that fits within 63 bytes.
         """
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         table_name = "LIGHTRAG_VDB_CHUNKS_text_embedding_3_large_3072d"
         suffix = "hnsw_cosine"
@@ -191,7 +190,7 @@ class TestIndexNameIntegration:
         For tables that have existing indexes with short names (pre-model-suffix era),
         the function should not change their names.
         """
-        from lightrag.kg.postgres_impl import _safe_index_name
+        from lightrag.kg.postgres import _safe_index_name
 
         # Legacy table names without model suffix
         legacy_tables = [

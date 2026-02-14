@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from lightrag.kg.postgres_impl import PGVectorStorage
+from lightrag.kg.postgres import PGVectorStorage
 from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
 
 pytestmark = pytest.mark.heavy

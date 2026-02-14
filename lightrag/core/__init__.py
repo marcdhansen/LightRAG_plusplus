@@ -8,6 +8,9 @@ import time
 import traceback
 import warnings
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+
+# Re-export LightRAGConfig for future extraction work
+from lightrag.core.config import LightRAGConfig
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from functools import partial
@@ -2803,7 +2806,7 @@ class LightRAG:
 
         query_result = None
 
-        if data_param.mode in ["local", "global", "hybrid", "mix", "keyword"]:
+        if data_param.mode in ["local", "global", "hybrid", "mix", "keyword", "auto"]:
             logger.debug(f"[aquery_data] Using kg_query for mode: {data_param.mode}")
             query_result = await kg_query(
                 query.strip(),
@@ -2902,7 +2905,7 @@ class LightRAG:
         try:
             query_result = None
 
-            if param.mode in ["local", "global", "hybrid", "mix", "keyword"]:
+            if param.mode in ["local", "global", "hybrid", "mix", "keyword", "auto"]:
                 logger.debug(f"[aquery_data] Using kg_query for mode: {param.mode}")
                 query_result = await kg_query(
                     query.strip(),

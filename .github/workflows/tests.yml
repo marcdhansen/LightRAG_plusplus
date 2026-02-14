@@ -37,33 +37,19 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Display Python environment
+      run: |
+        echo "🐍 Python version: $(python --version)"
+        echo "📍 Python path: $(which python)"
+        echo "📦 Pip version: $(pip --version)"
+        echo "🔍 Python architecture: $(python -c 'import platform; print(platform.platform())')"
+
     - name: Verify Python Setup
       run: |
-        echo "🐍 Verifying Python setup with native retry..."
-        MAX_ATTEMPTS=3
-        TIMEOUT=5
-        ATTEMPT=1
-        
-        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-          echo "📍 Attempt $ATTEMPT/$MAX_ATTEMPTS..."
-          
-          if timeout $TIMEOUT python --version && \
-             timeout $TIMEOUT python -c "import sys; print(f'Python {sys.version} setup successful')"; then
-            echo "✅ Python setup verification successful on attempt $ATTEMPT"
-            exit 0
-          fi
-          
-          echo "⚠️ Python setup verification failed on attempt $ATTEMPT"
-          ATTEMPT=$((ATTEMPT + 1))
-          
-          if [ $ATTEMPT -le $MAX_ATTEMPTS ]; then
-            echo "🔄 Waiting 2 seconds before retry..."
-            sleep 2
-          fi
-        done
-        
-        echo "❌ Python setup verification failed after $MAX_ATTEMPTS attempts"
-        exit 1
+        echo "🐍 Verifying Python setup..."
+        python --version
+        python -c "import sys; print(f'Python {sys.version} setup successful')"
+        echo "✅ Python setup verified"
 
     - name: Cache pip packages
       uses: actions/cache@v5
@@ -99,8 +85,10 @@ jobs:
         echo "✅ Test discovery completed successfully"
 
     - name: Run offline tests
+      id: run-tests
       run: |
         echo "🧪 Running offline tests with enhanced configuration..."
+        set +e  # Don't exit on error - we want to capture the exit code
         python -m pytest tests/ \
           -m offline \
           --ignore=tests/ui \
@@ -112,15 +100,74 @@ jobs:
           --cov-report=json \
           --cov-report=html \
           --cov-fail-under=10
+        TEST_EXIT_CODE=$?
+        echo "Test exit code: $TEST_EXIT_CODE"
+        echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # Exit with test code
+        exit $TEST_EXIT_CODE
+
+    - name: Run offline tests (fallback without coverage)
+      if: steps.run-tests.outputs.test_exit_code != '0'
+      run: |
+        echo "🧪 Tests failed, running without coverage for detailed diagnostics..."
+        python -m pytest tests/ \
+          -m offline \
+          --ignore=tests/ui \
+          -v \
+          --tb=long \
+          --no-cov \
+          2>&1 | tee pytest-output.txt
+        echo "Exit code: $?"
 
     - name: Verify Coverage Files
+      if: always()
       run: |
         echo "🔍 Verifying coverage files were generated..."
-        ls -la coverage.xml coverage.json || {
+        echo "📁 Current directory: $(pwd)"
+        echo "📁 Files in current directory:"
+        ls -la
+        
+        echo "🔍 Looking for coverage files..."
+        if [[ -f "coverage.xml" ]]; then
+          echo "✅ coverage.xml found"
+          echo "  Size: $(wc -c < coverage.xml) bytes"
+        else
+          echo "❌ coverage.xml NOT found"
+        fi
+        
+        if [[ -f "coverage.json" ]]; then
+          echo "✅ coverage.json found"
+          echo "  Size: $(wc -c < coverage.json) bytes"
+        else
+          echo "❌ coverage.json NOT found"
+        fi
+        
+        # Check if test exit code was successful
+        TEST_EXIT_CODE="${{ steps.run-tests.outputs.test_exit_code }}"
+        echo "Test exit code from previous step: $TEST_EXIT_CODE"
+        
+        # If tests passed but coverage files missing, that's an issue
+        if [[ "$TEST_EXIT_CODE" == "0" ]]; then
+          if [[ ! -f "coverage.xml" || ! -f "coverage.json" ]]; then
+            echo "⚠️ Tests passed but coverage files missing - this may be a configuration issue"
+          fi
+        fi
+        
+        # Only fail if tests actually ran (not a collection error)
+        if [[ "$TEST_EXIT_CODE" != "0" && "$TEST_EXIT_CODE" != "" ]]; then
+          echo "Tests failed with exit code: $TEST_EXIT_CODE"
+          # Don't fail here if tests failed - that's already captured
+          exit 0
+        fi
+        
+        # Final check - must have coverage files
+        if [[ -f "coverage.xml" && -f "coverage.json" ]]; then
+          echo "✅ Coverage files verified"
+        else
           echo "❌ Coverage files missing"
           exit 1
-        }
-        echo "✅ Coverage files verified"
+        fi
 
     - name: Upload test results
       if: always() && (hashFiles('test-results.xml') != '')
@@ -204,7 +251,9 @@ jobs:
           if gh issue create \
             --title "$ISSUE_TITLE" \
             --body "$ISSUE_BODY" \
-            --label "ci-failure,basic"; then
+            --label "ci-failure" 2>/dev/null || gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body "$ISSUE_BODY"; then
             echo "✅ Basic GitHub issue created successfully"
           else
             echo "❌ Failed to create GitHub issue"

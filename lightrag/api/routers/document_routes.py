@@ -2870,11 +2870,21 @@ def create_document_routes(
             # Check if pipeline is busy with proper lock
             async with pipeline_status_lock:
                 if pipeline_status.get("busy", False):
-                    return DeleteDocByIdResponse(
-                        status="busy",
-                        message="Cannot delete documents while pipeline is busy",
-                        doc_id=", ".join(doc_ids),
-                    )
+                    # Allow deletion of failed documents even when pipeline is busy
+                    # Check if all documents to delete have failed status
+                    all_failed = True
+                    for doc_id in doc_ids:
+                        doc_data = await rag.doc_status.get_by_id(doc_id)
+                        if doc_data is None or doc_data.get("status") != "failed":
+                            all_failed = False
+                            break
+
+                    if not all_failed:
+                        return DeleteDocByIdResponse(
+                            status="busy",
+                            message="Cannot delete documents while pipeline is busy",
+                            doc_id=", ".join(doc_ids),
+                        )
 
             # Add deletion task to background tasks
             background_tasks.add_task(

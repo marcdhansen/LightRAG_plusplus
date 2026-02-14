@@ -23,20 +23,92 @@ jobs:
           AUTHOR=$(git log -1 --pretty=%an)
           DATE=$(date +%Y-%m-%d)
 
+          # Validate extracted data - reject empty author or message
+          if [ -z "$AUTHOR" ] || [ -z "$MESSAGE" ]; then
+            echo "ERROR: Empty author or message detected. Author='$AUTHOR', Message='$MESSAGE'"
+            echo "empty=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
           # Use multiline file syntax to safely handle special characters
-          # This avoids command-line interpretation issues
           {
             echo "message<<EOF"
             echo "$MESSAGE"
             echo "EOF"
             echo "author=$AUTHOR"
             echo "date=$DATE"
+            echo "empty=false"
           } >> $GITHUB_OUTPUT
 
+      - name: Check if update needed
+        id: check-update
+        run: |
+          if [ "${{ steps.commit-info.outputs.empty }}" == "true" ]; then
+            echo "Skipping changelog update - empty author or message"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Proceeding with changelog update"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate CHANGELOG.md exists and has proper format
+        id: validate-changelog
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "CHANGELOG.md does not exist, will create new file"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            echo "line_count=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LINE_COUNT=$(wc -l < CHANGELOG.md)
+          echo "CHANGELOG.md exists with $LINE_COUNT lines"
+          echo "line_count=$LINE_COUNT" >> $GITHUB_OUTPUT
+
+          # Check if first line is "# Changelog"
+          FIRST_LINE=$(head -n 1 CHANGELOG.md)
+          if [ "$FIRST_LINE" != "# Changelog" ]; then
+            echo "ERROR: CHANGELOG.md does not start with '# Changelog'"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Check for corrupted entries (empty author pattern "## [] - ")
+          CORRUPTED_COUNT=$(grep -c "^## \[\] - " CHANGELOG.md 2>/dev/null || echo "0")
+          if [ "$CORRUPTED_COUNT" -gt 0 ]; then
+            echo "WARNING: Found $CORRUPTED_COUNT corrupted entries in CHANGELOG.md"
+            echo "valid=false" >> $GITHUB_OUTPUT
+          else
+            echo "valid=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Repair CHANGELOG.md if corrupted
+        if: steps.validate-changelog.outputs.valid == 'false'
+        run: |
+          echo "Repairing CHANGELOG.md..."
+          # Remove corrupted entries but keep header
+          {
+            echo "# Changelog"
+            echo ""
+          } > CHANGELOG_REPAIRED.md
+
+          # Try to preserve valid entries (entries with actual dates)
+          if [ -f CHANGELOG.md ]; then
+            # Keep only entries with valid dates (e.g., ## [2026-02-12])
+            grep -E "^## \[20[0-9]{2}-[0-9]{2}-[0-9]{2}\]" CHANGELOG.md >> CHANGELOG_REPAIRED.md 2>/dev/null || true
+            # Also add the content between valid entries
+            awk '/^## \[20[0-9]{2}-[0-9]{2}-[0-9]{2}\]/ {found=1} found {print}' CHANGELOG.md >> CHANGELOG_REPAIRED.md 2>/dev/null || true
+          fi
+
+          mv CHANGELOG_REPAIRED.md CHANGELOG.md
+          echo "✅ CHANGELOG.md repaired"
+
       - name: Install gawk for validation
+        if: steps.validate-changelog.outputs.valid == 'true'
         run: sudo apt-get update && sudo apt-get install -y gawk
 
       - name: Validate AWK Script Syntax
+        if: steps.validate-changelog.outputs.valid == 'true'
         run: |
           # Extract the awk script for validation
           AWK_SCRIPT='
@@ -58,10 +130,9 @@ jobs:
           echo "$AWK_SCRIPT" | awk -f - /dev/null 2>&1 && echo "✅ AWK syntax valid"
 
       - name: Update CHANGELOG.md
+        if: steps.check-update.outputs.skip != 'true'
         run: |
           MESSAGE="${{ steps.commit-info.outputs.message }}"
-          DATE="${{ steps.commit-info.outputs.date }}"
-          AUTHOR="${{ steps.commit-info.outputs.author }}"
           DATE="${{ steps.commit-info.outputs.date }}"
           AUTHOR="${{ steps.commit-info.outputs.author }}"
 
@@ -72,21 +143,25 @@ jobs:
             echo "" >> CHANGELOG.md
           fi
 
-          # Insert after the header line using awk (safer than sed)
-          # Using proper awk variable handling - double quotes for shell vars
-          awk "
-            NR == 2 { 
-              print \"## [\" DATE \"] - \" AUTHOR
-              print \"\"
+          # Insert after the header line (# Changelog) using awk pattern match
+          # More robust than fixed line number
+          awk '
+            /^# Changelog$/ && !inserted {
+              print
+              print "## [" DATE "] - " AUTHOR
+              print ""
               print MESSAGE
-              print \"\"
+              print ""
+              inserted=1
+              next
             }
             { print }
-          " CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+          ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
 
           echo "✅ CHANGELOG.md updated"
 
       - name: Commit and Push Changes
+        if: steps.check-update.outputs.skip != 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"

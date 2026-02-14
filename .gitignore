@@ -6,6 +6,8 @@ __pycache__/
 *.tgz
 *.tar.gz
 *.ini
+.coverage*
+*.coverage.*
 
 # Virtual Environment
 .venv/
@@ -24,6 +26,8 @@ site/
 *.log.*
 *.logfire
 *.coverage/
+*.coverage
+coverage.json
 log/
 
 # Caches
@@ -74,6 +78,9 @@ memory-bank
 # Gemini Code
 GEMINI.md
 global_docs
+
+# Agent artifacts
+.reflection_input.json
 
 # beads-related files
 # .beads/issues.jsonl (removed to allow tracking)
