@@ -6,7 +6,6 @@ Tests the detect_query_mode function which automatically selects
 the optimal query mode based on query characteristics.
 """
 
-import pytest
 from lightrag.operate import detect_query_mode
 
 
