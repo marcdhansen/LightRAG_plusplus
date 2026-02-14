@@ -334,7 +334,7 @@ class CleanupTool:
         Returns:
             Dictionary with counts for each mode and cache_type
         """
-            from lightrag.kg.postgres import namespace_to_table_name
+        from lightrag.kg.postgres import namespace_to_table_name
 
         counts = {mode: {"query": 0, "keywords": 0} for mode in QUERY_MODES}
         table_name = namespace_to_table_name(storage.namespace)
@@ -573,7 +573,7 @@ class CleanupTool:
             cleanup_type: 'all', 'query', or 'keywords'
             stats: CleanupStats object to track progress
         """
-            from lightrag.kg.postgres import namespace_to_table_name
+        from lightrag.kg.postgres import namespace_to_table_name
 
         table_name = namespace_to_table_name(storage.namespace)
 
