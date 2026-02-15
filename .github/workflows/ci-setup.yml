@@ -38,6 +38,18 @@ jobs:
                 python-version: ${{ inputs.python_version || '3.12' }}
                 cache: 'pip'
 
+            - name: Check for WebUI directory
+              id: check-webui
+              run: |
+                if [[ -d "lightrag_webui" ]]; then
+                  echo "exists=true" >> $GITHUB_OUTPUT
+                  echo "✅ WebUI directory found"
+                else
+                  echo "exists=false" >> $GITHUB_OUTPUT
+                  echo "ℹ️ WebUI directory not found"
+                fi
+              shell: bash
+
             - name: Set up Node.js
               uses: actions/setup-node@v6
               if: steps.check-webui.outputs.exists == 'true'
@@ -75,18 +87,6 @@ jobs:
               run: |
                 curl -LsSf https://astral.sh/uv/install.sh | sh
                 echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-              shell: bash
-
-            - name: Check for WebUI directory
-              id: check-webui
-              run: |
-                if [[ -d "lightrag_webui" ]]; then
-                  echo "exists=true" >> $GITHUB_OUTPUT
-                  echo "✅ WebUI directory found"
-                else
-                  echo "exists=false" >> $GITHUB_OUTPUT
-                  echo "ℹ️ WebUI directory not found"
-                fi
               shell: bash
 
             - name: Generate cache keys

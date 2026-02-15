@@ -2,7 +2,6 @@ name: Feature Branch Setup
 
 on:
   create:
-    branches: [ 'feature/*', 'agent/*', 'task/*' ]
 
 permissions:
   contents: write
