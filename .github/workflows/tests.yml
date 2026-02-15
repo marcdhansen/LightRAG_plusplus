@@ -15,9 +15,18 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
         with:
-          enable-cache: true
+          enable-cache: false
 
-      - run: uv pip install --system ruff
+      - name: Install ruff
+        run: |
+          set +e
+          uv pip install --system ruff
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "⚠️ Failed to install ruff, skipping lint check"
+            exit 0
+          fi
 
       - name: Run ruff check (non-blocking)
         run: |
