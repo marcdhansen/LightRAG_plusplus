@@ -215,7 +215,7 @@ class ConditionalSkillDetector:
         # Always mandatory skills
         recommendations["mandatory_skills"] = [
             "planning (auto-prompted)",
-            "return-to-base",
+            "finalization",
             "reflect",
             "mission-debriefing",
         ]
@@ -230,9 +230,9 @@ class ConditionalSkillDetector:
                 }
             )
             recommendations["recommended_skills"].append("mission-briefing")
-            recommendations["justifications"][
-                "mission-briefing"
-            ] = "New session - get current status and protocol highlights"
+            recommendations["justifications"]["mission-briefing"] = (
+                "New session - get current status and protocol highlights"
+            )
 
         elif context["is_context_switch"]:
             recommendations["conditional_requirements"].append(
@@ -243,9 +243,9 @@ class ConditionalSkillDetector:
                 }
             )
             recommendations["recommended_skills"].append("mission-briefing")
-            recommendations["justifications"][
-                "mission-briefing"
-            ] = "Context switch - get updated context for new work area"
+            recommendations["justifications"]["mission-briefing"] = (
+                "Context switch - get updated context for new work area"
+            )
 
         # Devils-advocate requirements
         if complexity["level"] in ["high", "medium"] or complexity["core_changes"]:
@@ -257,22 +257,22 @@ class ConditionalSkillDetector:
                 }
             )
             recommendations["recommended_skills"].append("devils-advocate")
-            recommendations["justifications"][
-                "devils-advocate"
-            ] = f"High-risk work ({complexity['level']} complexity) - challenge assumptions and identify risks"
+            recommendations["justifications"]["devils-advocate"] = (
+                f"High-risk work ({complexity['level']} complexity) - challenge assumptions and identify risks"
+            )
 
         # Task-specific recommendations
         if task_type["requires_testing"] and not complexity["test_changes"]:
             recommendations["recommended_skills"].append("testing")
-            recommendations["justifications"][
-                "testing"
-            ] = "Code changes detected - ensure comprehensive test coverage"
+            recommendations["justifications"]["testing"] = (
+                "Code changes detected - ensure comprehensive test coverage"
+            )
 
         if task_type["type"] == "feature_development":
             recommendations["recommended_skills"].append("browser-manager")
-            recommendations["justifications"][
-                "browser-manager"
-            ] = "Feature development - may need web testing/automation"
+            recommendations["justifications"]["browser-manager"] = (
+                "Feature development - may need web testing/automation"
+            )
 
         # Optional skills (always available)
         recommendations["optional_skills"] = [

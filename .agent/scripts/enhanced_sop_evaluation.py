@@ -106,7 +106,7 @@ class SOPEvaluationEnhancer:
                 "💡 Recommended Approach:",
                 "1. Create individual task for each phase",
                 "2. Use /plan scope for each task separately",
-                "3. Complete each phase with proper RTB",
+                "3. Complete each phase with proper Finalization",
                 "4. Use beads to track phase dependencies",
             ]
         )
@@ -165,20 +165,20 @@ def main():
             print(f"   {step}")
 
         enhancer.log_enhanced_evaluation(results)
-        sys.exit(1)  # Block RTB
+        sys.exit(1)  # Block Finalization
 
     elif results["overall_status"] == "blocked_sop":
         print("\n🚫 BLOCKED: SOP Validation Failed")
-        print("💡 Run recommended skills and retry RTB")
+        print("💡 Run recommended skills and retry Finalization")
 
         enhancer.log_enhanced_evaluation(results)
-        sys.exit(1)  # Block RTB
+        sys.exit(1)  # Block Finalization
 
     else:
-        print("\n✅ Enhanced evaluation passed - RTB can proceed")
+        print("\n✅ Enhanced evaluation passed - Finalization can proceed")
 
         enhancer.log_enhanced_evaluation(results)
-        sys.exit(0)  # Allow RTB
+        sys.exit(0)  # Allow Finalization
 
 
 if __name__ == "__main__":

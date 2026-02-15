@@ -8,7 +8,7 @@ This prevents false positives from keyword matches in old docs.
 
 Exit codes:
 0 = Clear (no multi-phase patterns detected)
-1 = Block (multi-phase patterns detected - RTB blocked)
+1 = Block (multi-phase patterns detected - Finalization blocked)
 2 = Warning (patterns detected but below threshold)
 """
 
@@ -236,7 +236,9 @@ class MultiPhaseDetector:
         # Make determination based on DISTINCT indicators, not weighted sum
         if distinct_count >= self.threshold:
             print("\n🚨 BLOCK: Multiple multi-phase indicators detected!")
-            print("   RTB blocked until proper hand-off protocols are followed.")
+            print(
+                "   Finalization blocked until proper hand-off protocols are followed."
+            )
             return 1
         elif distinct_count >= 2:
             print("\n⚠️  WARNING: Some multi-phase indicators detected.")

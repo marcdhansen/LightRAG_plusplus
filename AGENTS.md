@@ -60,7 +60,7 @@ This project uses the **OpenViking** enhanced agent system:
 ## 🛡️ Protocol
 
 - Always run a **Pre-Flight Check (PFC)** before starting.
-- Always run a **Return To Base (RTB)** check before finishing using `/rtb`.
+- Always run a **Finalization** check before finishing using `/rtb`.
 - Capture your learnings using the `/reflect` skill.
 
 *For global standards and system-wide documentation, see `~/.gemini/GLOBAL_INDEX.md`.*
@@ -78,7 +78,7 @@ This project uses the **OpenViking** enhanced agent system:
 The `/rtb` command automatically handles:
 
 1. **Validation** - Checks git status, beads, quality gates, session locks
-2. **SOP Evaluation** - **MANDATORY**: Evaluates Standard Operating Procedure effectiveness (PFC compliance, process friction) - BLOCKS RTB if failed
+2. **SOP Evaluation** - **MANDATORY**: Evaluates Standard Operating Procedure effectiveness (PFC compliance, process friction) - BLOCKS Finalization if failed
    - **Auto-captures learnings** using reflect system for continuous improvement
 3. **Uncommitted changes** - Handles commit/stash/discard workflows
 4. **Quality gates** - Runs tests, linters, builds (if configured)
@@ -276,7 +276,7 @@ Alternatively, ensure the Beads daemon (`bd daemon start`) is running with prope
 
 ### How It Works
 
-The RTB workflow automatically runs `.agent/scripts/verify_markdown_duplicates.sh` which:
+The Finalization workflow automatically runs `.agent/scripts/verify_markdown_duplicates.sh` which:
 
 1. **Calculates SHA-256 hashes** for all `.md` files (excluding `.git`, `node_modules`, `venv`)
 2. **Groups identical files** by hash value
@@ -295,7 +295,7 @@ The RTB workflow automatically runs `.agent/scripts/verify_markdown_duplicates.s
 
 ### Blocking Behavior
 
-- **RTB will fail** if duplicate markdown files are detected
+- **Finalization will fail** if duplicate markdown files are detected
 - **Session cannot end** until duplicates are resolved
 - **Auto-removal is safe** - keeps the most accessible file (shortest path)
 
@@ -307,4 +307,4 @@ The RTB workflow automatically runs `.agent/scripts/verify_markdown_duplicates.s
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-- **RTB is BLOCKED** by duplicate markdown files - must resolve before session end
+- **Finalization is BLOCKED** by duplicate markdown files - must resolve before session end

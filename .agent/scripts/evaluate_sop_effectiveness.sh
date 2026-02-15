@@ -1,5 +1,5 @@
 #!/bin/bash
-# SOP Evaluation Script - mandatory for RTB process
+# SOP Evaluation Script - mandatory for Finalization process
 # Evaluates effectiveness of Standard Operating Procedures
 
 echo "📊 SOP Effectiveness Evaluation"
@@ -356,7 +356,7 @@ finalize_evaluation_enhanced() {
 
         echo "     7. Re-run SOP evaluation after fixes"
         echo ""
-        echo "   ❌ RTB BLOCKED: Multi-phase detection prevents bypass - fix issues before proceeding"
+        echo "   ❌ FINALIZATION BLOCKED: Multi-phase detection prevents bypass - fix issues before proceeding"
         return 1
     else
         echo "   ✅ SOP Evaluation PASSED"
@@ -443,7 +443,7 @@ main() {
             echo "   This protects workflow integrity and prevents bypass of hand-off protocols"
             echo "   The system detected patterns suggesting multi-phase implementation work"
             echo ""
-            echo "💡 REQUIRED ACTIONS BEFORE RTB:"
+            echo "💡 REQUIRED ACTIONS BEFORE FINALIZATION:"
             echo "   1. SPLIT: Break implementation into focused, single-phase tasks"
             echo "   2. DOCUMENT: Create proper hand-off documents for each phase"
             echo "   3. BRANCH: Use separate branches for each implementation phase"

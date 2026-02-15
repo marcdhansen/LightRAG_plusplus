@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 SOP Compliance Validator
-Blocks RTB completion on SOP violations with user override option.
+Blocks Finalization completion on SOP violations with user override option.
 
 Exit codes:
 0 = Pass (SOP compliance validated)
@@ -184,8 +184,8 @@ class SOPComplianceValidator:
         # Check planning was used (development tasks)
         mandatory_checks["planning_used"] = self.check_planning_used()
 
-        # Check return-to-base was initiated
-        mandatory_checks["rtb_initiated"] = self.check_rtb_initiated()
+        # Check finalization was initiated
+        mandatory_checks["finalization_initiated"] = self.check_finalization_initiated()
 
         # Check reflection was used (look for recent reflection)
         mandatory_checks["reflect_used"] = self.check_reflect_used()
@@ -376,9 +376,9 @@ class SOPComplianceValidator:
 
         return False
 
-    def check_rtb_initiated(self):
-        """Check if RTB process was initiated (always true when this script runs)"""
-        return True  # This script only runs during RTB initiation
+    def check_finalization_initiated(self):
+        """Check if Finalization process was initiated (always true when this script runs)"""
+        return True  # This script only runs during Finalization initiation
 
     def check_reflect_used(self):
         """Check if reflection was used in current session"""
@@ -481,7 +481,7 @@ class SOPComplianceValidator:
     def handle_user_override(self):
         """SECURITY: Override mechanism removed - no bypass allowed"""
         print("\n" + "=" * 60)
-        print("⚠️  SOP VIOLATIONS DETECTED - RTB BLOCKED")
+        print("⚠️  SOP VIOLATIONS DETECTED - FINALIZATION BLOCKED")
         print("=" * 60)
 
         print("\n📋 Violations detected:")
@@ -544,7 +544,7 @@ class SOPComplianceValidator:
             pass
 
         if compliance_results["status"] == "passed":
-            print("✅ SOP compliance validated - RTB proceeding")
+            print("✅ SOP compliance validated - Finalization proceeding")
             return 0
 
         # SECURITY: Check for emergency approval before blocking
@@ -556,7 +556,7 @@ class SOPComplianceValidator:
             return 2  # Emergency override exit code
 
         # SECURITY: No override mechanism - always block
-        print("\n❌ SOP VIOLATIONS DETECTED - RTB BLOCKED")
+        print("\n❌ SOP VIOLATIONS DETECTED - FINALIZATION BLOCKED")
         print("🔒 Override mechanism disabled for security")
         print("📝 Required: Fix all violations before proceeding")
 

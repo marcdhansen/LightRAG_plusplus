@@ -63,7 +63,7 @@ OPTIONS:
 
 EXAMPLES:
   $0 --verify           # Complete verification workflow
-  $0 --enforce          # Enforcement mode for RTB
+  $0 --enforce          # Enforcement mode for Finalization
   $0 --bypass-check     # Check for bypass incident patterns
 
 EOF
@@ -374,7 +374,7 @@ EOF
 ## Recommendations
 
 1. **Prevention**: Always create hand-off documents for multi-phase work
-2. **Detection**: Run this integration bridge before RTB completion
+2. **Detection**: Run this integration bridge before Finalization completion
 3. **Compliance**: Follow Multi-Phase Hand-off Protocol strictly
 4. **Monitoring**: Regular checks for bypass incident patterns
 

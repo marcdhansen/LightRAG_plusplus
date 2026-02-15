@@ -529,7 +529,7 @@ def enforce_tdd_quality_gates():
 ### **Automatic Blocks**
 
 - **Work Cannot Start**: PFC gate blocks non-compliant features
-- **Session Cannot Complete**: RTB gate blocks incomplete TDD
+- **Session Cannot Complete**: Finalization gate blocks incomplete TDD
 - **Deployment Blocked**: Quality gates prevent non-validated features
 - **Merge Rejected**: Quality checks fail without TDD evidence
 
@@ -702,7 +702,7 @@ class TDDGateSecurity:
 
 ### **TDD Success Criteria**
 
-- **All Gates Pass**: PFC and RTB validation successful
+- **All Gates Pass**: PFC and Finalization validation successful
 - **Quality Metrics Met**: Coverage and performance standards achieved
 - **Documentation Complete**: All required artifacts created
 - **Feature Ready**: Production deployment approved

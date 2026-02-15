@@ -55,7 +55,7 @@ flowchart TD
 1. **Session Management**
    - Pre-Flight Checks (PFC)
    - Initialization procedures
-   - Return To Base (RTB)
+   - Finalization
    - Collaboration protocols
 
 2. **Basic Development**

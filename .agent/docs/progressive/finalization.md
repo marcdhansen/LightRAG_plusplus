@@ -1,4 +1,4 @@
-# Return to Base (Progressive Documentation)
+# Finalization (Progressive Documentation)
 
 **Context**: Completing work session
 **Workflow**: Review/Completion
@@ -24,9 +24,9 @@
 
 ## Important Notes
 
-- RTB is MANDATORY before ending any work session
+- Finalization is MANDATORY before ending any work session
 - Work is NOT complete until `git push` succeeds
-- All critical checks must pass for successful RTB
+- All critical checks must pass for successful Finalization
 - The system adapts checks based on your work patterns
 
 ## Common Scenarios
@@ -37,13 +37,13 @@
 - Performance metrics collection
 - Session learnings recorded
 
-### Emergency RTB
+### Emergency Finalization
 - Critical checks only
 - Minimal cleanup
 - Post-emergency analysis scheduled
 - Full cleanup on next session
 
-### Quick RTB
+### Quick Finalization
 - Essential validations only
 - Fast cleanup process
 - Background optimization tasks
@@ -77,11 +77,11 @@ Lead system improvements:
 - Identify patterns in validation failures
 - Suggest optimizations to reduce friction
 - Help refine critical vs. optional checks
-- Mentor others in RTB best practices
+- Mentor others in Finalization best practices
 
 ## Troubleshooting
 
-**RTB Blocked by Critical Issues**
+**Finalization Blocked by Critical Issues**
 - Fix the specific issues mentioned
 - Use `/rtb --override` only in emergencies
 - Document why override was necessary
@@ -123,7 +123,7 @@ The system enforces these quality gates:
 
 ## Session Learnings
 
-Every RTB session contributes to system learning:
+Every Finalization session contributes to system learning:
 - Success patterns are reinforced
 - Failure points trigger process evolution
 - User preferences are recorded

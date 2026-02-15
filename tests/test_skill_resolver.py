@@ -27,7 +27,7 @@ def test_get_location_type():
 def test_fallback_strategies_present():
     """Test that default fallback strategies are registered."""
     resolver = UniversalSkillResolver()
-    assert "return-to-base" in resolver.fallback_strategies
+    assert "finalization" in resolver.fallback_strategies
     assert "reflect" in resolver.fallback_strategies
     assert "mission-debriefing" in resolver.fallback_strategies
 

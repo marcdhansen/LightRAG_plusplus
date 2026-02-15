@@ -32,7 +32,7 @@ class UniversalSkillResolver:
         ]
         self.skill_cache = {}
         self.fallback_strategies = {
-            "return-to-base": self._manual_rtb_fallback,
+            "finalization": self._manual_finalization_fallback,
             "reflect": self._manual_reflection_fallback,
             "mission-debriefing": self._manual_debrief_fallback,
             "planning": self._basic_planning_fallback,
@@ -164,15 +164,15 @@ class UniversalSkillResolver:
 
         return available
 
-    def _manual_rtb_fallback(self) -> dict | None:
-        """Manual RTB fallback implementation."""
+    def _manual_finalization_fallback(self) -> dict | None:
+        """Manual Finalization fallback implementation."""
         return {
-            "skill_path": "fallback:return-to-base",
-            "script_path": "return-to-base.sh",
+            "skill_path": "fallback:finalization",
+            "script_path": "finalization.sh",
             "location": "builtin-fallback",
             "priority": 999,
             "location_type": "emergency",
-            "description": "Manual RTB workflow - limited functionality",
+            "description": "Manual Finalization workflow - limited functionality",
         }
 
     def _manual_reflection_fallback(self) -> dict | None:
@@ -236,7 +236,7 @@ def test_skill_resolver():
             print(f"    - {skill['skill_path']} ({skill['location_type']})")
 
     # Test finding specific skills
-    test_skills = ["return-to-base", "reflect", "mission-debriefing"]
+    test_skills = ["finalization", "reflect", "mission-debriefing"]
     print(f"\n🧪 Testing Skill Resolution for: {test_skills}")
 
     for skill in test_skills:
