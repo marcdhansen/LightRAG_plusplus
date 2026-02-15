@@ -93,3 +93,4 @@ lightrag-1sk/
 worktrees/
 # bd worktree
 lightrag-nfb/
+.python-version
