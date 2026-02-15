@@ -14,13 +14,6 @@ repos:
       - id: check-json
         stages: [pre-commit, pre-push, manual]
         exclude: ^lightrag_webui/tsconfig\.json$
-      - id: validate-package-json
-        name: Validate package.json syntax
-        description: Ensure package.json files have valid JSON syntax
-        entry: python3 -c "import json; json.load(open('lightrag_webui/package.json'))"
-        language: system
-        files: ^lightrag_webui/package\.json$
-        stages: [pre-commit, pre-push]
       - id: check-toml
         stages: [pre-commit, pre-push, manual]
       - id: check-added-large-files

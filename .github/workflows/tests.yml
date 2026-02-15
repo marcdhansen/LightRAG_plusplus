@@ -1,4 +1,4 @@
-name: Offline Unit Tests
+name: CI
 
 on:
   push:
@@ -7,10 +7,34 @@ on:
     branches: [ main, dev ]
 
 jobs:
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - run: uv pip install --system ruff
+
+      - name: Run ruff check (non-blocking)
+        run: |
+          set +e
+          ruff check .
+          EXIT_CODE=$?
+          set -e
+          
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "⚠️ Linting issues found"
+            echo "This is a warning only - linting doesn't block PRs"
+          fi
+
   offline-tests:
     name: Offline Tests
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       issues: write
@@ -103,7 +127,7 @@ jobs:
         TEST_EXIT_CODE=$?
         echo "Test exit code: $TEST_EXIT_CODE"
         echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
-        
+
         # Exit with test code
         exit $TEST_EXIT_CODE
 
@@ -127,7 +151,7 @@ jobs:
         echo "📁 Current directory: $(pwd)"
         echo "📁 Files in current directory:"
         ls -la
-        
+
         echo "🔍 Looking for coverage files..."
         if [[ -f "coverage.xml" ]]; then
           echo "✅ coverage.xml found"
@@ -135,32 +159,32 @@ jobs:
         else
           echo "❌ coverage.xml NOT found"
         fi
-        
+
         if [[ -f "coverage.json" ]]; then
           echo "✅ coverage.json found"
           echo "  Size: $(wc -c < coverage.json) bytes"
         else
           echo "❌ coverage.json NOT found"
         fi
-        
+
         # Check if test exit code was successful
         TEST_EXIT_CODE="${{ steps.run-tests.outputs.test_exit_code }}"
         echo "Test exit code from previous step: $TEST_EXIT_CODE"
-        
+
         # If tests passed but coverage files missing, that's an issue
         if [[ "$TEST_EXIT_CODE" == "0" ]]; then
           if [[ ! -f "coverage.xml" || ! -f "coverage.json" ]]; then
             echo "⚠️ Tests passed but coverage files missing - this may be a configuration issue"
           fi
         fi
-        
+
         # Only fail if tests actually ran (not a collection error)
         if [[ "$TEST_EXIT_CODE" != "0" && "$TEST_EXIT_CODE" != "" ]]; then
           echo "Tests failed with exit code: $TEST_EXIT_CODE"
           # Don't fail here if tests failed - that's already captured
           exit 0
         fi
-        
+
         # Final check - must have coverage files
         if [[ -f "coverage.xml" && -f "coverage.json" ]]; then
           echo "✅ Coverage files verified"

@@ -9,13 +9,20 @@ Usage:
     python tdd_gate_validator.py [--bypass-justification "reason"] [--task-id <id>]
 """
 
+import os
+import sys
+
+# CI SKIP HEADER - defense in depth
+# Pre-commit hooks are local development tools, not CI tools
+if os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CI") == "true":
+    print("ℹ️ Skipping in CI (pre-commit hooks are local development tools)")
+    sys.exit(0)
+
 import argparse
 import ast
 import json
-import os
 import re
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any

@@ -1,16 +1,16 @@
 #!/bin/bash
+# CI SKIP HEADER - defense in depth
+# Pre-commit hooks are local development tools, not CI tools
+if [[ "$GITHUB_ACTIONS" == "true" ]] || [[ "$CI" == "true" ]]; then
+    echo "ℹ️ Skipping in CI (pre-commit hooks are local development tools)"
+    exit 0
+fi
+
 # SOP Compliance Wrapper for Pre-commit
-# Skips in CI environment, runs full check locally
+# Runs full check locally
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORCHESTRATOR_PATH="/Users/marchansen/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py"
-
-# CI detection - skip in GitHub Actions
-if [[ "$GITHUB_ACTIONS" == "true" ]]; then
-    echo "🤖 CI environment detected - skipping SOP compliance check"
-    echo "💡 SOP compliance already validated during earlier workflow phases"
-    exit 0
-fi
 
 # Check if orchestrator script exists
 if [[ ! -f "$ORCHESTRATOR_PATH" ]]; then

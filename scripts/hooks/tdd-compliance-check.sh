@@ -1,30 +1,27 @@
 #!/bin/bash
+# CI SKIP HEADER - defense in depth
+# Pre-commit hooks are local development tools, not CI tools
+if [[ "$GITHUB_ACTIONS" == "true" ]] || [[ "$CI" == "true" ]]; then
+    echo "ℹ️ Skipping in CI (pre-commit hooks are local development tools)"
+    exit 0
+fi
+
 # Enhanced TDD Compliance Check for Pre-commit
 # Validates TDD artifacts for feature/agent/task branches
+# This script runs locally only (CI skip header above)
 
-# Allow failure in CI environments for graceful degradation
-if [[ "$GITHUB_ACTIONS" == "true" || "$CI" == "true" ]]; then
-    set +e  # Don't exit on error in CI
-    echo "🤖 Running in CI mode - using lenient validation"
-else
-    set -e  # Strict mode for local development
-    echo "🔧 Running in local development mode - strict validation"
-fi
+set -e  # Strict mode for local development
+echo "🔧 Running in local development mode - strict validation"
 
 echo "🔍 Running TDD Compliance Check..."
 
-# Function to check if we're in CI and should be more lenient
+# Stub function for compatibility (CI already exited above)
 is_ci() {
-    [[ "$GITHUB_ACTIONS" == "true" || "$CI" == "true" ]]
+    return 1  # Always false - we already exited in CI
 }
 
 # Get current branch name
 BRANCH_NAME=$(git branch --show-current 2>/dev/null || echo "")
-
-# In CI, try to get branch name from environment if git fails
-if [[ -z "$BRANCH_NAME" && -n "$GITHUB_REF_NAME" ]]; then
-    BRANCH_NAME="$GITHUB_REF_NAME"
-fi
 
 # Skip for non-feature branches
 if [[ ! "$BRANCH_NAME" =~ ^(feature|agent|task)/.+ ]]; then
