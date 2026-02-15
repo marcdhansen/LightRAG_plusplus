@@ -40,6 +40,17 @@ repos:
         args: ['--strict', '--format', '{line: %(line)s, level: %(level_name)s, message: %(message)s}']
         exclude: ^k8s-deploy/
 
+  - repo: local
+    hooks:
+      - id: changelog-validation
+        name: CHANGELOG Validation
+        description: Validates CHANGELOG.md format and catches corruption
+        entry: bash
+        args: ['-c', 'if [ -f CHANGELOG.md ]; then grep -q "^## \\[\\] - " CHANGELOG.md && echo "ERROR: Corrupted CHANGELOG entry found (## [] - )" && exit 1; fi']
+        language: system
+        files: ^CHANGELOG\.md$
+        stages: [pre-commit, pre-push, manual]
+
   - repo: https://github.com/rhysd/actionlint
     rev: v1.6.27
     hooks:
