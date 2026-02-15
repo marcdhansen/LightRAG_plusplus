@@ -40,6 +40,13 @@ repos:
         args: ['--strict', '--format', '{line: %(line)s, level: %(level_name)s, message: %(message)s}']
         exclude: ^k8s-deploy/
 
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.6.27
+    hooks:
+      - id: actionlint
+        stages: [pre-commit]
+        args: ['-ignore', 'shellcheck']
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.3
     hooks:
