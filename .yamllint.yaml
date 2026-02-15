@@ -1,0 +1,31 @@
+extends:
+  default:
+    rules:
+      line-length: disable
+      trailing-spaces: error
+      new-line-at-end-of-file: enable
+      indentation:
+        spaces: 2
+        check-multi-line-strings: false
+      empty-lines:
+        max: 1
+        start-disable: true
+      comments:
+        min-spaces-from-content: 1
+      document-start: disable
+      hyphens: disable
+      key-duplicates: error
+      new-line-after-decorator: disable
+
+  github-actions:
+    rules:
+      line-length: disable
+
+validate: true
+
+yaml_files:
+  - .*.yaml
+  - *.yaml
+  - .github/workflows/*.yml
+
+yaml_offset: 2

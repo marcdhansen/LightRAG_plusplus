@@ -32,6 +32,14 @@ repos:
         exclude: ^lightrag/api/webui/
         stages: [pre-commit, pre-push, manual]
 
+  - repo: https://github.com/pre-commit/mirrors-yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        stages: [pre-commit, pre-push, manual]
+        args: ['--strict', '--format', '{line: %(line)s, level: %(level_name)s, message: %(message)s}']
+        exclude: ^k8s-deploy/
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.3
     hooks:
