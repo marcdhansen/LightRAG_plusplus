@@ -8,9 +8,6 @@ import time
 import traceback
 import warnings
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
-
-# Re-export LightRAGConfig for future extraction work
-from lightrag.core.config import LightRAGConfig
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from functools import partial
@@ -22,6 +19,9 @@ from typing import (
 )
 
 from dotenv import load_dotenv
+
+# Re-export LightRAGConfig for future extraction work
+from lightrag.core.config import LightRAGConfig
 
 try:
     from keybert import KeyBERT
@@ -240,6 +240,21 @@ class LightRAG:
         default=get_env_value("LITE_EXTRACTION", "false", str).lower() == "true"
     )
     """Use streamlined extraction prompts for resource-constrained environments."""
+
+    use_langextract: bool = field(
+        default=get_env_value("USE_LANGEXTRACT", "false", str).lower() == "true"
+    )
+    """Use LangExtract for entity extraction with character-level source spans."""
+
+    langextract_model: str = field(
+        default=get_env_value("LANGEXTRACT_MODEL", "qwen2.5-coder:3b", str)
+    )
+    """Model to use for LangExtract extraction."""
+
+    langextract_examples: str = field(
+        default=get_env_value("LANGEXTRACT_EXAMPLES", "", str)
+    )
+    """Path to JSON file containing LangExtract examples."""
 
     # Text chunking
     # ---

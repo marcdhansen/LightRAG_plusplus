@@ -23,6 +23,7 @@ from lightrag.base import (
     QueryResult,
     TextChunkSchema,
 )
+from lightrag.citation_ops import _generate_citations_with_auto_highlight
 from lightrag.constants import (
     DEFAULT_ENTITY_NAME_MAX_LENGTH,
     DEFAULT_ENTITY_TYPES,
@@ -38,16 +39,21 @@ from lightrag.constants import (
     SOURCE_IDS_LIMIT_METHOD_FIFO,
     SOURCE_IDS_LIMIT_METHOD_KEEP,
 )
+from lightrag.entity_extraction import (
+    _handle_single_entity_extraction,
+    _handle_single_relationship_extraction,
+    _parse_yaml_extraction,
+    _process_extraction_result,
+    _rebuild_from_extraction_result,
+)
 from lightrag.exceptions import (
-    ChunkTokenLimitExceededError,
     PipelineCancelledException,
 )
-from lightrag.highlight import generate_citations_from_highlights
 from lightrag.kg.memgraph_impl import MemgraphStorage, MemgraphVectorStorage
 from lightrag.kg.shared_storage import get_storage_keyed_lock
 from lightrag.prompt import PROMPTS
 from lightrag.query_mode import detect_query_mode
-from lightrag.chunking import chunking_by_token_size
+from lightrag.rerank_ops import rerank_graph_elements
 from lightrag.utils import (
     CacheData,
     Tokenizer,
@@ -58,7 +64,6 @@ from lightrag.utils import (
     convert_to_user_format,
     create_prefixed_exception,
     fix_tuple_delimiter_corruption,
-    generate_reference_list_from_chunks,
     handle_cache,
     is_float_regex,
     logger,
@@ -79,17 +84,6 @@ from lightrag.utils import (
     use_llm_func_with_cache,
 )
 
-from lightrag.entity_extraction import (
-    _handle_single_entity_extraction,
-    _handle_single_relationship_extraction,
-    _parse_yaml_extraction,
-    _process_extraction_result,
-    _rebuild_from_extraction_result,
-)
-
-from lightrag.citation_ops import _generate_citations_with_auto_highlight
-from lightrag.rerank_ops import rerank_graph_elements
-
 # use the .env that is inside the current folder
 # allows to use different .env file for each lightrag instance
 # the OS environment variables take precedence over the .env file
@@ -97,7 +91,6 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False
 
 
 # Re-export citation generation for backward compatibility
-from lightrag.citation_ops import _generate_citations_with_auto_highlight
 
 # Re-export chunking functions from chunking module for backward compatibility
 from lightrag.chunking import chunking_by_token_size, truncate_entity_identifier
@@ -977,6 +970,88 @@ async def _process_extraction_result(
             maybe_edges[(truncated_source, truncated_target)].append(relationship_data)
 
     return dict(maybe_nodes), dict(maybe_edges)
+
+
+async def _extract_entities_with_langextract(
+    chunks: dict[str, TextChunkSchema],
+    global_config: dict[str, Any],
+    pipeline_status: dict[str, Any] | None = None,
+    pipeline_status_lock: Any | None = None,
+) -> list:
+    """Extract entities using LangExtract with character-level source spans.
+
+    This provides an alternative to native LightRAG extraction with the added
+    benefit of precise source attribution.
+    """
+    import asyncio
+
+    from lightrag.langextract_integration import async_extract_with_langextract
+
+    langextract_model = global_config.get("langextract_model", "qwen2.5-coder:3b")
+    langextract_examples = global_config.get("langextract_examples", "")
+
+    llm_model_url = global_config.get("llm_model_url", "http://localhost:11434")
+
+    ordered_chunks = list(chunks.items())
+    total_chunks = len(ordered_chunks)
+    processed_chunks = 0
+
+    timestamp = int(asyncio.get_event_loop().time() * 1000)
+
+    chunk_results = []
+
+    for chunk_key, chunk_dp in ordered_chunks:
+        if pipeline_status is not None and pipeline_status_lock is not None:
+            async with pipeline_status_lock:
+                if pipeline_status.get("cancellation_requested", False):
+                    raise PipelineCancelledException(
+                        "User cancelled during LangExtract entity extraction"
+                    )
+
+        content = chunk_dp.get("content", "")
+        file_path = chunk_dp.get("file_path", "unknown_source")
+
+        try:
+            result = await async_extract_with_langextract(
+                text=content,
+                model_id=langextract_model,
+                model_url=llm_model_url,
+                examples_path=langextract_examples,
+            )
+
+            entities = result.get("entities", {})
+            relationships = result.get("relationships", {})
+
+            for _, entity_list in entities.items():
+                for entity in entity_list:
+                    entity["source_id"] = chunk_key
+                    entity["file_path"] = file_path
+                    entity["timestamp"] = timestamp
+
+            for _, edge_list in relationships.items():
+                for edge in edge_list:
+                    edge["source_id"] = chunk_key
+                    edge["file_path"] = file_path
+                    edge["timestamp"] = timestamp
+
+            chunk_results.append((entities, relationships))
+            entities_count = len(entities)
+            relations_count = len(relationships)
+
+        except Exception as e:
+            logger.error(f"LangExtract extraction failed for chunk {chunk_key}: {e}")
+            chunk_results.append(({}, {}))
+            entities_count = 0
+            relations_count = 0
+
+        processed_chunks += 1
+        log_message = f"LangExtract chunk {processed_chunks} of {total_chunks} extracted {entities_count} Ent + {relations_count} Rel"
+        logger.info(log_message)
+        if pipeline_status is not None and pipeline_status_lock is not None:
+            async with pipeline_status_lock:
+                pipeline_status["latest_message"] = log_message
+
+    return chunk_results
 
 
 async def _parse_yaml_extraction(
@@ -2863,6 +2938,13 @@ async def extract_entities(
 
     extraction_format = global_config.get("extraction_format", "standard")
     lite_extraction = global_config.get("lite_extraction", False)
+    use_langextract = global_config.get("use_langextract", False)
+
+    # LangExtract extraction path
+    if use_langextract:
+        return await _extract_entities_with_langextract(
+            chunks, global_config, pipeline_status, pipeline_status_lock
+        )
 
     if extraction_format == "key_value":
         # Use lite prompts if enabled
@@ -3304,7 +3386,7 @@ async def kg_query(
             verbose_debug(f"[CONTEXT] Forced fallback using query as keyword: {query}")
         else:
             verbose_debug(
-                f"[CONTEXT] Query too long for fallback, returning fail response"
+                "[CONTEXT] Query too long for fallback, returning fail response"
             )
             return QueryResult(content=PROMPTS["fail_response"])
 
@@ -3494,7 +3576,6 @@ async def get_keywords_from_query(
 
 # Re-export detect_query_mode from query_mode for backward compatibility
 # The function has been moved to lightrag.query_mode module
-from lightrag.query_mode import detect_query_mode
 
 
 async def extract_keywords_only(
@@ -3583,7 +3664,7 @@ async def extract_keywords_only(
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {e}")
         logger.error(f"LLM respond: {result}")
-        verbose_debug(f"[KEYWORDS] JSON decode error - returning empty keywords")
+        verbose_debug("[KEYWORDS] JSON decode error - returning empty keywords")
         return [], []
 
     hl_keywords = keywords_data.get("high_level_keywords", [])
@@ -4394,7 +4475,7 @@ async def _build_context_str(
         )
     elif available_chunk_tokens < 100:
         logger.warning(f"[TOKENS] Very low chunk budget: {available_chunk_tokens}")
-        verbose_debug(f"[TOKENS] May result in minimal or no chunk content")
+        verbose_debug("[TOKENS] May result in minimal or no chunk content")
 
     # Apply token truncation to chunks using the dynamic limit
     truncated_chunks = await process_chunks_unified(

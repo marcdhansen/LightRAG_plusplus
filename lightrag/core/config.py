@@ -108,6 +108,18 @@ class LightRAGConfig:
         default=get_env_value("LITE_EXTRACTION", "false", str).lower() == "true"
     )
 
+    use_langextract: bool = field(
+        default=get_env_value("USE_LANGEXTRACT", "false", str).lower() == "true"
+    )
+
+    langextract_model: str = field(
+        default=get_env_value("LANGEXTRACT_MODEL", "qwen2.5-coder:3b", str)
+    )
+
+    langextract_examples: str = field(
+        default=get_env_value("LANGEXTRACT_EXAMPLES", "", str)
+    )
+
     chunk_token_size: int = field(default=int(os.getenv("CHUNK_SIZE", 1200)))
 
     chunk_overlap_token_size: int = field(

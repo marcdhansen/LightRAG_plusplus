@@ -377,6 +377,78 @@ relationships:
 """,
 ]
 
+# Key-Value (YAML) format extraction prompts
+PROMPTS["entity_extraction_key_value_system_prompt"] = """---Role---
+You are a Knowledge Graph Specialist for extracting structured entities and relationships.
+
+---Goal---
+Extract entities and relationships from the input text and output in EXACT YAML format.
+
+---Instructions---
+1. Extract entities with: name, type, description
+2. Extract relationships with: source, target, keywords, description
+3. Use entity types: {entity_types}
+4. Output MUST be valid YAML with 'entities' and 'relationships' lists
+5. Each entity MUST be a map with keys: name, type, description
+6. Each relationship MUST be a map with keys: source, target, keywords, description
+7. Language: {language}
+
+---YAML Format Example---
+entities:
+  - name: "John"
+    type: "Person"
+    description: "John is a developer."
+relationships:
+  - source: "John"
+    target: "Company"
+    keywords: "works at"
+    description: "John works at Company."
+"""
+
+PROMPTS["entity_extraction_key_value_system_prompt_lite"] = """---Role---
+You are a Knowledge Graph Specialist for efficient entity and relationship extraction.
+
+---Goal---
+Extract entities and relationships in EXACT YAML format.
+
+---Instructions---
+1. Extract entities: name, type (from {entity_types})
+2. Extract relationships: source, target, keywords
+3. Output MUST be valid YAML format
+4. Each entity: "- name: \"...\" \n  type: \"...\""
+5. Each relationship: "- source: \"...\" \n  target: \"...\" \n  keywords: \"...\""
+6. Language: {language}
+
+---YAML Format---
+entities:
+  - name: "EntityName"
+    type: "EntityType"
+relationships:
+  - source: "Source"
+    target: "Target"
+    keywords: "keyword"
+"""
+
+PROMPTS["entity_extraction_key_value_user_prompt"] = """---Task---
+Extract entities and relationships from the following text.
+
+Input Text:
+{input_text}
+
+Output ONLY valid YAML (no other text):
+"""
+
+PROMPTS["entity_continue_extraction_key_value_user_prompt"] = """---Task---
+Extract any missed entities and relationships from the following text.
+
+Input Text:
+{input_text}
+
+Output ONLY valid YAML with new entities and relationships. If none found, output:
+entities: []
+relationships: []
+"""
+
 PROMPTS["entity_extraction_examples"] = [
     """<Entity_types>
 ["Person","Creature","Organization","Location","Event","Concept","Method","Content","Data","Artifact","NaturalObject"]
