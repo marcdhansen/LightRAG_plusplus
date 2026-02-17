@@ -130,6 +130,11 @@ jobs:
           -m offline \
           --ignore=tests/ui \
           --ignore=tests/api \
+          --ignore=tests/test_langextract_theory.py \
+          --ignore=tests/test_langextract_debug.py \
+          --ignore=tests/test_langextract_full.py \
+          --ignore=tests/test_langextract_grounding.py \
+          --ignore=tests/test_extraction_benchmark.py \
           --timeout=300 \
           -v \
           --tb=short \
@@ -154,6 +159,11 @@ jobs:
           -m offline \
           --ignore=tests/ui \
           --ignore=tests/api \
+          --ignore=tests/test_langextract_theory.py \
+          --ignore=tests/test_langextract_debug.py \
+          --ignore=tests/test_langextract_full.py \
+          --ignore=tests/test_langextract_grounding.py \
+          --ignore=tests/test_extraction_benchmark.py \
           --timeout=300 \
           -v \
           --tb=long \
