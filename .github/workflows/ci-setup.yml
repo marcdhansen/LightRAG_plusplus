@@ -18,9 +18,55 @@ on:
           default: '3.12'
 
 jobs:
+    validate-changelog:
+        name: Validate CHANGELOG.md
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Validate CHANGELOG.md format
+              id: validate
+              run: |
+                echo "🔍 Validating CHANGELOG.md..."
+                
+                if [ ! -f CHANGELOG.md ]; then
+                  echo "✅ CHANGELOG.md does not exist (optional)"
+                  exit 0
+                fi
+
+                SIZE=$(wc -c < CHANGELOG.md)
+                SIZE_MB=$((SIZE / 1024 / 1024))
+                echo "CHANGELOG.md size: ${SIZE_MB}MB ($SIZE bytes)"
+                
+                if [ "$SIZE" -gt 1048576 ]; then
+                  echo "❌ ERROR: CHANGELOG.md exceeds 1MB limit ($SIZE bytes)"
+                  exit 1
+                fi
+
+                FIRST_LINE=$(head -n 1 CHANGELOG.md)
+                if [ "$FIRST_LINE" != "# Changelog" ]; then
+                  echo "❌ ERROR: CHANGELOG.md does not start with '# Changelog'"
+                  exit 1
+                fi
+
+                CORRUPTED_COUNT=$(grep -c "^## \[\] - " CHANGELOG.md 2>/dev/null || echo "0")
+                if [ "$CORRUPTED_COUNT" -gt 0 ]; then
+                  echo "❌ ERROR: Found $CORRUPTED_COUNT corrupted entries (empty author)"
+                  exit 1
+                fi
+
+                DUPLICATE_LINES=$(sort CHANGELOG.md | uniq -d | grep -c "^## \[20" || echo "0")
+                if [ "$DUPLICATE_LINES" -gt 10 ]; then
+                  echo "⚠️ WARNING: Found $DUPLICATE_LINES duplicate date entries"
+                fi
+
+                echo "✅ CHANGELOG.md validation passed"
+
     setup-ci-environment:
         name: Setup CI Environment
         runs-on: ubuntu-latest
+        needs: validate-changelog
 
         outputs:
             cache-key-pip: ${{ steps.cache-key.outputs.pip }}
@@ -202,7 +248,7 @@ jobs:
     environment-summary:
         name: Environment Summary
         runs-on: ubuntu-latest
-        needs: setup-ci-environment
+        needs: [validate-changelog, setup-ci-environment]
 
         steps:
             - name: Display environment summary
@@ -216,47 +262,3 @@ jobs:
                 echo "========================"
                 echo "✅ CI environment ready for workflows"
 
-    validate-changelog:
-        name: Validate CHANGELOG.md
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
-
-            - name: Validate CHANGELOG.md format
-              id: validate
-              run: |
-                echo "🔍 Validating CHANGELOG.md..."
-                
-                if [ ! -f CHANGELOG.md ]; then
-                  echo "✅ CHANGELOG.md does not exist (optional)"
-                  exit 0
-                fi
-
-                SIZE=$(wc -c < CHANGELOG.md)
-                SIZE_MB=$((SIZE / 1024 / 1024))
-                echo "CHANGELOG.md size: ${SIZE_MB}MB ($SIZE bytes)"
-                
-                if [ "$SIZE" -gt 1048576 ]; then
-                  echo "❌ ERROR: CHANGELOG.md exceeds 1MB limit ($SIZE bytes)"
-                  exit 1
-                fi
-
-                FIRST_LINE=$(head -n 1 CHANGELOG.md)
-                if [ "$FIRST_LINE" != "# Changelog" ]; then
-                  echo "❌ ERROR: CHANGELOG.md does not start with '# Changelog'"
-                  exit 1
-                fi
-
-                CORRUPTED_COUNT=$(grep -c "^## \[\] - " CHANGELOG.md 2>/dev/null || echo "0")
-                if [ "$CORRUPTED_COUNT" -gt 0 ]; then
-                  echo "❌ ERROR: Found $CORRUPTED_COUNT corrupted entries (empty author)"
-                  exit 1
-                fi
-
-                DUPLICATE_LINES=$(sort CHANGELOG.md | uniq -d | grep -c "^## \[20" || echo "0")
-                if [ "$DUPLICATE_LINES" -gt 10 ]; then
-                  echo "⚠️ WARNING: Found $DUPLICATE_LINES duplicate date entries"
-                fi
-
-                echo "✅ CHANGELOG.md validation passed"

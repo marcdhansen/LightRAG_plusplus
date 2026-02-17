@@ -45,11 +45,17 @@ repos:
       - id: changelog-validation
         name: CHANGELOG Validation
         description: Validates CHANGELOG.md format and catches corruption
-        entry: bash
-        args: ['-c', 'if [ -f CHANGELOG.md ]; then grep -q "^## \\[\\] - " CHANGELOG.md && echo "ERROR: Corrupted CHANGELOG entry found (## [] - )" && exit 1; fi']
-        language: system
+        entry: ./scripts/hooks/changelog-validate.sh
+        language: script
         files: ^CHANGELOG\.md$
         stages: [pre-commit, pre-push, manual]
+      - id: changelog-commit-validation
+        name: CHANGELOG Commit Validation
+        description: Validates staged CHANGELOG.md changes before commit
+        entry: ./scripts/hooks/changelog-commit-validate.sh
+        language: script
+        files: ^CHANGELOG\.md$
+        stages: [commit-msg]
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.6.27
