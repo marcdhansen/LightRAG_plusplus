@@ -1,0 +1,16 @@
+{
+  "chunk-f62d22bc770c3ed9f8af643692dfae3f": {
+    "tokens": 5,
+    "content": "Steve Jobs founded Apple.",
+    "chunk_order_index": 0,
+    "full_doc_id": "doc-f62d22bc770c3ed9f8af643692dfae3f",
+    "file_path": "unknown_source",
+    "llm_cache_list": [
+      "default:extract:636cd3fb94591cadc142a0cc4299d1c9",
+      "default:extract:33ae394a7be1ef7fe7a896c6d49b8e0e"
+    ],
+    "create_time": 1771203303,
+    "update_time": 1771203356,
+    "_id": "chunk-f62d22bc770c3ed9f8af643692dfae3f"
+  }
+}

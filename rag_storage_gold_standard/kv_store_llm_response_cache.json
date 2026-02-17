@@ -1,0 +1,22 @@
+{
+  "default:extract:636cd3fb94591cadc142a0cc4299d1c9": {
+    "return": "```yaml\nentities:\n  - name: \"Steve Jobs\"\n    type: \"Person\"\n    description: \"Steve Jobs is an American businessman, engineer, inventor, and philanthropist.\"\n  - name: \"Apple\"\n    type: \"Organization\"\n    description: \"Apple Inc. is an American multinational technology company headquartered in Cupertino, California.\"\n\nrelationships:\n  - source: \"Steve Jobs\"\n    target: \"Apple\"\n    keywords: \"founded\"\n    description: \"Steve Jobs founded Apple Inc.\"\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-f62d22bc770c3ed9f8af643692dfae3f",
+    "original_prompt": "---Task---\nExtract entities and relationships from the following text.\n\nInput Text:\nSteve Jobs founded Apple.\n\nOutput ONLY valid YAML (no other text):\n---Role---\nYou are a Knowledge Graph Specialist for extracting structured entities and relationships.\n\n---Goal---\nExtract entities and relationships from the input text and output in EXACT YAML format.\n\n---Instructions---\n1. Extract entities with: name, type, description\n2. Extract relationships with: source, target, keywords, description\n3. Use entity types: Person,Location,Organization,Concept,Theory,Event\n4. Output MUST be valid YAML with 'entities' and 'relationships' lists\n5. Each entity MUST be a map with keys: name, type, description\n6. Each relationship MUST be a map with keys: source, target, keywords, description\n7. Language: English\n\n---YAML Format Example---\nentities:\n  - name: \"John\"\n    type: \"Person\"\n    description: \"John is a developer.\"\nrelationships:\n  - source: \"John\"\n    target: \"Company\"\n    keywords: \"works at\"\n    description: \"John works at Company.\"",
+    "queryparam": null,
+    "create_time": 1771203349,
+    "update_time": 1771203349,
+    "_id": "default:extract:636cd3fb94591cadc142a0cc4299d1c9"
+  },
+  "default:extract:33ae394a7be1ef7fe7a896c6d49b8e0e": {
+    "return": "```yaml\nentities: []\nrelationships: []\n```",
+    "cache_type": "extract",
+    "chunk_id": "chunk-f62d22bc770c3ed9f8af643692dfae3f",
+    "original_prompt": "---Task---\nExtract any missed entities and relationships from the following text.\n\nInput Text:\nSteve Jobs founded Apple.\n\nOutput ONLY valid YAML with new entities and relationships. If none found, output:\nentities: []\nrelationships: []\n---Role---\nYou are a Knowledge Graph Specialist for extracting structured entities and relationships.\n\n---Goal---\nExtract entities and relationships from the input text and output in EXACT YAML format.\n\n---Instructions---\n1. Extract entities with: name, type, description\n2. Extract relationships with: source, target, keywords, description\n3. Use entity types: Person,Location,Organization,Concept,Theory,Event\n4. Output MUST be valid YAML with 'entities' and 'relationships' lists\n5. Each entity MUST be a map with keys: name, type, description\n6. Each relationship MUST be a map with keys: source, target, keywords, description\n7. Language: English\n\n---YAML Format Example---\nentities:\n  - name: \"John\"\n    type: \"Person\"\n    description: \"John is a developer.\"\nrelationships:\n  - source: \"John\"\n    target: \"Company\"\n    keywords: \"works at\"\n    description: \"John works at Company.\"\n[{\"role\": \"user\", \"content\": \"---Task---\\nExtract entities and relationships from the following text.\\n\\nInput Text:\\nSteve Jobs founded Apple.\\n\\nOutput ONLY valid YAML (no other text):\"}, {\"role\": \"assistant\", \"content\": \"```yaml\\nentities:\\n  - name: \\\"Steve Jobs\\\"\\n    type: \\\"Person\\\"\\n    description: \\\"Steve Jobs is an American businessman, engineer, inventor, and philanthropist.\\\"\\n  - name: \\\"Apple\\\"\\n    type: \\\"Organization\\\"\\n    description: \\\"Apple Inc. is an American multinational technology company headquartered in Cupertino, California.\\\"\\n\\nrelationships:\\n  - source: \\\"Steve Jobs\\\"\\n    target: \\\"Apple\\\"\\n    keywords: \\\"founded\\\"\\n    description: \\\"Steve Jobs founded Apple Inc.\\\"\\n```\"}]",
+    "queryparam": null,
+    "create_time": 1771203356,
+    "update_time": 1771203356,
+    "_id": "default:extract:33ae394a7be1ef7fe7a896c6d49b8e0e"
+  }
+}
