@@ -268,6 +268,40 @@ bd --sandbox <command>
 
 Alternatively, ensure the Beads daemon (`bd daemon start`) is running with proper permissions.
 
+### Glob Tool Limitation
+
+The `glob` tool excludes `.config` directories by default (security practice). When searching for files in `~/.config/`, use the explicit `path` parameter:
+
+```python
+# Wrong - will not find files in ~/.config/
+glob(pattern="**/next.sh")
+
+# Correct - explicitly specify path
+glob(path="/Users/marchansen/.config", pattern="**/next.sh")
+```
+
+This applies to searching any files under `~/.config/` from the LightRAG++ project context.
+
+### Reporting Skill Issues
+
+When using skills, **always verify the skill works as expected** and inform the user of any problems:
+
+- **Broken scripts**: If a skill references a script that doesn't exist or fails to run, report it immediately
+- **Missing paths**: Check that referenced files exist before executing
+- **Test before relying**: Run skill commands manually to verify they work
+- **Document workarounds**: If you find a fix (like using explicit `path` parameter), document it and inform users
+
+Example workflow:
+```bash
+# Verify skill script exists before using
+ls /path/to/skill/scripts/script.sh
+
+# Test the command
+/path/to/skill/scripts/script.sh
+```
+
+**Never assume a skill will work** - always validate and report issues to users.
+
 ---
 
 ## 📝 Markdown Integrity Verification
