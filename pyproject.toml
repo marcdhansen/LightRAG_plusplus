@@ -85,7 +85,7 @@ api = [
     "PyJWT>=2.8.0,<3.0.0",
     "python-jose[cryptography]>=3.3.0,<4.0.0",
     "python-multipart>=0.0.6,<1.0.0",
-    "pytz>=2023.3,<2025.0",
+    "pytz>=2023.3,<2026.0",
     "uvicorn>=0.23.0,<1.0.0",
     "gunicorn>=21.0.0,<23.0.0",
     # Document processing dependencies (required for API document upload functionality)
