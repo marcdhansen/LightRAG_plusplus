@@ -123,6 +123,19 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: "Debug: Log extracted commit info"
+        if: steps.check-update.outputs.skip != 'true' && steps.size-check.outputs.size_exceeded == 'false'
+        run: |
+          DATE="${{ steps.commit-info.outputs.date }}"
+          AUTHOR="${{ steps.commit-info.outputs.author }}"
+          MESSAGE="${{ steps.commit-info.outputs.message }}"
+          echo "=== DEBUG: Commit Info Extraction ==="
+          echo "DATE: '$DATE'"
+          echo "AUTHOR: '$AUTHOR'"
+          echo "MESSAGE: '$MESSAGE'"
+          echo "MESSAGE_LENGTH: ${#MESSAGE}"
+          echo "=== END DEBUG ==="
+
       - name: Install gawk for validation
         if: steps.validate-changelog.outputs.valid == 'true' || !hashFiles('CHANGELOG.md')
         run: |
@@ -138,17 +151,27 @@ jobs:
           DATE="${{ steps.commit-info.outputs.date }}"
           AUTHOR="${{ steps.commit-info.outputs.author }}"
 
+          echo "Validating variables before awk..."
+          if [ -z "$DATE" ] || [ -z "$AUTHOR" ] || [ -z "$MESSAGE" ]; then
+            echo "ERROR: Empty variable detected!"
+            echo "DATE='$DATE'"
+            echo "AUTHOR='$AUTHOR'"
+            echo "MESSAGE='$MESSAGE'"
+            exit 1
+          fi
+          echo "✅ All variables validated"
+
           if [ ! -f CHANGELOG.md ]; then
             echo "# Changelog" > CHANGELOG.md
             echo "" >> CHANGELOG.md
           fi
 
-          awk '
+          awk -v date="$DATE" -v author="$AUTHOR" -v message="$MESSAGE" '
             /^# Changelog$/ && !inserted {
               print
-              print "## [" DATE "] - " AUTHOR
+              print "## [" date "] - " author
               print ""
-              print MESSAGE
+              print message
               print ""
               inserted=1
               next
