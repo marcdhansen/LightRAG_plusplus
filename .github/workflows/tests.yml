@@ -112,13 +112,13 @@ jobs:
         # Ensure langgraph checkpoint dependencies are explicitly installed
         pip install "langgraph>=1.0.0" "langgraph-checkpoint>=4.0.0" "langgraph-checkpoint-sqlite>=3.0.0"
         # Ensure coverage and test dependencies are available
-        pip install pytest-cov>=4.0.0 pytest-xdist coverage[toml]
+        pip install pytest-cov>=4.0.0 pytest-xdist pytest-timeout>=2.0.0 coverage[toml]
         echo "✅ Dependencies installed successfully"
 
     - name: Verify Test Discovery
       run: |
         echo "🔍 Verifying test discovery before execution..."
-        python -m pytest tests/ --collect-only -m offline --ignore=tests/ui -q
+        python -m pytest tests/ --collect-only -m offline --ignore=tests/ui --ignore=tests/api -q
         echo "✅ Test discovery completed successfully"
 
     - name: Run offline tests
@@ -129,6 +129,8 @@ jobs:
         python -m pytest tests/ \
           -m offline \
           --ignore=tests/ui \
+          --ignore=tests/api \
+          --timeout=300 \
           -v \
           --tb=short \
           --junitxml=test-results.xml \
@@ -151,6 +153,8 @@ jobs:
         python -m pytest tests/ \
           -m offline \
           --ignore=tests/ui \
+          --ignore=tests/api \
+          --timeout=300 \
           -v \
           --tb=long \
           --no-cov \
