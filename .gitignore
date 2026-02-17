@@ -84,6 +84,8 @@ global_docs
 
 # beads-related files
 # .beads/issues.jsonl (removed to allow tracking)
+.beads/.jsonl.lock
+.beads/.migration-hint-ts
 # bd worktree
 task-lightrag-nml/
 # bd worktree
