@@ -16,4 +16,3 @@ This implements 5 validation layers:
 3. CI validate-changelog job (runs first, ~5 seconds)
 4. Branch protection (when configured)
 5. Root cause fix (proper awk variable passing)
-

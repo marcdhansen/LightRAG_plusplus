@@ -1,0 +1,1 @@
+/Users/marchansen/.config/opencode/skills/show-next-task/scripts/next.sh
