@@ -12,7 +12,7 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'assigned'
     steps:
       - name: Update project status to In Progress
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const projectOwner = context.repo.owner;
@@ -138,7 +138,7 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'unassigned'
     steps:
       - name: Update project status to To Do
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const projectOwner = context.repo.owner;
@@ -173,7 +173,7 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'closed'
     steps:
       - name: Update project status to Done
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const projectOwner = context.repo.owner;
@@ -208,7 +208,7 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'reopened'
     steps:
       - name: Update project status to To Do
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const projectOwner = context.repo.owner;
@@ -243,7 +243,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Update project status based on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const projectOwner = context.repo.owner;
