@@ -140,7 +140,7 @@ jobs:
 
       - name: Upload Test Results
         if: always() && (hashFiles('test-results.xml') != '')
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: unit-test-results
           path: |
@@ -150,7 +150,7 @@ jobs:
 
       - name: Upload Coverage Artifacts
         if: always() && (hashFiles('coverage.xml') != '' || hashFiles('coverage.json') != '')
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: milestone-coverage-reports
           path: |
@@ -164,7 +164,7 @@ jobs:
           python .agent/scripts/tdd_gate_validator.py --ci-mode
 
       - name: Upload TDD Gate Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: tdd-gate-results
@@ -203,7 +203,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Integration Test Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-test-results
@@ -231,7 +231,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Download test artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: "*-results"
@@ -353,7 +353,7 @@ jobs:
             });
 
       - name: Upload Validation Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: milestone-validation-results
